@@ -1,0 +1,38 @@
+<dx-toolbar id="toolbar" title="Dinamico Gym">
+  <dxi-item
+    widget="dxButton"
+    [options]="buttonOptions"
+    location="before">
+  </dxi-item>
+</dx-toolbar>
+<dx-drawer
+  template="template"
+  [height]="1000"
+  [(opened)]="isDrawerOpen"
+  [minSize]="37"
+  revealMode="expand"
+  openedStateMode="overlap">
+  <div *dxTemplate="let data of 'template'">
+    <dx-list
+      class="blue"
+      [items]="navigation"
+      [width]="200"
+      selectionMode="single"
+      (onSelectionChanged)="this.isDrawerOpen = false"
+      itemTemplate="links">
+      <div *dxTemplate="let link of 'links'">
+        <a [routerLink]="['/' + link.path]">
+          <div>
+            <div class="dx-list-item-icon-container">
+              <i style="color: white;" class="dx-icon dx-list-item-icon dx-icon-{{link.icon}}"></i>
+            </div>
+            <span style="color: white">{{ link.text }}</span>
+          </div>
+        </a>
+      </div>
+    </dx-list>
+  </div>
+  <div id="view">
+    <router-outlet></router-outlet>
+  </div>
+</dx-drawer>

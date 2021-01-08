@@ -1,0 +1,39 @@
+<h4 class="text-center">Clients</h4>
+<div class="container">
+  <dx-data-grid
+    id="gridContainer"
+    [dataSource]="clients"
+    [columns]="['fullName', 'phone', 'active']"
+    [showBorders]="true"
+    (onRowInserting)="onInserting($event)"
+    (onRowInserted)="onInserted($event)">
+    <dxo-editing
+      mode="popup"
+      [allowAdding]="true">
+    </dxo-editing>
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [showPageSizeSelector]="true"
+      [allowedPageSizes]="[10, 20, 40]"
+      [showInfo]="true">
+    </dxo-pager>
+    <dxo-search-panel
+      [visible]="true"
+      [width]="240"
+      placeholder="Search..."></dxo-search-panel>
+
+    <dxi-column dataField="fullName"  dataType="string" ></dxi-column>
+    <dxi-column dataField="phone"  dataType="string" ></dxi-column>
+    <dxi-column dataField="active"  cellTemplate="activeCell" ></dxi-column>
+    <dxi-column dataField="dateOfBirth"  dataType="date" [hidingPriority]="1"></dxi-column>
+    <dxi-column dataField="email"  dataType="string" [hidingPriority]="2"></dxi-column>
+
+
+    <div *dxTemplate="let row of 'activeCell'">
+      <i *ngIf="row" class="fas fa-check-circle text-success"></i>
+      <i *ngIf="!row" class="fas fa-window-close text-danger"></i>
+    </div>
+
+
+  </dx-data-grid>
+</div>
