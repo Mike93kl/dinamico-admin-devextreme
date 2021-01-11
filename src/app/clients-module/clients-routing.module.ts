@@ -3,6 +3,7 @@ import {Routes, RouterModule} from '@angular/router';
 import {ClientsComponent} from './components/clients/clients.component';
 import {AuthGuard} from '../guards/AuthGuard';
 import {MainComponent} from './components/main/main.component';
+import {ClientComponent} from './components/client/client.component';
 
 const routes: Routes = [
   {
@@ -12,6 +13,9 @@ const routes: Routes = [
     children: [
       {
         path: '', component: ClientsComponent, pathMatch: 'full'
+      },
+      {
+        path: ':uid', component: ClientComponent
       }
     ]
   },

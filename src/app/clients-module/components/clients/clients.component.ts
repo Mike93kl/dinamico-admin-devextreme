@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ClientService} from '../../../services/client.service';
 import {ClientModel} from '../../../models/ClientModel';
 import DevExpress from 'devextreme';
@@ -6,6 +6,8 @@ import alert = DevExpress.ui.dialog.alert;
 import {PopupService} from '../../../services/popup.service';
 import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {handleFunctionResponseWithPromise, rejectFunctionResponsePromise} from '../../../utils/utils';
+import {DatePipe} from '@angular/common';
+import {Subscription} from 'rxjs';
 
 declare var $: any;
 
@@ -14,37 +16,66 @@ declare var $: any;
   templateUrl: './clients.component.html',
   styleUrls: ['./clients.component.css']
 })
-export class ClientsComponent implements OnInit {
+export class ClientsComponent implements OnInit, OnDestroy {
 
   clients: ClientModel[];
 
-  constructor(private clientService: ClientService, private popup: PopupService) {
+  // subscribers
+  clientsSub: Subscription;
+
+  constructor(private clientService: ClientService, private popup: PopupService, private datePipe: DatePipe) {
   }
 
   ngOnInit(): void {
-    this.clientService.getAll().subscribe(clients => {
+    this.clientsSub = this.clientService.getAll().subscribe(clients => {
       this.clients = clients;
       console.log(this.clients);
     }, error => this.popup.error(error));
   }
 
+  ngOnDestroy(): void {
+    this.clientsSub.unsubscribe();
+  }
+
   onInserting($event): any {
-    const promise = new $.Deferred();
+    const deferred = new $.Deferred();
     if ($event.data.__KEY__) {
       delete $event.data.__KEY__;
     }
+    $event.data.dateOfBirth = Date.parse($event.data.dateOfBirth);
     const sub = this.clientService.createNewClient($event.data)
       .subscribe(result => {
-        handleFunctionResponseWithPromise(promise, result);
+        handleFunctionResponseWithPromise(deferred, result);
         sub.unsubscribe();
       }, error => {
-        rejectFunctionResponsePromise(promise, error);
+        rejectFunctionResponsePromise(deferred, error);
         sub.unsubscribe();
       });
-    $event.cancel = promise.promise();
+    $event.cancel = deferred.promise();
   }
 
   onInserted($event: any): void {
     this.popup.success(`Client ${$event.data.fullName} created`);
+  }
+
+  populateDate(object: any): string {
+    let date;
+    if (!object) {
+      return 'n/a';
+    }
+    if (typeof object === 'string') {
+      date = Date.parse(object);
+      if (isNaN(date)) {
+        return 'n/a';
+      }
+    }
+    if (object.seconds) {
+      date = new Date(object.seconds * 1000);
+    }
+    return this.datePipe.transform(date, 'dd-MM-yyyy');
+  }
+
+  g(a) {
+    console.log(a);
   }
 }

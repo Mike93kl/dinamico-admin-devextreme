@@ -12,7 +12,6 @@ import {AngularFireDatabaseModule} from '@angular/fire/database';
 import {AngularFirestoreModule} from '@angular/fire/firestore';
 import {AngularFireFunctionsModule} from '@angular/fire/functions';
 import { DashboardComponent } from './shared/dashboard/dashboard.component';
-import { DxDrawerModule, DxListModule, DxToolbarModule} from 'devextreme-angular';
 import {ClientsModule} from './clients-module/clients.module';
 
 @NgModule({

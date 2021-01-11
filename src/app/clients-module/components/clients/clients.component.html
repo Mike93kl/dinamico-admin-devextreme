@@ -22,10 +22,10 @@
       [width]="240"
       placeholder="Search..."></dxo-search-panel>
 
-    <dxi-column dataField="fullName"  dataType="string" ></dxi-column>
+    <dxi-column dataField="fullName"  cellTemplate="openClientCell" ></dxi-column>
     <dxi-column dataField="phone"  dataType="string" ></dxi-column>
     <dxi-column dataField="active"  cellTemplate="activeCell" ></dxi-column>
-    <dxi-column dataField="dateOfBirth"  dataType="date" [hidingPriority]="1"></dxi-column>
+    <dxi-column dataField="dateOfBirth"  dataType="date" cellTemplate="dateCell" [hidingPriority]="1"></dxi-column>
     <dxi-column dataField="email"  dataType="string" [hidingPriority]="2"></dxi-column>
 
 
@@ -33,7 +33,12 @@
       <i *ngIf="row" class="fas fa-check-circle text-success"></i>
       <i *ngIf="!row" class="fas fa-window-close text-danger"></i>
     </div>
-
+    <div *dxTemplate="let row of 'openClientCell'">
+      <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>
+    </div>
+    <div *dxTemplate="let row of 'dateCell'">
+      <p (click)="g(row)">{{  populateDate(row.key.dateOfBirth) }}</p>
+    </div>
 
   </dx-data-grid>
 </div>
