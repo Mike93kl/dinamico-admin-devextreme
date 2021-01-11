@@ -1,11 +1,11 @@
 import {Component, OnInit} from '@angular/core';
-import {ClientService} from '../../services/client.service';
-import {ClientModel} from '../../models/ClientModel';
+import {ClientService} from '../../../services/client.service';
+import {ClientModel} from '../../../models/ClientModel';
 import DevExpress from 'devextreme';
 import alert = DevExpress.ui.dialog.alert;
-import {PopupService} from '../../services/popup.service';
-import {UNEXPECTED_ERROR} from '../../utils/ui_messages';
-import {handleFunctionResponseWithPromise, rejectFunctionResponsePromise} from '../../utils/utils';
+import {PopupService} from '../../../services/popup.service';
+import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {handleFunctionResponseWithPromise, rejectFunctionResponsePromise} from '../../../utils/utils';
 
 declare var $: any;
 
@@ -30,6 +30,9 @@ export class ClientsComponent implements OnInit {
 
   onInserting($event): any {
     const promise = new $.Deferred();
+    if ($event.data.__KEY__) {
+      delete $event.data.__KEY__;
+    }
     const sub = this.clientService.createNewClient($event.data)
       .subscribe(result => {
         handleFunctionResponseWithPromise(promise, result);

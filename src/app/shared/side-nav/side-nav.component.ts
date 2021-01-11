@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-main',
-  templateUrl: './main.component.html',
-  styleUrls: ['./main.component.css']
+  selector: 'app-side-nav',
+  templateUrl: './side-nav.component.html',
+  styleUrls: ['./side-nav.component.css']
 })
-export class MainComponent implements OnInit {
+export class SideNavComponent implements OnInit {
   title = 'getting-started-with-drawer';
   navigation: any[] = [
     {id: 0, text: 'Dashboard', icon: 'fields', path: ''},
@@ -24,6 +24,7 @@ export class MainComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    console.log('sidenav loaded');
   }
 
 }
