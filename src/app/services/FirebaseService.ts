@@ -7,7 +7,7 @@ import {Model} from '../models/Model';
 export class FirebaseService<T extends Model> {
   readonly collection;
 
-  constructor(private fs: AngularFirestore, collection: string) {
+  constructor(protected fs: AngularFirestore, collection: string) {
     this.collection = collection;
     this.fs = fs;
   }

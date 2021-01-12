@@ -1,7 +1,9 @@
 <a routerLink="../"><i style="font-size: 1.5em" class="fas fa-arrow-left text-lg-left"></i></a>
 <div class="container" *ngIf="client">
-  <i *ngIf="!isInEditMode" (click)="editClientDetails()" style="font-size: 1.7em; cursor: pointer" class="fas fa-edit text-primary float-right"></i>
-  <i *ngIf="isInEditMode" (click)="editClientDetails()" style="font-size: 1.7em; cursor: pointer" class="fas fa-window-close text-warning float-right"></i>
+  <i *ngIf="!isInEditMode" (click)="editClientDetails()" style="font-size: 1.7em; cursor: pointer"
+     class="fas fa-edit text-primary float-right"></i>
+  <i *ngIf="isInEditMode" (click)="editClientDetails()" style="font-size: 1.7em; cursor: pointer"
+     class="fas fa-window-close text-warning float-right"></i>
   <dx-form id="form"
            [formData]="client">
     <dxi-item itemType="group" cssClass="first-group" [colCount]="4">
@@ -12,16 +14,46 @@
         <dxi-item dataField="fullName" [editorOptions]="{ disabled: !isInEditMode }"></dxi-item>
         <dxi-item dataField="email" [disabled]="true"></dxi-item>
         <dxi-item dataField="phone" [editorOptions]="{ disabled: !isInEditMode }"></dxi-item>
-        <dxi-item dataField="dateOfBirth" editorType="dxDateBox" [editorOptions]="{ width: '100%', disabled: !isInEditMode }"></dxi-item>
+        <dxi-item dataField="dateOfBirth" editorType="dxDateBox"
+                  [editorOptions]="{ width: '100%', disabled: !isInEditMode }"></dxi-item>
         <dxi-item dataField="active" [editorOptions]="{ disabled: !isInEditMode }"></dxi-item>
         <dxi-item dataField="requestPasswordChange" caption="PWD changed from app" [disabled]="true"></dxi-item>
       </dxi-item>
     </dxi-item>
     <dxi-item itemType="group" cssClass="second-group" [colCount]="2">
-      <dxi-item dataField="notes" [colSpan]="2" editorType="dxTextArea" [editorOptions]="{ height: 140, disabled: !isInEditMode }"></dxi-item>
+      <dxi-item dataField="notes" [colSpan]="2" editorType="dxTextArea"
+                [editorOptions]="{ height: 140, disabled: !isInEditMode }"></dxi-item>
     </dxi-item>
   </dx-form>
   <hr>
-  <button *ngIf="isInEditMode" (click)="updateClient()" [disabled]="updating" class="btn btn-outline-success form-control">Update</button>
-  <hr>
+  <button *ngIf="isInEditMode" (click)="updateClient()" [disabled]="updating"
+          class="btn btn-outline-success form-control">Update
+  </button>
+</div>
+
+<hr>
+
+<div class="container mb-5" *ngIf="clientSessions">
+
+  <dx-scheduler
+    timeZone="Europe/Athens"
+    [dataSource]="clientSessions"
+    [views]="['month','week','day']"
+    currentView="month"
+    [currentDate]="currentDate"
+    [firstDayOfWeek]="1"
+    [startDayHour]="8"
+    [endDayHour]="18"
+    [showAllDayPanel]="false"
+    [height]="600"
+    [groups]="['employeeID']"
+    dataCellTemplate="dataCellTemplate"
+    (onAppointmentAdded)="onAppointment($event)">
+
+    <div *dxTemplate="let cellData of 'dataCellTemplate'" class='employee-weekend' [ngClass]="markWeekEnd(cellData)">
+      <div class='day-cell' [ngClass]='markTraining(cellData)'>{{cellData.text}}</div>
+    </div>
+  </dx-scheduler>
+
+
 </div>

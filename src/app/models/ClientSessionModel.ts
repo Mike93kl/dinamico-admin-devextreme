@@ -2,6 +2,10 @@ import {SessionTimeModel} from './SessionModel';
 import {SessionTypeModel} from './SessionTypeModel';
 
 export interface ClientSessionModel {
+  endDate?: Date;
+  text?: string;
+  startDate?: Date;
+  beginDate?: Date;
   uid: string;
   sessionId: string;
   clientId: string;
