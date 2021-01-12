@@ -4,6 +4,7 @@ import {ClientService} from '../../../services/client.service';
 import {Subscription} from 'rxjs';
 import {ClientModel} from '../../../models/ClientModel';
 import {PopupService} from '../../../services/popup.service';
+import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 
 @Component({
   selector: 'app-client',
@@ -13,6 +14,9 @@ import {PopupService} from '../../../services/popup.service';
 export class ClientComponent implements OnInit, OnDestroy {
   clientUid: string;
   client: ClientModel;
+  clientCopy: ClientModel;
+  isInEditMode = false;
+  updating = false;
   // subscriber
   clientSub: Subscription;
 
@@ -23,7 +27,9 @@ export class ClientComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.clientUid = this.route.snapshot.paramMap.get('uid');
     this.clientSub = this.clientService.getOne(this.clientUid).subscribe(client => {
+      this.dateToTimestamp(client);
       this.client = client;
+      console.log('client fetched', this.client);
     }, error => this.popup.error(error, () => {
       this.router.navigate(['/clients']);
     }));
@@ -33,4 +39,39 @@ export class ClientComponent implements OnInit, OnDestroy {
     this.clientSub.unsubscribe();
   }
 
+  dateToTimestamp(client: ClientModel): void {
+    if (!client.dateOfBirth || typeof client.dateOfBirth === 'number') {
+      return;
+    }
+    if (client.dateOfBirth.seconds) {
+      client.dateOfBirth = new Date(client.dateOfBirth.seconds * 1000);
+    }
+  }
+
+  editClientDetails(): void {
+    if (this.isInEditMode) {
+      this.client = Object.assign({}, this.clientCopy);
+    } else {
+      this.clientCopy = Object.assign({}, this.client);
+    }
+    this.isInEditMode = !this.isInEditMode;
+  }
+
+  updateClient(): void {
+    this.updating = true;
+    this.clientService.update([this.client], true)
+      .then(success => {
+        this.clientCopy = null;
+        this.isInEditMode = false;
+        this.updating = false;
+        if (success) {
+          this.popup.success(`Client Updated`);
+        }
+      })
+      .catch(e => {
+        console.log('Error updating client: ', e);
+        this.updating = false;
+        this.popup.error(UNEXPECTED_ERROR);
+      });
+  }
 }

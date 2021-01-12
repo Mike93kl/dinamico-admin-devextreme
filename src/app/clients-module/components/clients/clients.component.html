@@ -30,8 +30,8 @@
 
 
     <div *dxTemplate="let row of 'activeCell'">
-      <i *ngIf="row" class="fas fa-check-circle text-success"></i>
-      <i *ngIf="!row" class="fas fa-window-close text-danger"></i>
+      <i *ngIf="row.key.active" class="fas fa-check-circle text-success"></i>
+      <i *ngIf="!row.key.active" class="fas fa-window-close text-danger"></i>
     </div>
     <div *dxTemplate="let row of 'openClientCell'">
       <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>
