@@ -12,36 +12,64 @@
     </div>
   </div>
   <div class="col-8">
-    <a routerLink="new" class=" float-right text-primary">
+    <a routerLink="new" class=" float-right text-primary mx-2" data-toggle="tooltip" data-placement="top"
+       title="Create new Session Day">
       <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>
+    </a>
+    <a (click)="sessionTypePopupVisible = true" class="float-right text-primary mx-2" data-toggle="tooltip"
+       data-placement="top" title="View Session Types">
+      <i class="fas fa-dumbbell" style="font-size: 2em; cursor: pointer"></i>
     </a>
   </div>
 </div>
 <hr>
 <div class="row">
- <div class="col-12">
-   <dx-scheduler
-     timeZone="Europe/Athens"
-     [dataSource]="sessions"
-     [views]='["month", "week", "day", "timelineDay"]'
-     currentView="month"
-     firstDayOfWeek="1"
-     [currentDate]="currentDate"
-     [startDayHour]="6"
-     [endDayHour]="22"
-     [height]="500"
-     appointmentTemplate="appointment-template"
-     (onAppointmentUpdating)="onAppointmentUpdating($event)"
-     (onAppointmentDeleting)="onAppointmentDeleting($event)"
-     (onAppointmentFormOpening)="onAppointmentFormOpening($event)">
-     <dxo-editing
-       [allowAdding]="false"
-       [allowDeleting]="true"
-       [allowUpdating]="true"
-       [allowResizing]="true"
-       [allowDragging]="false"
-     ></dxo-editing>
+  <div class="col-12">
+    <dx-scheduler
+      timeZone="Europe/Athens"
+      [dataSource]="sessions"
+      [views]='["month", "week", "day", "timelineDay"]'
+      currentView="day"
+      firstDayOfWeek="1"
+      [currentDate]="currentDate"
+      [startDayHour]="6"
+      [endDayHour]="22"
+      [height]="500"
+      appointmentTemplate="appointment-template"
+      (onAppointmentRendered)="onAppointmentRendered($event)"
+      (onAppointmentUpdating)="onAppointmentUpdating($event)"
+      (onAppointmentDeleting)="onAppointmentDeleting($event)"
+      (onAppointmentFormOpening)="onAppointmentFormOpening($event)">
+      <dxo-editing
+        [allowAdding]="false"
+        [allowDeleting]="true"
+        [allowUpdating]="true"
+        [allowResizing]="true"
+        [allowDragging]="false"
+      ></dxo-editing>
 
-   </dx-scheduler>
- </div>
+      <div *dxTemplate="let model of 'appointment-template'">
+        <div class='session-type-preview'
+        >
+          <div>{{model.appointmentData.text}} Session</div>
+          <div>Subscribers
+            <strong>{{model.appointmentData.subscriptions.length}} / {{ model.appointmentData.spots }}</strong>
+          </div>
+        </div>
+      </div>
+
+    </dx-scheduler>
+  </div>
 </div>
+
+
+<dx-popup
+  [width]="400"
+  [height]="350"
+  [showTitle]="true"
+  title="Session Types"
+  [dragEnabled]="false"
+  [closeOnOutsideClick]="true"
+  [(visible)]="sessionTypePopupVisible">
+  <app-session-types></app-session-types>
+</dx-popup>

@@ -3,7 +3,7 @@
   <dx-data-grid
     id="gridContainer"
     [dataSource]="clients"
-    [columns]="['fullName', 'phone', 'active']"
+    [columns]="['fullName', 'phone', 'active', 'notes']"
     [showBorders]="true"
     (onRowInserting)="onInserting($event)"
     (onRowInserted)="onInserted($event)">
@@ -25,8 +25,9 @@
     <dxi-column dataField="fullName"  cellTemplate="openClientCell" ></dxi-column>
     <dxi-column dataField="phone"  dataType="string" ></dxi-column>
     <dxi-column dataField="active"  cellTemplate="activeCell" ></dxi-column>
-    <dxi-column dataField="dateOfBirth"  dataType="date" cellTemplate="dateCell" [hidingPriority]="1"></dxi-column>
-    <dxi-column dataField="email"  dataType="string" [hidingPriority]="2"></dxi-column>
+    <dxi-column dataField="dateOfBirth"  dataType="date" cellTemplate="dateCell" [hidingPriority]="2"></dxi-column>
+    <dxi-column dataField="email"  dataType="string" [hidingPriority]="3"></dxi-column>
+    <dxi-column dataField="notes"  dataType="string" [hidingPriority]="1"></dxi-column>
 
 
     <div *dxTemplate="let row of 'activeCell'">
@@ -37,7 +38,7 @@
       <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>
     </div>
     <div *dxTemplate="let row of 'dateCell'">
-      <p (click)="g(row)">{{  populateDate(row.key.dateOfBirth) }}</p>
+      <p>{{  populateDate(row.key.dateOfBirth) }}</p>
     </div>
 
   </dx-data-grid>

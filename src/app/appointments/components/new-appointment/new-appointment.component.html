@@ -1,5 +1,17 @@
 <a routerLink="../"><i style="font-size: 1.5em" class="fas fa-arrow-left text-lg-left"></i></a>
 <h4 class="text-center">Create session Day</h4>
+
+<dx-progress-bar *ngIf="creating"
+                 #progressBar
+                 id="progress-bar-status"
+                 width="90%"
+                 [class.complete]="progressBar.value == maxSessionsValue"
+                 [min]="0"
+                 [max]="maxSessionsValue"
+                 [statusFormat]="formatProgressBarValue"
+                 [value]="sessionsCreatedValue">
+</dx-progress-bar>
+
 <button (click)="create()" class="btn btn-outline-primary float-right" *ngIf="date && sessions && sessions.length > 0">
   <i class="far fa-save"></i> Save
 </button>

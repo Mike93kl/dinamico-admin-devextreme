@@ -1,16 +1,17 @@
-.full-session {
+::ng-deep .session-type-preview > div:first-child {
+  font-size: 15px;
+  font-weight: bold;
+  font-family: "Courier New", serif;
+  white-space: normal;
+}
+
+::ng-deep .session-type-preview > div:not(:first-child) {
+  font-size: 12px;
+  font-family: "Courier New", serif;
+  white-space: normal;
+}
+
+.session-full {
   background-color: forestgreen;
 }
 
-.not-full-session {
-  background-color: #456fe8;
-}
-
-.session {
-  font-family: "Courier New", serif;
-  margin: 20px;
-}
-
-.session p {
-  font-size: 1em;
-}

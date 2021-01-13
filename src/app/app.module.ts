@@ -15,6 +15,7 @@ import { DashboardComponent } from './shared/dashboard/dashboard.component';
 import {ClientsModule} from './clients-module/clients.module';
 import {SharedModule} from './shared/shared.module';
 import {AppointmentsModule} from './appointments/appointments.module';
+import {PackagesModule} from './packages/packages.module';
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import {AppointmentsModule} from './appointments/appointments.module';
     AngularFireFunctionsModule,
     ClientsModule,
     SharedModule,
-    AppointmentsModule
+    AppointmentsModule,
+    PackagesModule
   ],
   providers: [],
   bootstrap: [AppComponent]

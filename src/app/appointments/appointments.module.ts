@@ -3,18 +3,31 @@ import {CommonModule} from '@angular/common';
 import {AppointmentsComponent} from './components/appointments/appointments.component';
 import {MainComponent} from './components/main/main.component';
 import {SideNavComponent} from '../shared/side-nav/side-nav.component';
-import {DxDrawerModule, DxFormModule, DxListModule, DxSchedulerModule, DxSelectBoxModule, DxToolbarModule} from 'devextreme-angular';
+import {
+  DxButtonModule,
+  DxDrawerModule,
+  DxFormModule,
+  DxListModule,
+  DxPopupModule, DxProgressBarModule,
+  DxSchedulerModule,
+  DxSelectBoxModule,
+  DxToolbarModule
+} from 'devextreme-angular';
 import {AppointmentsRoutingModule} from './appointments-routing.module';
 import {SharedModule} from '../shared/shared.module';
 import { NewAppointmentComponent } from './components/new-appointment/new-appointment.component';
 import {FormsModule} from '@angular/forms';
+import { SessionTypesComponent } from './components/session-types/session-types.component';
+import { SessionSubscribersComponent } from './components/session-subscribers/session-subscribers.component';
 
 
 @NgModule({
   declarations: [
     AppointmentsComponent,
     MainComponent,
-    NewAppointmentComponent
+    NewAppointmentComponent,
+    SessionTypesComponent,
+    SessionSubscribersComponent
   ],
   imports: [
     AppointmentsRoutingModule,
@@ -23,7 +36,10 @@ import {FormsModule} from '@angular/forms';
     DxSchedulerModule,
     DxSelectBoxModule,
     DxFormModule,
-    FormsModule
+    FormsModule,
+    DxPopupModule,
+    DxButtonModule,
+    DxProgressBarModule
   ],
   exports: []
 })

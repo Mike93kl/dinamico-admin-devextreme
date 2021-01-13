@@ -8,6 +8,7 @@ export interface SessionTimeModel {
 }
 
 export interface SessionModel {
+  color?: string;
   text?: string;
   endDate: any;
   startDate: any;

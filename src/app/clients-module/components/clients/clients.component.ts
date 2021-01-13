@@ -74,8 +74,4 @@ export class ClientsComponent implements OnInit, OnDestroy {
     }
     return this.datePipe.transform(date, 'dd-MM-yyyy');
   }
-
-  g(a) {
-    console.log(a);
-  }
 }

@@ -1,5 +1,4 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AppointmentModel} from '../../../models/AppointmentModel';
 import {SessionTypeService} from '../../../services/session-type.service';
 import {Subscription} from 'rxjs';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
@@ -20,6 +19,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   sessionTypes: SessionTypeModel[];
   sessions: SessionModel[];
   limit = 100;
+  sessionTypePopupVisible = false;
   // subscribers
   sessionTypeSub: Subscription;
   sessionsSub: Subscription;
@@ -47,6 +47,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         s.text = s.sessionType.title;
         s.startDate = new Date(s.startDate.seconds * 1000);
         s.endDate = new Date(s.endDate.seconds * 1000);
+        if (s.isFull || s.subscriptions.length >= s.spots) {
+          s.color = '#099c15';
+        }else {
+          s.color = '#306CC7';
+        }
         return s;
       });
     }, error => {
@@ -112,7 +117,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         editorType: 'dxButton',
         editorOptions: {
           width: '200%',
-          onClick: (e) => {
+          onClick: () => {
             alert('asdad');
           },
           text: 'View Subscribers',
@@ -123,7 +128,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         editorType: 'dxButton',
         editorOptions: {
           width: '200%',
-          onClick: (e) => {
+          onClick: () => {
             alert('asdad');
           },
           text: 'Add client to session',
@@ -136,12 +141,12 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   onAppointmentDeleting($event: any): void {
     if ($event.appointmentData.subscriptions.length > 0) {
       this.popup.error('Cannot delete session while there are subscribed clients to that session!');
-      $event.cancel = false;
+      $event.cancel = true;
       return;
     }
     const deferred = new $.Deferred();
     this.sessionService.remove([$event.appointmentData])
-      .then(ok => deferred.resolve())
+      .then(() => deferred.resolve())
       .catch(e => {
         console.log(e);
         deferred.reject(e);
@@ -163,12 +168,16 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
     }
     const deferred = new $.Deferred();
     this.sessionService.update([$event.newData])
-      .then(ok => deferred.resolve())
+      .then(() => deferred.resolve())
       .catch(e => {
         console.log(e);
         deferred.reject();
         this.popup.error(UNEXPECTED_ERROR);
       });
     $event.cancel = deferred.promise();
+  }
+
+  onAppointmentRendered($event: any): void {
+    $event.appointmentElement.style.backgroundColor = $event.appointmentData.color;
   }
 }

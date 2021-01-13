@@ -23,6 +23,8 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
   includeSat = false;
   includeSan = false;
   creating = false;
+  maxSessionsValue = 0;
+  sessionsCreatedValue = 0;
   // subs
   sessionTypeSub: Subscription;
 
@@ -88,10 +90,11 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
   }
 
   async create(): Promise<void> {
-    this.creating = true;
     if (this.repeatNo === 0) {
       this.repeatNo = 1;
     }
+    this.maxSessionsValue = this.sessions.length * this.repeatNo;
+    this.creating = true;
     if (this.repeatNo > 14 || this.repeatNo < 0) {
       this.popup.error('Repeat days must be between 0 and 14');
       this.repeatNo = 14;
@@ -138,12 +141,17 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
         session.endDate = endDate;
       });
       await this.sessionService.create(creatingSessions);
+      this.sessionsCreatedValue += creatingSessions.length;
     }
     this.router.navigate(['/appointments']);
   }
 
   getSessionTypeTitle(sessionTypeId: string): string {
     return this.sessionTypes.find(e => e.uid === sessionTypeId).title;
+  }
+
+  formatProgressBarValue(v): string {
+    return `Creating Please wait: ${(v * 100).toFixed(2)}% done`;
   }
 
 }

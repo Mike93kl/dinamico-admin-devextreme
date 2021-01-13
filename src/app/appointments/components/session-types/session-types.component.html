@@ -1,0 +1,13 @@
+<div class="row">
+  <div class="col-12">
+    <i (click)="addNew()" class="fas fa-plus float-right text-primary" style="font-size: 1em; cursor: pointer"></i>
+  </div>
+</div>
+<div class="row" *ngFor="let s of sessionTypes">
+  <div class="col-7">
+    <input type="text" [(ngModel)]="s.title" [readOnly]="s.locked" class="form-control" (dblclick)="s.locked = false;" >
+  </div>
+  <div class="col-5">
+    <button (click)="createOrUpdate(s)" *ngIf="!s.locked" class="btn btn-outline-primary">Save</button>
+  </div>
+</div>
