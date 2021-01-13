@@ -6,22 +6,20 @@ import {DxDataGridModule, DxDrawerModule, DxFormModule, DxListModule, DxSchedule
 import { MainComponent } from './components/main/main.component';
 import {SideNavComponent} from '../shared/side-nav/side-nav.component';
 import { ClientComponent } from './components/client/client.component';
+import {SharedModule} from '../shared/shared.module';
 
 // @ts-ignore
 @NgModule({
   declarations: [
     ClientsComponent,
     MainComponent,
-    SideNavComponent,
     ClientComponent
   ],
     imports: [
         ClientsRoutingModule,
         CommonModule,
         DxDataGridModule,
-        DxDrawerModule,
-        DxListModule,
-        DxToolbarModule,
+        SharedModule,
         DxFormModule,
         DxSchedulerModule,
     ],

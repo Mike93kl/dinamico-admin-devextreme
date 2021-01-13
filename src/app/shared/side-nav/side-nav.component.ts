@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-side-nav',
@@ -6,7 +7,6 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./side-nav.component.css']
 })
 export class SideNavComponent implements OnInit {
-  title = 'getting-started-with-drawer';
   navigation: any[] = [
     {id: 0, text: 'Dashboard', icon: 'fields', path: ''},
     {id: 1, text: 'Clients', icon: 'card', path: 'clients'},
@@ -21,10 +21,15 @@ export class SideNavComponent implements OnInit {
     }
   };
 
-  constructor() { }
+  constructor(private route: Router) {
+  }
 
   ngOnInit(): void {
     console.log('sidenav loaded');
+  }
+
+  nav(link: string): void {
+    this.route.navigate(['/' + link]);
   }
 
 }

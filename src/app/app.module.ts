@@ -13,6 +13,8 @@ import {AngularFirestoreModule} from '@angular/fire/firestore';
 import {AngularFireFunctionsModule} from '@angular/fire/functions';
 import { DashboardComponent } from './shared/dashboard/dashboard.component';
 import {ClientsModule} from './clients-module/clients.module';
+import {SharedModule} from './shared/shared.module';
+import {AppointmentsModule} from './appointments/appointments.module';
 
 @NgModule({
   declarations: [
@@ -30,6 +32,8 @@ import {ClientsModule} from './clients-module/clients.module';
     AngularFirestoreModule,
     AngularFireFunctionsModule,
     ClientsModule,
+    SharedModule,
+    AppointmentsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -21,7 +21,7 @@
       (onSelectionChanged)="this.isDrawerOpen = false"
       itemTemplate="links">
       <div *dxTemplate="let link of 'links'">
-        <a [routerLink]="['/' + link.path]">
+        <a (click)="nav(link.path)">
           <div>
             <div class="dx-list-item-icon-container">
               <i style="color: white;" class="dx-icon dx-list-item-icon dx-icon-{{link.icon}}"></i>
@@ -33,6 +33,8 @@
     </dx-list>
   </div>
   <div id="view">
-    <router-outlet></router-outlet>
+    <div class="container" >
+      <ng-content></ng-content>
+    </div>
   </div>
 </dx-drawer>

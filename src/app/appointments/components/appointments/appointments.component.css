@@ -1,0 +1,16 @@
+.full-session {
+  background-color: forestgreen;
+}
+
+.not-full-session {
+  background-color: #456fe8;
+}
+
+.session {
+  font-family: "Courier New", serif;
+  margin: 20px;
+}
+
+.session p {
+  font-size: 1em;
+}

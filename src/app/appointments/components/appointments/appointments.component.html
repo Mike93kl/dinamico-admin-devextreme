@@ -1,0 +1,47 @@
+<h4 class="text-center">Session Days Schedule</h4>
+<div class="row">
+  <div class="col-4">
+    <div class="form-group" *ngIf="sessions?.length > 0">
+      <label>Limit Results:</label>
+      <select name="lim" id="lim" class="form-control" [(ngModel)]="limit" (change)="getAppointments()">
+        <option [ngValue]="100">100</option>
+        <option [ngValue]="200">200</option>
+        <option [ngValue]="400">400</option>
+        <option [ngValue]="500">500</option>
+      </select>
+    </div>
+  </div>
+  <div class="col-8">
+    <a routerLink="new" class=" float-right text-primary">
+      <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>
+    </a>
+  </div>
+</div>
+<hr>
+<div class="row">
+ <div class="col-12">
+   <dx-scheduler
+     timeZone="Europe/Athens"
+     [dataSource]="sessions"
+     [views]='["month", "week", "day", "timelineDay"]'
+     currentView="month"
+     firstDayOfWeek="1"
+     [currentDate]="currentDate"
+     [startDayHour]="6"
+     [endDayHour]="22"
+     [height]="500"
+     appointmentTemplate="appointment-template"
+     (onAppointmentUpdating)="onAppointmentUpdating($event)"
+     (onAppointmentDeleting)="onAppointmentDeleting($event)"
+     (onAppointmentFormOpening)="onAppointmentFormOpening($event)">
+     <dxo-editing
+       [allowAdding]="false"
+       [allowDeleting]="true"
+       [allowUpdating]="true"
+       [allowResizing]="true"
+       [allowDragging]="false"
+     ></dxo-editing>
+
+   </dx-scheduler>
+ </div>
+</div>

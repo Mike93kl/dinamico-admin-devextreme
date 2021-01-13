@@ -36,7 +36,7 @@ export class FirebaseService<T extends Model> {
     return true;
   }
 
-  async update(objects: T[], merge: boolean): Promise<boolean> {
+  async update(objects: T[], merge?: boolean): Promise<boolean> {
     for (const object of objects) {
       await this.fs.collection(this.collection).doc(object.uid).update(object);
     }

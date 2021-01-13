@@ -8,6 +8,11 @@ export interface SessionTimeModel {
 }
 
 export interface SessionModel {
+  text?: string;
+  endDate: any;
+  startDate: any;
+  date: Date;
+  dateStr: string;
   spots: number;
   subscriptions: string[];
   endTime: SessionTimeModel;
