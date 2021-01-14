@@ -114,6 +114,14 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         }
       },
       {
+        dataField: 'spots',
+        editorType: 'dxTextBox',
+        editorOptions: {
+          width: '100%',
+          type: 'number'
+        }
+      },
+      {
         editorType: 'dxButton',
         editorOptions: {
           width: '200%',

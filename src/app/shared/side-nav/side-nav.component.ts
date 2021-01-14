@@ -21,6 +21,7 @@ export class SideNavComponent implements OnInit {
     }
   };
 
+
   constructor(private route: Router) {
   }
 
@@ -30,6 +31,10 @@ export class SideNavComponent implements OnInit {
 
   nav(link: string): void {
     this.route.navigate(['/' + link]);
+  }
+
+  height(): number {
+    return window.innerHeight * 10;
   }
 
 }

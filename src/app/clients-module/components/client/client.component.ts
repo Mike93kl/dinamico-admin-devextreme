@@ -56,17 +56,21 @@ export class ClientComponent implements OnInit, OnDestroy {
   }
 
   private fetchClientSessions(): void {
-    this.clientService.getClientSessions(this.client.uid).then(clientSessions => {
+    this.clientSessionSub = this.clientService.getClientSessions(this.client.uid).subscribe(clientSessions => {
       this.clientSessions = clientSessions.map(cs => {
-        cs.startDate = new Date(cs.sessionDate.seconds * 1000);
-        const d = new Date(cs.startDate);
-        d.setHours(cs.endTime.minutesAsInt, cs.endTime.minutesAsInt);
-        cs.endDate = d;
-        cs.text = cs.sessionType.title;
+        cs.sessionType = this.sessionTypes.find(e => e.uid === cs.sessionTypeId);
+        cs.text = cs.sessionType.title + (cs.canceled ? ' (canceled) ' : '');
+        cs.startDate = new Date(cs.startDate.seconds * 1000);
+        cs.endDate = new Date(cs.endDate.seconds * 1000);
+        if (cs.canceled) {
+          cs.color = '#a33232';
+        } else {
+          cs.color = '#2575a0';
+        }
         return cs;
       });
-      console.log('sss', this.clientSessions);
-    }).catch(error => {
+      console.log(this.clientSessions);
+    }, error => {
       console.log(error);
       this.popup.error('Could not fetch client sessions. Try refreshing the page');
     });
@@ -76,6 +80,7 @@ export class ClientComponent implements OnInit, OnDestroy {
     try {
       this.clientSub.unsubscribe();
       this.sessionTypeSub.unsubscribe();
+      this.clientSessionSub.unsubscribe();
     } catch (e) {
     }
 
@@ -117,27 +122,6 @@ export class ClientComponent implements OnInit, OnDestroy {
       });
   }
 
-  markWeekEnd(cellData): any {
-    function isWeekEnd(date): boolean {
-      const day = date.getDay();
-      return day === 0 || day === 6;
-    }
-
-    const classObject = {};
-    classObject['employee-1'] = true;
-    classObject['employee-weekend-2'] = isWeekEnd(cellData.startDate);
-    return classObject;
-  }
-
-  markTraining(cellData): any {
-    const classObject = {
-      'day-cell': true
-    };
-
-    classObject[this.getCurrentTraining(cellData.startDate.getDate(), 3)] = true;
-    return classObject;
-  }
-
   private fetchClient(): void {
     this.clientSub = this.clientService.getOne(this.clientUid).subscribe(client => {
       this.dateToTimestamp(client);
@@ -145,5 +129,13 @@ export class ClientComponent implements OnInit, OnDestroy {
       console.log('client fetched', this.client);
       this.fetchClientSessions();
     }, error => this.showErrorAndExit(error));
+  }
+
+  onAppointment($event: any): void {
+
+  }
+
+  onAppointmentRendered($event: any): void {
+    $event.appointmentElement.style.backgroundColor = $event.appointmentData.color;
   }
 }

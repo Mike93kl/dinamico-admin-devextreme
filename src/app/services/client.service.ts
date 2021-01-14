@@ -24,17 +24,9 @@ export class ClientService extends FirebaseService<ClientModel> {
   }
 
 
-  async getClientSessions(uid: string): Promise<ClientSessionModel[]> {
-    const query = await this.fs.collection<ClientSessionModel>(CLIENT_SESSIONS, ref => {
+  getClientSessions(uid: string): Observable<ClientSessionModel[]> {
+    return this.fs.collection<ClientSessionModel>(CLIENT_SESSIONS, ref => {
       return ref.where('clientId', '==', uid);
-    }).get().toPromise();
-    const result: ClientSessionModel[] = [];
-    for (const snap of query.docs) {
-      const csm = snap.data();
-      csm.sessionType = (await this.fs.collection(SESSION_TYPES)
-        .doc(csm.sessionTypeId).get().toPromise()).data() as SessionTypeModel;
-      result.push(csm);
-    }
-    return result;
+    }).valueChanges();
   }
 }
