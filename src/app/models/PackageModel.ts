@@ -1,7 +1,7 @@
 import {EligibleSessionTypeModel} from './EligibleSessionTypeModel';
 
 export interface PackageModel {
-  uid: string;
+  uid?: string;
   active: boolean;
   price: number;
   title: string;
@@ -9,4 +9,5 @@ export interface PackageModel {
   canExpire: boolean;
   description: string;
   eligibleSessionTypes: EligibleSessionTypeModel[];
+  isInEditMode?: boolean;
 }

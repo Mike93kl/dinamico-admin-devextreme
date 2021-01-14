@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import {AppointmentsComponent} from './components/appointments/appointments.component';
 import {MainComponent} from './components/main/main.component';
 import {SideNavComponent} from '../shared/side-nav/side-nav.component';
@@ -41,7 +41,10 @@ import { SessionSubscribersComponent } from './components/session-subscribers/se
     DxButtonModule,
     DxProgressBarModule
   ],
-  exports: []
+  exports: [],
+  providers: [
+    DatePipe
+  ]
 })
 export class AppointmentsModule {
 }

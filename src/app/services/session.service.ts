@@ -19,9 +19,9 @@ export class SessionService extends FirebaseService<SessionModel> {
     }).valueChanges();
   }
 
-  async getByDate(date: string): Promise<SessionModel[]> {
+  async getByStartDate(date: Date): Promise<SessionModel[]> {
     const d = await this.fs.collection(this.collection, ref => {
-      return ref.where('dateStr', '==', date);
+      return ref.where('startDate', '==', date);
     }).get().toPromise();
     const result = [];
     for (const snap of d.docs) {

@@ -7,6 +7,7 @@ import {PopupService} from '../../../services/popup.service';
 import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {Router} from '@angular/router';
 import {SessionService} from '../../../services/session.service';
+import {DatePipe} from '@angular/common';
 
 @Component({
   selector: 'app-new-appointment',
@@ -30,7 +31,8 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
 
   constructor(private sessionTypeService: SessionTypeService,
               private popup: PopupService, private router: Router,
-              private sessionService: SessionService) {
+              private sessionService: SessionService,
+              private datePipe: DatePipe) {
   }
 
   ngOnInit(): void {
@@ -101,26 +103,20 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
       this.creating = false;
       return;
     }
-    this.popup.info(`Please stay on this page while the sessions are being created.
-    You will be redirected to Sessions page as soon as they are done!`);
     const creatingSessions = [...this.sessions];
     const sessionDate = new Date(this.date);
     sessionDate.setHours(0, 0, 0);
     for (let i = 0; i < this.repeatNo; i++) {
       const d = new Date(sessionDate.getTime() + ((1000 * 60 * 60 * 24) * i));
-      const str = this.formatDateStr(d);
-      const existingSession = await this.sessionService.getByDate(str);
-      if (existingSession.length > 0) {
-        this.popup.error(`${str} session date already exists. Skipping Date`);
+      if (d.getDay() === 6 && !this.includeSat && this.repeatNo > 1) {
         continue;
       }
-      if (d.getDay() === 6 && !this.includeSat) {
+      if (d.getDay() === 0 && !this.includeSan && this.repeatNo > 1) {
         continue;
       }
-      if (d.getDay() === 0 && !this.includeSan) {
-        continue;
-      }
-      creatingSessions.forEach(session => {
+      const skipped: number[] = [];
+      let index = 0;
+      for (const session of creatingSessions) {
         if (session.uid) {
           delete session.uid;
         }
@@ -135,11 +131,21 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
         session.endTime.minutesAsInt = parseInt(session.endTime.minutes, 10);
         const startDate = new Date(d);
         startDate.setHours(session.startTime.hourAsInt, session.startTime.minutesAsInt);
+        const existingSession = await this.sessionService.getByStartDate(startDate);
+        if (existingSession.length > 0) {
+          skipped.push(index);
+          this.popup.info(`${this.datePipe.transform(startDate, 'dd/MM/yyyy hh:mm')} Session already
+           exists. Skipping creating session`);
+        }
         session.startDate = startDate;
         const endDate = new Date(d);
         endDate.setHours(session.endTime.hourAsInt, session.endTime.minutesAsInt);
         session.endDate = endDate;
-      });
+        index++;
+      }
+      for (const j of skipped) {
+        creatingSessions.splice(j, 1);
+      }
       await this.sessionService.create(creatingSessions);
       this.sessionsCreatedValue += creatingSessions.length;
     }
@@ -151,7 +157,7 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
   }
 
   formatProgressBarValue(v): string {
-    return `Creating Please wait: ${(v * 100).toFixed(2)}% done`;
+    return `Creating, Please wait: ${(v * 100).toFixed(2)}% done`;
   }
 
 }
