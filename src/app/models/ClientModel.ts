@@ -8,4 +8,5 @@ export interface ClientModel extends Model{
   dateOfBirth?: any;
   notes?: string;
   requestPasswordChange?: any;
+  allowFreeSubscriptions?: boolean;
 }

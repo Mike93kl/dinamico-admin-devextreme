@@ -23,10 +23,21 @@ export class ClientService extends FirebaseService<ClientModel> {
     return this.fn.createClient(client);
   }
 
+  cancelSession(clientSessionId: string, clientId: string): Observable<FunctionResponse> {
+    return this.fn.cancelSession(clientSessionId, clientId);
+  }
 
   getClientSessions(uid: string): Observable<ClientSessionModel[]> {
     return this.fs.collection<ClientSessionModel>(CLIENT_SESSIONS, ref => {
       return ref.where('clientId', '==', uid);
     }).valueChanges();
+  }
+
+  getActivePackagesMatchedSession(sessionTypeId: string, clientId: string): Observable<FunctionResponse> {
+    return this.fn.fetchClientsActivePackages(clientId, true, sessionTypeId);
+  }
+
+  bookSession(sessionId: string, packageId: string): Observable<FunctionResponse> {
+    return this.fn.bookSessionForClient(sessionId, packageId);
   }
 }

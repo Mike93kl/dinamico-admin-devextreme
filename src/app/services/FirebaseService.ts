@@ -50,13 +50,15 @@ export class FirebaseService<T extends Model> {
     return true;
   }
 
-  async create(objects: T[]): Promise<boolean> {
+  async create(objects: T[]): Promise<T[]> {
+    const saved = [];
     for (const object of objects) {
       const uid = this.fs.collection(this.collection).doc().ref.id;
       await this.fs.collection(this.collection).doc(uid).set({
         ...object, uid
       });
+      saved.push({...object, uid});
     }
-    return true;
+    return saved;
   }
 }

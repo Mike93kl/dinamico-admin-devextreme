@@ -43,6 +43,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
       delete $event.data.__KEY__;
     }
     $event.data.dateOfBirth = Date.parse($event.data.dateOfBirth);
+    $event.data.allowFreeSubscriptions = false;
     const sub = this.clientService.createNewClient($event.data)
       .subscribe(result => {
         handleFunctionResponseWithPromise(deferred, result);

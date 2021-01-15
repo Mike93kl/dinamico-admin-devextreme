@@ -15,5 +15,6 @@ export interface ClientPackageModel {
   dateLastUsed: any;
   canExpireByDate: boolean;
   _package: PackageModel;
+  collapsed?: boolean;
 
 }

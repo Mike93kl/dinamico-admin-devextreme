@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {AngularFireFunctions} from '@angular/fire/functions';
 import {
-  ALTER_MAX_USAGES, BOOK_SESSION,
+  ALTER_MAX_USAGES, BOOK_SESSION, CANCEL_CLIENT_SESSION,
   CLIENTS_ACTIVE_PACKAGES,
   CREATE_CLIENT,
   GET_USER_CLAIMS,
@@ -73,13 +73,19 @@ export class FunctionService {
     });
   }
 
-  bookSessionForClient(appointmentId: string,
+  bookSessionForClient(
                        sessionId: string,
                        clientPackageId: string
   ):
     Observable<FunctionResponse> {
     return this.fn.httpsCallable(BOOK_SESSION)({
-      appointmentId, sessionId, clientPackageId
+      sessionId, clientPackageId
+    });
+  }
+
+  cancelSession(clientSessionId: string, clientId: string): Observable<FunctionResponse> {
+    return this.fn.httpsCallable(CANCEL_CLIENT_SESSION)({
+      clientSessionId, clientId, cms: true, date: new Date().getTime()
     });
   }
 }

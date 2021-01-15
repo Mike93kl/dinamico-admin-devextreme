@@ -2,6 +2,7 @@ import {SessionTimeModel} from './SessionModel';
 import {SessionTypeModel} from './SessionTypeModel';
 
 export interface ClientSessionModel {
+  disabled?: boolean;
   endDate: any;
   text?: string;
   startDate?: any;
