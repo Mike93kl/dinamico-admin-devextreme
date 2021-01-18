@@ -16,13 +16,17 @@ import {SideNavComponent} from '../shared/side-nav/side-nav.component';
 import { ClientComponent } from './components/client/client.component';
 import {SharedModule} from '../shared/shared.module';
 import {FormsModule} from '@angular/forms';
+import { ClientSessionsComponent } from './components/client-sessions/client-sessions.component';
+import { ClientPackagesComponent } from './components/client-packages/client-packages.component';
 
 // @ts-ignore
 @NgModule({
   declarations: [
     ClientsComponent,
     MainComponent,
-    ClientComponent
+    ClientComponent,
+    ClientSessionsComponent,
+    ClientPackagesComponent
   ],
   imports: [
     ClientsRoutingModule,
