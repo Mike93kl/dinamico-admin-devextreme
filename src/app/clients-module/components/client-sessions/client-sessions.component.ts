@@ -34,6 +34,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   showSessionsForDatePopup = false;
   clientsActivePackagesForSession: ClientPackageModel[];
   private chosenSession: SessionModel;
+  limit = 100;
   // subs
   sessionTypeSub: Subscription;
   clientSessionSub: Subscription;
@@ -56,8 +57,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private fetchClientSessions(): void {
-    this.clientSessionSub = this.clientService.getClientSessions(this.client.uid).subscribe(clientSessions => {
+  fetchClientSessions(): void {
+    this.clientSessionSub = this.clientService.getClientSessions(this.client.uid, this.limit).subscribe(clientSessions => {
       this.clientSessions = clientSessions.map(cs => {
         cs.sessionType = this.sessionTypes.find(e => e.uid === cs.sessionTypeId);
         cs.text = cs.sessionType.title + (cs.canceled ? ' (canceled) ' : '');
@@ -123,7 +124,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       .option('value', new Date(startDate.getTime() + (60 * 1000 * 60)));
     let endDate = $event.appointmentData.endDate;
     const actions = $event.component._appointmentPopup._popup.option('toolbarItems');
-    const isNew = !$event.appointmentData.clientId && Object.keys($event.appointmentData).length === 2;
+    const isNew = !$event.appointmentData.clientId && Object.keys($event.appointmentData).length <= 3;
     if (isNew) {
       actions[0].onClick = () => {
         this.scheduleSession(startDate, endDate);

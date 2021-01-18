@@ -1,6 +1,20 @@
 <h5 class="text-center">Scheduled Sessions</h5>
 <hr>
 
+<div class="row">
+  <div class="col-4">
+    <div class="form-group">
+      <label for="l">Number of results:</label>
+      <select id="l" class="form-control" (change)="fetchClientSessions()">
+        <option [ngValue]="100">100</option>
+        <option [ngValue]="200">200</option>
+        <option [ngValue]="400">400</option>
+        <option [ngValue]="500">500</option>
+      </select>
+    </div>
+  </div>
+</div>
+
 <div class="row" *ngIf="clientSessions">
   <div class="col-12">
     <dx-scheduler

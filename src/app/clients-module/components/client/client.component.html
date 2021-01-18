@@ -42,3 +42,11 @@
 ></app-client-sessions>
 <br>
 <hr>
+
+<hr>
+<br>
+<app-client-packages *ngIf="client && sessionTypes"
+                     [client]="client" [sessionTypes]="sessionTypes"
+></app-client-packages>
+<br>
+<hr>

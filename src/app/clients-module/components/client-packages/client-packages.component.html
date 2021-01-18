@@ -1,1 +1,85 @@
-<p>client-packages works!</p>
+<h5 class="text-center">Purchased Packages</h5>
+<hr>
+<div class="row">
+  <div class="col-4">
+    <div class="form-group">
+      <label for="l">Number of results:</label>
+      <select id="l" class="form-control" (change)="fetchPackages()" [disabled]="!clientPackages || clientPackages?.length === 0">
+        <option [ngValue]="100">100</option>
+        <option [ngValue]="200">200</option>
+        <option [ngValue]="400">400</option>
+        <option [ngValue]="500">500</option>
+      </select>
+    </div>
+  </div>
+</div>
+<dx-data-grid
+  id="gridContainer"
+  [dataSource]="clientPackages"
+  [showBorders]="true">
+  <dxo-editing
+    mode="popup"
+    [allowAdding]="false">
+  </dxo-editing>
+  <dxo-paging [pageSize]="10"></dxo-paging>
+  <dxo-pager
+    [showPageSizeSelector]="true"
+    [allowedPageSizes]="[10, 20, 40]"
+    [showInfo]="true">
+  </dxo-pager>
+  <dxo-search-panel
+    [visible]="true"
+    [width]="240"
+    placeholder="Search title...."></dxo-search-panel>
+
+  <dxi-column dataField="_package.title" caption="Pkg. Title" ></dxi-column>
+  <dxi-column dataField="pricePaidStr" caption="Price.Paid" cellTemplate="pricePaidCell" ></dxi-column>
+  <dxi-column dataField="eligibleSessionTypes" caption="E.S.T" cellTemplate="sessionTypes" ></dxi-column>
+  <dxi-column dataField="expired" caption="Status" cellTemplate="expiredCell" [hidingPriority]="4" ></dxi-column>
+  <dxi-column dataField="dateLastUsed" caption="Last Used" [hidingPriority]="1" cellTemplate="formatDateCell" ></dxi-column>
+  <dxi-column dataField="expiryDate" caption="Expires at" [hidingPriority]="2" cellTemplate="expiryCell" ></dxi-column>
+  <dxi-column dataField="purchaseDate" caption="Purchased At" [hidingPriority]="3" cellTemplate="purchasedCell" ></dxi-column>
+
+
+  <div *dxTemplate="let row of 'purchasedCell'">
+    {{ row.data.purchaseDate.seconds * 1000 | date }}
+  </div>
+
+  <div *dxTemplate="let row of 'expiryCell'">
+    <p *ngIf="row.data.canExpireByDate"> {{ row.data.expiryDate | date }}</p>
+    <p *ngIf="!row.data.canExpireByDate"> N/A </p>
+  </div>
+
+  <div *dxTemplate="let row of 'pricePaidCell'">
+    {{ row.data.pricePaid | currency:"EUR" }}
+  </div>
+
+  <div *dxTemplate="let row of 'expiredCell'">
+    <p *ngIf="row.data.expired" style="color: red">Expired</p>
+    <p *ngIf="!row.data.expired" style="color: green">Valid</p>
+  </div>
+
+  <div *dxTemplate="let row of 'sessionTypes'">
+    <dx-data-grid
+      id="subContainer"
+      [dataSource]="row.data.eligibleSessionTypes"
+      [showBorders]="true">
+      <dxi-column dataField="sessionType.title" caption="Session" ></dxi-column>
+      <dxi-column dataField="timesUsed" caption="Used" ></dxi-column>
+      <dxi-column dataField="maxUsages" caption="Max" ></dxi-column>
+    </dx-data-grid>
+  </div>
+
+  <div *dxTemplate="let row of 'formatDateCell'">
+    {{ row.data.dateLastUsed.seconds * 1000 | date }}
+  </div>
+
+  <div *dxTemplate="let row of 'activeCell'">
+    <i *ngIf="row.key.active" class="fas fa-check-circle text-success"></i>
+    <i *ngIf="!row.key.active" class="fas fa-window-close text-danger"></i>
+  </div>
+  <div *dxTemplate="let row of 'openClientCell'">
+    <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>
+  </div>
+
+</dx-data-grid>
