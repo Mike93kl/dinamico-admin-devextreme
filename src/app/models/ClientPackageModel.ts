@@ -16,5 +16,8 @@ export interface ClientPackageModel {
   canExpireByDate: boolean;
   _package: PackageModel;
   collapsed?: boolean;
-
+  paid?: boolean;
+  title?: string;
+  daysToExpire?: number;
+  isCustom?: boolean;
 }

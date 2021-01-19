@@ -157,7 +157,7 @@ export class PackagesComponent implements OnInit, OnDestroy {
       delete pkg.isInEditMode;
       await this.service.update([selectedPackage]);
       this.popup.success(`Package ${selectedPackage.title} Updated!`);
-      selectedPackage.isInEditMode = false
+      selectedPackage.isInEditMode = false;
     } catch (e) {
       console.log(e);
       this.popup.error(UNEXPECTED_ERROR);

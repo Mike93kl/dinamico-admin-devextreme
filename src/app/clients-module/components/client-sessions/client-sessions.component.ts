@@ -235,7 +235,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     const confirmation = await confirm(
       `You are about to book a ${this.chosenSession.sessionType.title}
       session for ${this.client.fullName} with the
-      ${data._package.title} Package (1 usage will be subtracted). Are you sure?
+      ${data._package ? data._package.title : data.title} Package (1 usage will be subtracted). Are you sure?
       <br>Press "No" to choose another package Or "Yes" to confirm`, ''
     );
     if (!confirmation) {

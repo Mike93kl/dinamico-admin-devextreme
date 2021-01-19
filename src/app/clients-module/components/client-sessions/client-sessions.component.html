@@ -5,7 +5,7 @@
   <div class="col-4">
     <div class="form-group">
       <label for="l">Number of results:</label>
-      <select id="l" class="form-control" (change)="fetchClientSessions()">
+      <select id="l" class="form-control" (change)="fetchClientSessions()" [disabled]="!clientSessions || clientSessions?.length === 0">
         <option [ngValue]="100">100</option>
         <option [ngValue]="200">200</option>
         <option [ngValue]="400">400</option>
@@ -115,7 +115,7 @@
         <div class="row">
           <div [ngClass]="{'col-12': !data.canExpireByDate, 'col-6': data.canExpireByDate}">
             <h6 (dblclick)="selectPackageForSession(data)" style="cursor: pointer"
-                (click)="data.collapsed = !data.collapsed">{{ data._package.title }}</h6>
+                (click)="data.collapsed = !data.collapsed">{{ data._package ? data._package.title : data.title }}</h6>
           </div>
           <div [ngClass]="{'col-6': data.canExpireByDate}" *ngIf="data.canExpireByDate">
             <p><i>Expires at: {{ data.expiryDate.seconds * 1000 | date }}</i></p>

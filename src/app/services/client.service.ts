@@ -51,4 +51,8 @@ export class ClientService extends FirebaseService<ClientModel> {
         .orderBy('createdAt', 'desc').limit(limit);
     }).valueChanges();
   }
+
+  alterPackageMaxUsages(clientPackageId: string, maxUsages: number, sessionTypeId: string): Observable<FunctionResponse> {
+    return this.fn.alterClientsMaxUsagesOfEligibleSessionType(clientPackageId, maxUsages, sessionTypeId);
+  }
 }
