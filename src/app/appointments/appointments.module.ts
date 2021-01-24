@@ -7,9 +7,9 @@ import {
   DxButtonModule,
   DxDrawerModule,
   DxFormModule,
-  DxListModule,
+  DxListModule, DxLoadPanelModule,
   DxPopupModule, DxProgressBarModule,
-  DxSchedulerModule,
+  DxSchedulerModule, DxScrollViewModule,
   DxSelectBoxModule,
   DxToolbarModule
 } from 'devextreme-angular';
@@ -39,7 +39,9 @@ import { SessionSubscribersComponent } from './components/session-subscribers/se
     FormsModule,
     DxPopupModule,
     DxButtonModule,
-    DxProgressBarModule
+    DxProgressBarModule,
+    DxScrollViewModule,
+    DxLoadPanelModule
   ],
   exports: [],
   providers: [

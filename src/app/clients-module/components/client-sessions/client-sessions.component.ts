@@ -120,9 +120,10 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   onAppointmentFormOpening($event: any): void {
     const form = $event.form;
     let startDate = $event.appointmentData.startDate;
+    let endDate = new Date(startDate.getTime() + (60 * 1000 * 60));
+    $event.appointmentData.endDate = endDate;
     form.getEditor('endDate')
-      .option('value', new Date(startDate.getTime() + (60 * 1000 * 60)));
-    let endDate = $event.appointmentData.endDate;
+      .option('value', endDate);
     const actions = $event.component._appointmentPopup._popup.option('toolbarItems');
     const isNew = !$event.appointmentData.clientId && Object.keys($event.appointmentData).length <= 3;
     if (isNew) {
@@ -223,6 +224,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           e.collapsed = false;
           return e;
         });
+        console.log('client pkgs matches session: ', this.clientsActivePackagesForSession);
         this.showActivePackagesPopup = true;
       }, error => {
         this.loadingVisible = false;

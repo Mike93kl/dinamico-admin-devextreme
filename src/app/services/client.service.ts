@@ -4,13 +4,14 @@ import {ClientModel} from '../models/ClientModel';
 import {Observable} from 'rxjs';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {FunctionService} from './function.service';
-import {CLIENT_PACKAGES, CLIENT_SESSIONS, CLIENTS, PACKAGES, SESSION_TYPES} from '../utils/Collections';
+import {CLIENT_PACKAGES, CLIENT_SESSIONS, CLIENTS, PACKAGES, SESSION_TYPES, SESSIONS} from '../utils/Collections';
 import {FunctionResponse} from '../models/FunctionResponse';
 import {ClientSessionModel} from '../models/ClientSessionModel';
 import {map} from 'rxjs/operators';
 import {SessionTypeModel} from '../models/SessionTypeModel';
 import {ClientPackageModel} from '../models/ClientPackageModel';
 import {PackageModel} from '../models/PackageModel';
+import {SessionModel} from '../models/SessionModel';
 
 @Injectable({
   providedIn: 'root'

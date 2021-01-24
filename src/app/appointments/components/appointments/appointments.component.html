@@ -73,3 +73,59 @@
   [(visible)]="sessionTypePopupVisible">
   <app-session-types></app-session-types>
 </dx-popup>
+
+<!--Subscribed clients popup-->
+
+<dx-popup *ngIf="selectedSession?.session"
+  [width]="600"
+  [height]="500"
+  [showTitle]="true"
+  title="Subscribed clients"
+  [dragEnabled]="false"
+  [closeOnOutsideClick]="true"
+  [(visible)]="showSubscribedClientsPopup">
+
+  <dx-scroll-view width="100%" height="100%">
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Full Name</th>
+        <th scope="col">Unsubscribe</th>
+        <th scope="col">Open</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let c of selectedSession.subscribedClients; let i = index">
+        <th scope="row">{{ i + 1 }}</th>
+        <td>{{c.fullName}}</td>
+        <td>
+          <i class="far fa-trash-alt text-danger" style="cursor: pointer" (click)="unsubscribeClientFromSession(selectedSession.session, c)"></i>
+        </td>
+        <td>
+          <a routerLink="/clients/{{ c.uid }}">
+            <i class="fas fa-external-link-alt" style="cursor: pointer"></i>
+          </a>
+        </td>
+      </tr>
+
+      </tbody>
+    </table>
+  </dx-scroll-view>
+
+
+</dx-popup>
+
+
+
+<!--Loader-->
+<dx-load-panel
+  #loadPanel
+  shadingColor="rgba(0,0,0,0.4)"
+  [(visible)]="loadingVisible"
+  [showIndicator]="true"
+  [showPane]="true"
+  [shading]="true"
+  [closeOnOutsideClick]="false">
+</dx-load-panel>

@@ -29,7 +29,7 @@ export class FirebaseService<T extends Model> {
     return this.fs.collection<T>(this.collection).doc(uid).valueChanges();
   }
 
-  async set(objects: T[], merge: boolean): Promise<boolean> {
+  async set(objects: {uid: string; [key: string]: any}[], merge: boolean): Promise<boolean> {
     for (const object of objects) {
       await this.fs.collection(this.collection).doc(object.uid).set(object, {merge});
     }

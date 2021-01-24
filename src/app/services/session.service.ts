@@ -3,6 +3,8 @@ import {AngularFirestore} from '@angular/fire/firestore';
 import {FirebaseService} from './FirebaseService';
 import {SessionModel} from '../models/SessionModel';
 import {Observable} from 'rxjs';
+import {ClientModel} from '../models/ClientModel';
+import {CLIENTS} from '../utils/Collections';
 
 @Injectable({
   providedIn: 'root'
@@ -29,5 +31,24 @@ export class SessionService extends FirebaseService<SessionModel> {
       result.push(model);
     }
     return result;
+  }
+
+  async getSubscribedClients(s: SessionModel): Promise<ClientModel[]> {
+    const session = (await this.fs.collection(this.collection)
+      .doc(s.uid).get().toPromise()).data() as SessionModel;
+    const clientDocs = await this.fs.collection<ClientModel>(CLIENTS, ref => {
+      return ref.where('uid', 'in', session.subscriptions);
+    }).get().toPromise();
+    const result: ClientModel[] = [];
+    for (const doc of clientDocs.docs) {
+      result.push(doc.data());
+    }
+    return result;
+  }
+
+  updateSpots(uid: string, spots: number, isFull: boolean): Promise<boolean> {
+    return this.set([{
+      uid, spots, isFull
+    }], true);
   }
 }

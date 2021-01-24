@@ -6,6 +6,10 @@ import {PopupService} from '../../../services/popup.service';
 import {SessionService} from '../../../services/session.service';
 import {SessionModel} from '../../../models/SessionModel';
 import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {ClientModel} from '../../../models/ClientModel';
+import {ClientService} from '../../../services/client.service';
+import {take} from 'rxjs/operators';
+import {confirm} from 'devextreme/ui/dialog';
 
 declare var $: any;
 
@@ -18,15 +22,22 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   currentDate;
   sessionTypes: SessionTypeModel[];
   sessions: SessionModel[];
+  loadingVisible = false;
   limit = 100;
   sessionTypePopupVisible = false;
+  showSubscribedClientsPopup = false;
+  selectedSession: {
+    session: SessionModel;
+    subscribedClients: ClientModel[]
+  } | null = null;
   // subscribers
   sessionTypeSub: Subscription;
   sessionsSub: Subscription;
 
   constructor(private sessionTypeService: SessionTypeService,
               private popup: PopupService,
-              private sessionService: SessionService) {
+              private sessionService: SessionService,
+              private clientService: ClientService) {
   }
 
   ngOnInit(): void {
@@ -49,7 +60,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         s.endDate = new Date(s.endDate.seconds * 1000);
         if (s.isFull || s.subscriptions.length >= s.spots) {
           s.color = '#099c15';
-        }else {
+        } else {
           s.color = '#306CC7';
         }
         return s;
@@ -82,7 +93,8 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         editorOptions: {
           items: that.sessionTypes,
           displayExpr: 'title',
-          valueExpr: 'uid'
+          valueExpr: 'uid',
+          disabled: $event.appointmentData.subscriptions.length > 0
         }
       },
       {
@@ -102,7 +114,8 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         editorType: 'dxDateBox',
         editorOptions: {
           width: '100%',
-          type: 'datetime'
+          type: 'datetime',
+          disabled: $event.appointmentData.subscriptions.length > 0
         }
       },
       {
@@ -110,7 +123,8 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         editorType: 'dxDateBox',
         editorOptions: {
           width: '100%',
-          type: 'datetime'
+          type: 'datetime',
+          disabled: $event.appointmentData.subscriptions.length > 0
         }
       },
       {
@@ -126,23 +140,23 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         editorOptions: {
           width: '200%',
           onClick: () => {
-            alert('asdad');
+            this.getSubscribedClients($event.appointmentData);
           },
           text: 'View Subscribers',
           disabled: $event.appointmentData.subscriptions.length === 0
         }
       },
-      {
-        editorType: 'dxButton',
-        editorOptions: {
-          width: '200%',
-          onClick: () => {
-            alert('asdad');
-          },
-          text: 'Add client to session',
-          disabled: $event.appointmentData.subscriptions.length >= $event.appointmentData.spots
-        }
-      }
+      // {
+      //   editorType: 'dxButton',
+      //   editorOptions: {
+      //     width: '200%',
+      //     onClick: () => {
+      //       alert('asdad');
+      //     },
+      //     text: 'Add client to session',
+      //     disabled: $event.appointmentData.subscriptions.length >= $event.appointmentData.spots
+      //   }
+      // }
     ]);
   }
 
@@ -164,9 +178,33 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   onAppointmentUpdating($event: any): void {
+    const deferred = new $.Deferred();
     if ($event.oldData.subscriptions.length > 0) {
-      $event.cancel = true;
-      this.popup.error('Cannot update session when there are clients subscribed to this session');
+      if ($event.oldData.spots === $event.newData.spots) {
+        this.popup.info('Nothing to update');
+        $event.cancel = true;
+        return;
+      } else if ($event.oldData.subscriptions.length < $event.newData.spots) {
+        this.popup.error('Spots cannot be 0 or less than the number of current subscribers');
+        $event.cancel = true;
+        return;
+      }
+      this.sessionService.updateSpots($event.oldData.uid, $event.newData.spots,
+        $event.newData.subscriptions.length >= $event.newData.spots)
+        .then(done => {
+          if (done) {
+            deferred.resolve();
+          } else {
+            this.popup.error(UNEXPECTED_ERROR);
+            deferred.reject();
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          this.popup.error(UNEXPECTED_ERROR);
+          deferred.reject();
+        });
+      $event.cancel = deferred.promise();
       return;
     }
     if ($event.newData.startDate >= $event.newData.endDate) {
@@ -174,7 +212,6 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       this.popup.error('End date cannot be less than start date');
       return;
     }
-    const deferred = new $.Deferred();
     this.sessionService.update([$event.newData])
       .then(() => deferred.resolve())
       .catch(e => {
@@ -187,5 +224,46 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
 
   onAppointmentRendered($event: any): void {
     $event.appointmentElement.style.backgroundColor = $event.appointmentData.color;
+  }
+
+  private getSubscribedClients(appointmentData: SessionModel): void {
+    this.selectedSession = null;
+    this.sessionService.getSubscribedClients(appointmentData)
+      .then((clients) => {
+        console.log('s clients: ', clients);
+        this.selectedSession = {
+          session: appointmentData,
+          subscribedClients: clients
+        };
+        this.showSubscribedClientsPopup = true;
+      })
+      .catch(error => {
+        console.log(error);
+        this.popup.error(UNEXPECTED_ERROR);
+      });
+  }
+
+  async unsubscribeClientFromSession(session: SessionModel, c: ClientModel): Promise<void> {
+    alert('Comming soon');
+    // console.log('unsub', session, c);
+    // const confirmation = await confirm(`Unsubscribe ${c.fullName} from session?`, '');
+    // if (!confirmation) {
+    //   return;
+    // }
+    // this.loadingVisible = true;
+    // this.clientService.unsubscribeClientFromSession(session.uid, c.uid)
+    //   .pipe(take(1)).subscribe((result) => {
+    //   this.loadingVisible = false;
+    //   if (result.success) {
+    //     this.popup.success(`Unsubscribed ${c.fullName} from session`);
+    //     return;
+    //   }
+    //
+    //   this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
+    // }, error => {
+    //   this.loadingVisible = false;
+    //   console.log(error);
+    //   this.popup.error(UNEXPECTED_ERROR);
+    // });
   }
 }

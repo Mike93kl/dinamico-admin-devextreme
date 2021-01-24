@@ -12,7 +12,6 @@ import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {confirm} from 'devextreme/ui/dialog';
 import {ClientPackagesService} from '../../../services/client-packages.service';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
-import {fakeAsync} from '@angular/core/testing';
 
 @Component({
   selector: 'app-client-packages',
@@ -39,7 +38,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
     newMaxUsages: undefined,
     oldMaxUsages: undefined
   };
-  private showCustomPackagePopup = false;
+  showCustomPackagePopup = false;
   showPackagesForNewPopup = false;
   // subs
   clientPackagesSub: Subscription;
@@ -155,6 +154,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
       uid: '',
       clientId: this.client.uid,
       paid: false,
+      title: pkg.title,
       eligibleSessionTypeIds: pkg.eligibleSessionTypes.map(e => e.sessionTypeId),
       eligibleSessionTypes: pkg.eligibleSessionTypes.map(el => {
         const e = Object.assign({}, el) as ClientEligibleSessionTypeModel;
