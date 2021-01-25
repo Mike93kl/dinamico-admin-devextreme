@@ -19,6 +19,7 @@ import { NewAppointmentComponent } from './components/new-appointment/new-appoin
 import {FormsModule} from '@angular/forms';
 import { SessionTypesComponent } from './components/session-types/session-types.component';
 import { SessionSubscribersComponent } from './components/session-subscribers/session-subscribers.component';
+import { ScheduleReportComponent } from './components/schedule-report/schedule-report.component';
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import { SessionSubscribersComponent } from './components/session-subscribers/se
     MainComponent,
     NewAppointmentComponent,
     SessionTypesComponent,
-    SessionSubscribersComponent
+    SessionSubscribersComponent,
+    ScheduleReportComponent
   ],
   imports: [
     AppointmentsRoutingModule,

@@ -4,7 +4,7 @@ import {FirebaseService} from './FirebaseService';
 import {SessionModel} from '../models/SessionModel';
 import {Observable} from 'rxjs';
 import {ClientModel} from '../models/ClientModel';
-import {CLIENTS} from '../utils/Collections';
+import {CLIENTS, SESSIONS} from '../utils/Collections';
 
 @Injectable({
   providedIn: 'root'
@@ -50,5 +50,32 @@ export class SessionService extends FirebaseService<SessionModel> {
     return this.set([{
       uid, spots, isFull
     }], true);
+  }
+
+  async generateScheduleReport(printBeginDate: Date, printEndDate: Date): Promise<
+    {
+      session: SessionModel,
+      clients: ClientModel[]
+    }[]> {
+
+    const sessionDocs = await this.fs.collection(this.collection, ref => {
+      return ref.where('startDate', '>=', printBeginDate)
+        .where('startDate', '<', printEndDate);
+    }).get().toPromise();
+
+    const result: { session: SessionModel; clients: ClientModel[] }[] = [];
+    for (const doc of sessionDocs.docs) {
+      const object: { session: SessionModel; clients: ClientModel[] } = {
+        session: null, clients: []
+      };
+      object.session = doc.data() as SessionModel;
+      if (object.session.subscriptions.length > 0) {
+        object.clients = (await this.fs.collection('Clients', ref => {
+          return ref.where('uid', 'in', object.session.subscriptions);
+        }).get().toPromise()).docs.map(d => d.data() as ClientModel);
+      }
+      result.push(object);
+    }
+    return result;
   }
 }

@@ -1,0 +1,57 @@
+<div class="row">
+
+  <div class="col-2" style="padding: 20px" id="irrelevant">
+    <div class="container text-center">
+      <a (click)="printReport()"><i class="fas fa-print text-center text-primary" style="font-size: 2em; cursor: pointer"></i></a>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" [(ngModel)]="showClients">
+        <label class="form-check-label" for="defaultCheck1">
+          Print Clients
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-10" id="printContent">
+    <div class="page my-3" size="A4">
+      <div class="container">
+        <p class="text-right smalltxt"> sessions report </p>
+        <div class="text-center">
+          <h5> Scheduled Sessions </h5>
+          <small *ngIf="endDate && startDate"  > {{ startDate | date:"shortDate" }}
+          - {{ endDate | date: "shortDate" }}</small>
+        </div>
+        <hr>
+        <br>
+
+        <div *ngFor="let s of schedule | keyvalue">
+
+          <div>
+            <h4 class="" ><strong> {{ s.key }} </strong></h4>
+          </div>
+          <hr>
+          <br>
+          <div *ngFor="let d of s.value.data">
+
+            <h6 class="time"> <strong> {{ d.session.startDate.seconds * 1000 | date:"shortTime" }} - {{ d.session.endDate.seconds * 1000 | date:"shortTime" }} -
+            {{ d.session.sessionType.title }} </strong></h6>
+
+            <div *ngIf="showClients">
+              <h6 class="client-title"> <u> Subscribed Clients: ( {{ d.clients.length }} ) </u> </h6>
+              <div *ngFor="let c of d.clients">
+                <p class="client">{{ c.fullName }}</p>
+              </div>
+            </div>
+
+
+          </div>
+
+          <br> <br>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+
+</div>

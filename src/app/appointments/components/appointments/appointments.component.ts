@@ -10,6 +10,7 @@ import {ClientModel} from '../../../models/ClientModel';
 import {ClientService} from '../../../services/client.service';
 import {take} from 'rxjs/operators';
 import {confirm} from 'devextreme/ui/dialog';
+import {Router} from '@angular/router';
 
 declare var $: any;
 
@@ -26,10 +27,16 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   limit = 100;
   sessionTypePopupVisible = false;
   showSubscribedClientsPopup = false;
+  showPrintOptionsPopup = false;
   selectedSession: {
     session: SessionModel;
     subscribedClients: ClientModel[]
   } | null = null;
+  printOptions: {
+    today: boolean;
+    printBeginDate: any;
+    printEndDate: any;
+  } = null;
   // subscribers
   sessionTypeSub: Subscription;
   sessionsSub: Subscription;
@@ -37,7 +44,8 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   constructor(private sessionTypeService: SessionTypeService,
               private popup: PopupService,
               private sessionService: SessionService,
-              private clientService: ClientService) {
+              private clientService: ClientService,
+              private router: Router) {
   }
 
   ngOnInit(): void {
@@ -271,6 +279,53 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       .catch(error => {
         this.loadingVisible = false;
         console.log(error);
+        this.popup.error(UNEXPECTED_ERROR);
+      });
+  }
+
+  showPrintOptions(): void {
+    this.printOptions = {
+      today: true,
+      printBeginDate: null,
+      printEndDate: null
+    };
+    this.showPrintOptionsPopup = true;
+  }
+
+  generateScheduleReport(): void {
+    const today = new Date();
+    if (this.printOptions.today) {
+      today.setHours(0, 1, 0);
+      this.printOptions.printBeginDate = new Date(today);
+      today.setHours(23, 59, 0);
+      this.printOptions.printEndDate = new Date(today);
+    } else {
+      const begin = new Date(Date.parse(this.printOptions.printBeginDate));
+      const end = new Date(Date.parse(this.printOptions.printEndDate));
+      begin.setHours(0, 1, 0);
+      end.setHours(23, 59, 0);
+      this.printOptions.printBeginDate = begin;
+      this.printOptions.printEndDate = end;
+    }
+    this.loadingVisible = true;
+    this.sessionService.generateScheduleReport(this.printOptions.printBeginDate as Date, this.printOptions.printEndDate as Date)
+      .then(result => {
+        this.loadingVisible = false;
+        if (result.length === 0) {
+          this.popup.info('Nothing to show for selected dates');
+          return;
+        }
+        this.router.navigateByUrl('/schedule-report', {
+          state: {
+            data: {
+              result, start: this.printOptions.printBeginDate.getTime(), end: this.printOptions.printEndDate.getTime()
+            }
+          }
+        });
+      })
+      .catch(error => {
+        console.log(error);
+        this.loadingVisible = false;
         this.popup.error(UNEXPECTED_ERROR);
       });
   }
