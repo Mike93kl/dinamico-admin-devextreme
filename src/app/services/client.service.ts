@@ -56,4 +56,27 @@ export class ClientService extends FirebaseService<ClientModel> {
   alterPackageMaxUsages(clientPackageId: string, maxUsages: number, sessionTypeId: string): Observable<FunctionResponse> {
     return this.fn.alterClientsMaxUsagesOfEligibleSessionType(clientPackageId, maxUsages, sessionTypeId);
   }
+
+  async unsubscribeClientFromSession(sessionId: string, clientId: string): Promise<FunctionResponse> {
+    const query = await this.fs.collection(CLIENT_SESSIONS, ref => {
+      return ref.where('sessionId', '==', sessionId)
+        .where('clientId', '==', clientId);
+    }).get().toPromise();
+    const clientSessions: ClientSessionModel[] = query.docs.map(d => {
+      return d.data() as ClientSessionModel;
+    });
+    const clientSession = clientSessions.find(cs => cs.sessionId === sessionId);
+
+    if (!clientSession || clientSession.sessionId !== sessionId || clientSession.canceled) {
+      return {
+        success: false, error: true, code: 0, message: null, data: {
+          uiMessage: 'We encountered an error while trying to unsubscribe the client from session.' +
+            'Please contact support'
+        }
+      };
+    }
+
+    return this.fn.cancelSession(clientSession.uid, clientId).toPromise();
+
+  }
 }

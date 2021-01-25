@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
+import {FunctionService} from '../../services/function.service';
 
 @Component({
   selector: 'app-side-nav',
@@ -22,11 +23,10 @@ export class SideNavComponent implements OnInit {
   };
 
 
-  constructor(private route: Router) {
+  constructor(private route: Router, private fn: FunctionService) {
   }
 
   ngOnInit(): void {
-    console.log('sidenav loaded');
   }
 
   nav(link: string): void {

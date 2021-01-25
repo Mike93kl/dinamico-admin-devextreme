@@ -227,6 +227,10 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   private getSubscribedClients(appointmentData: SessionModel): void {
+    if (appointmentData.subscriptions.length === 0) {
+      this.popup.info('Session has no subscribers');
+      return;
+    }
     this.selectedSession = null;
     this.sessionService.getSubscribedClients(appointmentData)
       .then((clients) => {
@@ -244,26 +248,30 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   async unsubscribeClientFromSession(session: SessionModel, c: ClientModel): Promise<void> {
-    alert('Comming soon');
-    // console.log('unsub', session, c);
-    // const confirmation = await confirm(`Unsubscribe ${c.fullName} from session?`, '');
-    // if (!confirmation) {
-    //   return;
-    // }
-    // this.loadingVisible = true;
-    // this.clientService.unsubscribeClientFromSession(session.uid, c.uid)
-    //   .pipe(take(1)).subscribe((result) => {
-    //   this.loadingVisible = false;
-    //   if (result.success) {
-    //     this.popup.success(`Unsubscribed ${c.fullName} from session`);
-    //     return;
-    //   }
-    //
-    //   this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
-    // }, error => {
-    //   this.loadingVisible = false;
-    //   console.log(error);
-    //   this.popup.error(UNEXPECTED_ERROR);
-    // });
+    const confirmation = await confirm(`Unsubscribe ${c.fullName} from session?`, '');
+    if (!confirmation) {
+      return;
+    }
+    this.loadingVisible = true;
+    this.clientService.unsubscribeClientFromSession(session.uid, c.uid)
+      .then(result => {
+        this.loadingVisible = false;
+        if (result.success) {
+          this.popup.success(`Client ${c.fullName} unsubscribed from session`);
+          if (this.selectedSession && this.selectedSession.subscribedClients) {
+            const index = this.selectedSession.subscribedClients.indexOf(c);
+            if (index !== -1) {
+              this.selectedSession.subscribedClients.splice(index, 1);
+            }
+          }
+          return;
+        }
+        this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
+      })
+      .catch(error => {
+        this.loadingVisible = false;
+        console.log(error);
+        this.popup.error(UNEXPECTED_ERROR);
+      });
   }
 }
