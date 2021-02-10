@@ -1,0 +1,12 @@
+body {
+  font-family: "Courier New", serif;
+}
+
+.current-time {
+  position: relative;
+  float: right;
+  font-family: "Courier New", serif;
+  margin: 15px;
+  font-weight: bold;
+  font-size: 1.2em;
+}

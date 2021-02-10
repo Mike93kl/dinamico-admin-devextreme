@@ -192,7 +192,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         this.popup.info('Nothing to update');
         $event.cancel = true;
         return;
-      } else if ($event.oldData.subscriptions.length < $event.newData.spots) {
+      } else if ($event.newData.spots < $event.oldData.subscriptions.length) {
         this.popup.error('Spots cannot be 0 or less than the number of current subscribers');
         $event.cancel = true;
         return;
@@ -308,7 +308,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       this.printOptions.printEndDate = end;
     }
     this.loadingVisible = true;
-    this.sessionService.generateScheduleReport(this.printOptions.printBeginDate as Date, this.printOptions.printEndDate as Date)
+    this.sessionService.fetchSessionsInRangeWithClients(this.printOptions.printBeginDate as Date, this.printOptions.printEndDate as Date)
       .then(result => {
         this.loadingVisible = false;
         if (result.length === 0) {

@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {FirebaseService} from './FirebaseService';
 import {SessionModel} from '../models/SessionModel';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {ClientModel} from '../models/ClientModel';
 import {CLIENTS, SESSIONS} from '../utils/Collections';
 
@@ -52,15 +52,14 @@ export class SessionService extends FirebaseService<SessionModel> {
     }], true);
   }
 
-  async generateScheduleReport(printBeginDate: Date, printEndDate: Date): Promise<
-    {
-      session: SessionModel,
-      clients: ClientModel[]
-    }[]> {
+  async fetchSessionsInRangeWithClients(beginDate: Date, endDate: Date): Promise<{
+    session: SessionModel,
+    clients: ClientModel[]
+  }[]> {
 
     const sessionDocs = await this.fs.collection(this.collection, ref => {
-      return ref.where('startDate', '>=', printBeginDate)
-        .where('startDate', '<', printEndDate);
+      return ref.where('startDate', '>=', beginDate)
+        .where('startDate', '<', endDate);
     }).get().toPromise();
 
     const result: { session: SessionModel; clients: ClientModel[] }[] = [];
@@ -77,5 +76,25 @@ export class SessionService extends FirebaseService<SessionModel> {
       result.push(object);
     }
     return result;
+  }
+
+  getTodaysSessionsSorted(): Observable<SessionModel[]> {
+    const start = new Date();
+    start.setHours(0, 1, 0);
+    const end = new Date();
+    end.setHours(23, 59, 0);
+    return this.fs.collection<SessionModel>(this.collection, ref => {
+      return ref.where('startDate', '>=', start)
+        .where('startDate', '<', end).orderBy('startDate');
+    }).valueChanges();
+  }
+
+  getClientsOfSession(session: SessionModel): Observable<ClientModel[]> {
+    if (session.subscriptions.length === 0) {
+      return of([]);
+    }
+    return this.fs.collection<ClientModel>('Clients', ref => {
+      return ref.where('uid', 'in', session.subscriptions);
+    }).valueChanges();
   }
 }

@@ -4,14 +4,14 @@ import {AppointmentsComponent} from './components/appointments/appointments.comp
 import {MainComponent} from './components/main/main.component';
 import {SideNavComponent} from '../shared/side-nav/side-nav.component';
 import {
-  DxButtonModule,
-  DxDrawerModule,
-  DxFormModule,
-  DxListModule, DxLoadPanelModule,
-  DxPopupModule, DxProgressBarModule,
-  DxSchedulerModule, DxScrollViewModule,
-  DxSelectBoxModule,
-  DxToolbarModule
+    DxButtonModule, DxDateBoxModule,
+    DxDrawerModule,
+    DxFormModule,
+    DxListModule, DxLoadPanelModule,
+    DxPopupModule, DxProgressBarModule,
+    DxSchedulerModule, DxScrollViewModule,
+    DxSelectBoxModule,
+    DxToolbarModule
 } from 'devextreme-angular';
 import {AppointmentsRoutingModule} from './appointments-routing.module';
 import {SharedModule} from '../shared/shared.module';
@@ -20,6 +20,7 @@ import {FormsModule} from '@angular/forms';
 import { SessionTypesComponent } from './components/session-types/session-types.component';
 import { SessionSubscribersComponent } from './components/session-subscribers/session-subscribers.component';
 import { ScheduleReportComponent } from './components/schedule-report/schedule-report.component';
+import { AttendanceComponent } from './components/attendance/attendance.component';
 
 
 @NgModule({
@@ -29,22 +30,24 @@ import { ScheduleReportComponent } from './components/schedule-report/schedule-r
     NewAppointmentComponent,
     SessionTypesComponent,
     SessionSubscribersComponent,
-    ScheduleReportComponent
+    ScheduleReportComponent,
+    AttendanceComponent
   ],
-  imports: [
-    AppointmentsRoutingModule,
-    CommonModule,
-    SharedModule,
-    DxSchedulerModule,
-    DxSelectBoxModule,
-    DxFormModule,
-    FormsModule,
-    DxPopupModule,
-    DxButtonModule,
-    DxProgressBarModule,
-    DxScrollViewModule,
-    DxLoadPanelModule
-  ],
+    imports: [
+        AppointmentsRoutingModule,
+        CommonModule,
+        SharedModule,
+        DxSchedulerModule,
+        DxSelectBoxModule,
+        DxFormModule,
+        FormsModule,
+        DxPopupModule,
+        DxButtonModule,
+        DxProgressBarModule,
+        DxScrollViewModule,
+        DxLoadPanelModule,
+        DxDateBoxModule
+    ],
   exports: [],
   providers: [
     DatePipe

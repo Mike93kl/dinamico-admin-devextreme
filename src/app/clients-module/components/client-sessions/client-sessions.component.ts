@@ -35,9 +35,10 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   clientsActivePackagesForSession: ClientPackageModel[];
   private chosenSession: SessionModel;
   limit = 100;
+  allSessions: SessionModel[];
   // subs
   sessionTypeSub: Subscription;
-  clientSessionSub: Subscription;
+  allSessionsSub: Subscription;
 
   constructor(private clientService: ClientService,
               private popup: PopupService, private datePipe: DatePipe,
@@ -46,37 +47,57 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.currentDate = new Date();
-    this.fetchClientSessions();
+    this.fetchAllSessions();
   }
 
   ngOnDestroy(): void {
     try {
       this.sessionTypeSub.unsubscribe();
-      this.clientSessionSub.unsubscribe();
+      this.allSessionsSub.unsubscribe();
     } catch (e) {
     }
   }
 
   fetchClientSessions(): void {
-    this.clientSessionSub = this.clientService.getClientSessions(this.client.uid, this.limit).subscribe(clientSessions => {
-      this.clientSessions = clientSessions.map(cs => {
-        cs.sessionType = this.sessionTypes.find(e => e.uid === cs.sessionTypeId);
-        cs.text = cs.sessionType.title + (cs.canceled ? ' (canceled) ' : '');
-        cs.startDate = new Date(cs.startDate.seconds * 1000);
-        cs.endDate = new Date(cs.endDate.seconds * 1000);
-        cs.disabled = cs.canceled;
-        if (cs.canceled) {
-          cs.color = '#a33232';
-        } else {
-          cs.color = '#2575a0';
-        }
-        return cs;
+    this.clientService.getClientSessions(this.client.uid, this.limit)
+      .pipe(take(1))
+      .subscribe(clientSessions => {
+        this.clientSessions = clientSessions;
+        const subSessions = this.clientSessions.map(e => {
+          return {
+            sessionId: e.sessionId,
+            canceled: e.canceled
+          };
+        });
+        this.allSessions = this.allSessions.map(session => {
+          session.sessionType = this.sessionTypes.find(t => t.uid === session.sessionTypeId);
+          session.text = session.sessionType.title;
+          session.startDate = new Date(session.startDate.seconds * 1000);
+          session.endDate = new Date(session.endDate.seconds * 1000);
+          const isClientInSession = subSessions.find(e => e.sessionId === session.uid);
+          if (!isClientInSession) {
+            if (session.isFull || session.subscriptions.length >= session.spots) {
+              session.color = '#21890a';
+            }
+            return session;
+          }
+          if (session.subscriptions.includes(this.client.uid)) {
+            session.color = '#895de7';
+            return session;
+          }
+
+          if (isClientInSession.canceled) {
+            session.color = '#a33232';
+          } else {
+            session.color = '#2575a0';
+          }
+          return session;
+        });
+        console.log(this.allSessions);
+      }, error => {
+        console.log(error);
+        this.popup.error('Could not fetch client sessions. Try refreshing the page');
       });
-      console.log(this.clientSessions);
-    }, error => {
-      console.log(error);
-      this.popup.error('Could not fetch client sessions. Try refreshing the page');
-    });
   }
 
   onAppointmentRendered($event: any): void {
@@ -85,6 +106,23 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
 
   async onAppointmentDeleting($event: any): Promise<void> {
     const deferred = new $.Deferred();
+    $event.cancel = deferred.promise();
+    const clientSession = this.clientSessions.find(cs => cs.sessionId ===
+      $event.appointmentData.uid);
+
+    if (!clientSession) {
+      deferred.reject();
+      return;
+    }
+
+    if (clientSession) {
+      if (clientSession.canceled) {
+        this.popup.info('Session already canceled');
+        deferred.reject();
+        return;
+      }
+    }
+
     confirm(`Are you sure you want to cancel session at
       ${this.datePipe.transform($event.appointmentData.startDate, 'EEE, dd MMM hh:mm')} ? `, 'Cancel Session')
       .then(c => {
@@ -94,7 +132,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         }
 
         this.loadingVisible = true;
-        this.clientService.cancelSession($event.appointmentData.uid, $event.appointmentData.clientId)
+        this.clientService.cancelSession(clientSession.uid, this.client.uid)
           .pipe(take(1))
           .subscribe(result => {
             this.loadingVisible = false;
@@ -114,75 +152,28 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           });
 
       });
-    $event.cancel = deferred.promise();
+
   }
+
 
   onAppointmentFormOpening($event: any): void {
     const form = $event.form;
-    let startDate = $event.appointmentData.startDate;
-    let endDate = new Date(startDate.getTime() + (60 * 1000 * 60));
-    $event.appointmentData.endDate = endDate;
-    form.getEditor('endDate')
-      .option('value', endDate);
+    const data = $event.appointmentData;
     const actions = $event.component._appointmentPopup._popup.option('toolbarItems');
-    const isNew = !$event.appointmentData.clientId && Object.keys($event.appointmentData).length <= 3;
-    if (isNew) {
-      actions[0].onClick = () => {
-        this.scheduleSession(startDate, endDate);
-      };
-      actions[0].options.text = 'Schedule Session';
-    } else {
-      actions[0].options = {text: 'Close'};
-    }
-    $event.component._appointmentPopup._popup.option('toolbarItems', actions);
-    form.option('items', [
-      {
-        dataField: 'startDate',
-        editorType: 'dxDateBox',
-        editorOptions: {
-          width: '100%',
-          type: 'datetime',
-          onValueChanged: (e) => {
-            startDate = e.value;
-            form.getEditor('endDate')
-              .option('value', new Date(startDate.getTime() + (60 * 1000 * 60)));
-          }
-        }
-      },
-      {
-        dataField: 'endDate',
-        editorType: 'dxDateBox',
-        editorOptions: {
-          width: '100%',
-          type: 'datetime',
-          onValueChanged: (e) => {
-            endDate = e.value;
-          }
-        }
-      }
-    ]);
+    const popup = $event.component._appointmentPopup._popup;
+    const items = this.getAppointmentFormItems(data, form, actions, popup);
+    form.option('items', items.items);
   }
 
   private async scheduleSession(startDate: any, endDate: any): Promise<void> {
-    const sessionsFound = await this.sessionService.getByStartDate(startDate);
-    if (sessionsFound.length === 0) {
-      const confirmation = await confirm(
-        `No sessions found at "${this.datePipe.transform(startDate, 'EEEE, dd MMM hh:mm a')}".
-        Create it ?`, 'No sessions found!');
-      if (!confirmation) {
-        return;
-      }
-      this.initNewSessionObject(startDate, endDate);
+    const confirmation = await confirm(
+      `Create Session:
+      "${this.datePipe.transform(startDate, 'EEEE, dd MMM hh:mm a')} - ${this.datePipe.transform(endDate, 'EEEE, dd MMM hh:mm a')}".
+        Confirm?`, 'Create Session');
+    if (!confirmation) {
       return;
     }
-
-    this.popup.success('Some sessions Already exists press ok to view them', () => {
-      this.sessionsForDate = sessionsFound.map(e => {
-        e.sessionType = this.sessionTypes.find(t => t.uid === e.sessionTypeId);
-        return e;
-      });
-      this.showSessionsForDatePopup = true;
-    });
+    this.initNewSessionObject(startDate, endDate);
   }
 
   initNewSessionObject(startDate: any, endDate: any, fromSessionList?: boolean): void {
@@ -312,5 +303,121 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
 
   getDate(firebaseDate: { seconds: number; nanoseconds: number }): Date {
     return new Date(firebaseDate.seconds * 1000);
+  }
+
+  fetchAllSessions(): void {
+    this.allSessionsSub =  this.sessionService.getAllSessions(this.limit)
+      .subscribe(sessions => {
+        this.allSessions = sessions;
+        this.fetchClientSessions();
+      }, error => {
+        console.log(error);
+        this.popup.error('Error fetching sessions');
+      });
+  }
+
+
+  private getAppointmentFormItems(data: any, form: any, actions: any, popup: any): { hasData: boolean; items: any } {
+    if (!!data.uid) {
+      return {
+        hasData: true,
+        items: [
+          {
+            label: {
+              text: 'Session Type'
+            },
+            editorType: 'dxSelectBox',
+            dataField: 'sessionTypeId',
+            editorOptions: {
+              items: this.sessionTypes,
+              displayExpr: 'title',
+              valueExpr: 'uid',
+              disabled: true
+            }
+          },
+          {
+            label: {
+              text: 'Number of subscriptions'
+            },
+            editorType: 'dxTextBox',
+            editorOptions: {
+              width: '100%',
+              type: 'number',
+              value: data.subscriptions.length,
+              disabled: true
+            }
+          },
+          {
+            dataField: 'startDate',
+            editorType: 'dxDateBox',
+            editorOptions: {
+              width: '100%',
+              type: 'datetime',
+              disabled: true
+            }
+          },
+          {
+            dataField: 'endDate',
+            editorType: 'dxDateBox',
+            editorOptions: {
+              width: '100%',
+              type: 'datetime',
+              disabled: true
+            }
+          },
+          {
+            editorType: 'dxButton',
+            editorOptions: {
+              width: '200%',
+              onClick: () => {
+                this.chosenSession = data;
+                this.fetchPackagesMatchesSession(data.sessionTypeId);
+              },
+              text: data.isFull || data.subscriptions.length >= data.spots ? 'Session is Full' : 'Subscribe to Session',
+              disabled: (data.isFull || data.subscriptions.length >= data.spots) || data.subscriptions.includes(this.client.uid)
+            }
+          },
+        ]
+      };
+    }
+
+    actions[0].options.text = 'Schedule Session';
+    let startDate = data.startDate;
+    let endDate = new Date(startDate.getTime() + (60 * 1000 * 60));
+    form.getEditor('endDate')
+      .option('value', endDate);
+    actions[0].onClick = () => {
+      this.scheduleSession(startDate, endDate);
+    };
+    popup.option('toolbarItems', actions);
+    return {
+      hasData: false,
+      items: [
+        {
+          dataField: 'startDate',
+          editorType: 'dxDateBox',
+          editorOptions: {
+            width: '100%',
+            type: 'datetime',
+            onValueChanged: (e) => {
+              startDate = e.value;
+              form.getEditor('endDate')
+                .option('value', new Date(startDate.getTime() + (60 * 1000 * 60)));
+            }
+          }
+        },
+        {
+          dataField: 'endDate',
+          editorType: 'dxDateBox',
+          editorOptions: {
+            width: '100%',
+            type: 'datetime',
+            onValueChanged: (e) => {
+              endDate = e.value;
+            }
+          }
+        }
+      ]
+    };
   }
 }

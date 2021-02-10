@@ -5,7 +5,7 @@
   <div class="col-4">
     <div class="form-group">
       <label for="l">Number of results:</label>
-      <select id="l" class="form-control" (change)="fetchClientSessions()" [disabled]="!clientSessions || clientSessions?.length === 0">
+      <select id="l" class="form-control" (change)="fetchAllSessions()" [disabled]="!clientSessions || clientSessions?.length === 0">
         <option [ngValue]="100">100</option>
         <option [ngValue]="200">200</option>
         <option [ngValue]="400">400</option>
@@ -15,13 +15,29 @@
   </div>
 </div>
 
+
+<div class="row mt-3">
+  <div class="col-3">
+    <span class="dot" style="background-color: #21890a"></span> Session is full
+  </div>
+  <div class="col-3">
+    <span class="dot" style="background-color: #895de7"></span> Subscribed
+  </div>
+  <div class="col-3">
+    <span class="dot" style="background-color: #a33232"></span> Canceled
+  </div>
+  <div class="col-3">
+    <span class="dot" style="background-color: #2575a0"></span> Open
+  </div>
+</div>
+
 <div class="row" *ngIf="clientSessions">
   <div class="col-12">
     <dx-scheduler
       #scheduler
       class="my-5"
       timeZone="Europe/Athens"
-      [dataSource]="clientSessions"
+      [dataSource]="allSessions"
       [views]="['month','week','day', 'timelineDay']"
       currentView="month"
       [currentDate]="currentDate"
@@ -31,8 +47,8 @@
       [showAllDayPanel]="false"
       [height]="500"
       (onAppointmentFormOpening)="onAppointmentFormOpening($event)"
-      (onAppointmentDeleting)="onAppointmentDeleting($event)"
-      (onAppointmentRendered)="onAppointmentRendered($event)">
+      (onAppointmentRendered)="onAppointmentRendered($event)"
+            (onAppointmentDeleting)="onAppointmentDeleting($event)">
       <dxo-editing
         [allowAdding]="true"
         [allowDeleting]="true"

@@ -5,6 +5,7 @@ import {MainComponent} from './components/main/main.component';
 import {AppointmentsComponent} from './components/appointments/appointments.component';
 import {NewAppointmentComponent} from './components/new-appointment/new-appointment.component';
 import {ScheduleReportComponent} from './components/schedule-report/schedule-report.component';
+import {AttendanceComponent} from './components/attendance/attendance.component';
 
 const routes: Routes = [
   {
@@ -23,6 +24,11 @@ const routes: Routes = [
   {
     path: 'schedule-report',
     component: ScheduleReportComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'attendance',
+    component: AttendanceComponent,
     canActivate: [AuthGuard]
   }
 ];
