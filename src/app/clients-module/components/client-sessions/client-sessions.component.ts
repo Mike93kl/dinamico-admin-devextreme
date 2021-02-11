@@ -87,6 +87,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           }
 
           if (isClientInSession.canceled) {
+            session.disabled = true;
             session.color = '#a33232';
           } else {
             session.color = '#2575a0';

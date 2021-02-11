@@ -8,6 +8,8 @@ export interface SessionTimeModel {
 }
 
 export interface SessionModel {
+  allowDeleting?: boolean;
+  disabled?: boolean;
   color?: string;
   text?: string;
   endDate: any;

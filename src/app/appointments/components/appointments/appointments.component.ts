@@ -66,7 +66,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         s.text = s.sessionType.title;
         s.startDate = new Date(s.startDate.seconds * 1000);
         s.endDate = new Date(s.endDate.seconds * 1000);
-        if (s.isFull || s.subscriptions.length >= s.spots) {
+        s.allowDeleting = s.subscriptions.length > 0 || this.currentDate > s.startDate;
+        if (this.currentDate > s.startDate) {
+          s.disabled = true;
+          s.color = '#8f8c95';
+        } else if (s.isFull || s.subscriptions.length >= s.spots) {
           s.color = '#099c15';
         } else {
           s.color = '#306CC7';
