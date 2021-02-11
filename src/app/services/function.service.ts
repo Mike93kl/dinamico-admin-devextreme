@@ -3,7 +3,7 @@ import {AngularFireFunctions} from '@angular/fire/functions';
 import {
   ALTER_MAX_USAGES, BOOK_SESSION, CANCEL_CLIENT_SESSION,
   CLIENTS_ACTIVE_PACKAGES,
-  CREATE_CLIENT,
+  CREATE_CLIENT, GET_CLIENTS_OF_SESSION,
   GET_USER_CLAIMS,
   GRANT_ADMIN,
   GRANT_MANAGER,
@@ -74,8 +74,8 @@ export class FunctionService {
   }
 
   bookSessionForClient(
-                       sessionId: string,
-                       clientPackageId: string
+    sessionId: string,
+    clientPackageId: string
   ):
     Observable<FunctionResponse> {
     return this.fn.httpsCallable(BOOK_SESSION)({
@@ -87,5 +87,9 @@ export class FunctionService {
     return this.fn.httpsCallable(CANCEL_CLIENT_SESSION)({
       clientSessionId, clientId, cms: true, date: new Date().getTime()
     });
+  }
+
+  getClientsOfSession(sessionId: string): Observable<FunctionResponse> {
+    return this.fn.httpsCallable(GET_CLIENTS_OF_SESSION)({sessionId});
   }
 }
