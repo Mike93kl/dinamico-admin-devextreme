@@ -27,19 +27,22 @@
 
     <div class="container" *ngIf="todaySessions?.length > 0 && currentSession.session">
 
-    <div *ngIf="currentSession.clients?.length === 0">
+    <div *ngIf="currentSession.subscribed?.length === 0">
       <h6 class="text-center">You have no subscribed clients for this session</h6>
     </div>
 
-    <div *ngIf="currentSession.clients?.length > 0">
+    <div *ngIf="currentSession.subscribed?.length > 0">
 
-      <div class="row client" *ngFor="let c of currentSession.clients">
+      <div class="row client" *ngFor="let s of currentSession.subscribed" (click)="toggleAttendance(s.client, s.clientSession)">
 
         <div class="col-9 client-name text-center">
-          {{ c.fullName | uppercase}}
+          {{ s.client.fullName | uppercase}}
         </div>
-        <div class="col-3 client-attendance-btn text-warning">
-          <i class="far fa-circle"></i>
+        <div class="col-3 client-attendance-btn"
+        [ngClass]="{'text-warning' : !s.clientSession.attended, 'text-success' : s.clientSession.attended}">
+          <i class="far"
+          [ngClass]="{'fa-circle': !s.clientSession.attended, 'fa-check-circle': s.clientSession.attended}"
+          ></i>
         </div>
       </div>
 

@@ -4,14 +4,16 @@ import {FirebaseService} from './FirebaseService';
 import {SessionModel} from '../models/SessionModel';
 import {Observable, of} from 'rxjs';
 import {ClientModel} from '../models/ClientModel';
-import {CLIENTS, SESSIONS} from '../utils/Collections';
+import {CLIENT_SESSIONS, CLIENTS, SESSIONS} from '../utils/Collections';
+import {FunctionService} from './function.service';
+import {FunctionResponse} from '../models/FunctionResponse';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SessionService extends FirebaseService<SessionModel> {
 
-  constructor(fs: AngularFirestore) {
+  constructor(fs: AngularFirestore, private fn: FunctionService) {
     super(fs, 'Sessions');
   }
 
@@ -89,12 +91,16 @@ export class SessionService extends FirebaseService<SessionModel> {
     }).valueChanges();
   }
 
-  getClientsOfSession(session: SessionModel): Observable<ClientModel[]> {
-    if (session.subscriptions.length === 0) {
-      return of([]);
-    }
-    return this.fs.collection<ClientModel>('Clients', ref => {
-      return ref.where('uid', 'in', session.subscriptions);
-    }).valueChanges();
+  getClientsOfSession(session: SessionModel): Observable<FunctionResponse> {
+    return this.fn.getClientsOfSession(session.uid);
+  }
+
+  async toggleAttendance(clientSessionId: string, attended: boolean): Promise<boolean> {
+    return await this.fs.collection(CLIENT_SESSIONS).doc(clientSessionId)
+      .update({attended}).then(() => true)
+      .catch(e => {
+        console.log(e);
+        return false;
+      });
   }
 }

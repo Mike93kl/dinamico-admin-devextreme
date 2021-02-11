@@ -6,6 +6,8 @@ import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {take} from 'rxjs/operators';
 import {SessionModel} from '../../../models/SessionModel';
 import {PopupService} from '../../../services/popup.service';
+import {ClientSessionModel} from '../../../models/ClientSessionModel';
+import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 
 declare var $: any;
 
@@ -24,8 +26,8 @@ export class AttendanceComponent implements OnInit, OnDestroy, AfterViewInit {
   clockInterval: any;
   sessionTypes: SessionTypeModel[];
   todaySessions: SessionModel[];
-  currentSessionIndex = -1;
-  currentSession: { session: SessionModel; clients: ClientModel[] };
+  currentSessionIndex = 0;
+  currentSession: { session: SessionModel; subscribed: { client: ClientModel; clientSession: ClientSessionModel }[] };
 
   constructor(private sessionService: SessionService, private sessionTypeService: SessionTypeService,
               private popup: PopupService) {
@@ -37,7 +39,7 @@ export class AttendanceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.currentSession = {
-      session: null, clients: []
+      session: null, subscribed: []
     };
     this.currDate = new Date();
     this.clockInterval = setInterval(() => {
@@ -63,7 +65,9 @@ export class AttendanceComponent implements OnInit, OnDestroy, AfterViewInit {
         });
         console.log(this.todaySessions);
         if (this.todaySessions.length > 0) {
-         this.nextSession();
+          this.currentSession.session = this.todaySessions[this.currentSessionIndex];
+          this.setContentMargin();
+          this.getCurrentSessionClients();
         }
       });
   }
@@ -88,19 +92,24 @@ export class AttendanceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private getCurrentSessionClients(): void {
     if (this.currentSession.session.subscriptions.length <= 0) {
-      this.currentSession.clients = [];
+      this.currentSession.subscribed = [];
       return;
     }
     this.loadingVisible = true;
-    this.sessionService.getSubscribedClients(this.currentSession.session)
-      .then(clients => {
+    this.sessionService.getClientsOfSession(this.currentSession.session)
+      .pipe(take(1))
+      .subscribe(result => {
+        console.log(result);
         this.loadingVisible = false;
-        this.currentSession.clients = clients;
-      })
-      .catch(e => {
+        if (result.success) {
+          this.currentSession.subscribed = result.data;
+        } else {
+          this.popup.error('Could not get clients of session');
+        }
+      }, error => {
+        console.log(error);
         this.loadingVisible = false;
-        console.log(e);
-        this.popup.error('Could not fetch clients of session!');
+        this.popup.error('Could not get clients of session');
       });
   }
 
@@ -112,5 +121,22 @@ export class AttendanceComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       content.css('margin-top', this.headerView.nativeElement.offsetHeight + 20);
     }, 200);
+  }
+
+  toggleAttendance(client: ClientModel, clientSession: ClientSessionModel): void {
+    this.loadingVisible = true;
+    this.sessionService.toggleAttendance(clientSession.uid, !clientSession.attended)
+      .then((ok) => {
+        this.loadingVisible = false;
+        if (!ok) {
+          this.popup.error(UNEXPECTED_ERROR);
+        } else {
+          clientSession.attended = !clientSession.attended;
+        }
+      }).catch(e => {
+      console.log(e);
+      this.loadingVisible = false;
+      this.popup.error(UNEXPECTED_ERROR);
+    });
   }
 }
