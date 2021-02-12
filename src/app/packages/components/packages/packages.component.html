@@ -63,7 +63,7 @@
       </div>
       <div class="form-group">
         <label>Days to Expire After Purchase: </label>
-        <input type="text" [(ngModel)]="selectedPackage.daysToExpire" class="form-control"
+        <input type="number" min="0" [(ngModel)]="selectedPackage.daysToExpire" class="form-control"
                [readOnly]="!selectedPackage.isInEditMode">
       </div>
       <div class="form-group">
@@ -140,7 +140,7 @@
       </div>
       <div class="form-group">
         <label>Days to Expire After Purchase: (If package does not expire, set the value to 0)</label>
-        <input type="text" [(ngModel)]="newPackage.daysToExpire" class="form-control">
+        <input type="number" min="0" [(ngModel)]="newPackage.daysToExpire" class="form-control">
       </div>
       <div class="form-group">
         <label>Price: </label>

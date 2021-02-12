@@ -97,7 +97,8 @@ export class PackagesComponent implements OnInit, OnDestroy {
       this.popup.error(`Price for package must be greater than 0`);
       return false;
     }
-    if (pkg.daysToExpire < 0) {
+    pkg.daysToExpire = +pkg.daysToExpire;
+    if ( pkg.daysToExpire < 0) {
       this.popup.error(`Days to expire must be 0 or greater`);
       return false;
     }
