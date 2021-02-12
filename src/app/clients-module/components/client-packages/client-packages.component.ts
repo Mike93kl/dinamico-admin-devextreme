@@ -81,7 +81,6 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
           });
           return p;
         });
-        console.log(this.clientPackages);
       }, error => {
         console.log(error);
         this.popup.error('Could not fetch packages, Please refresh the page');

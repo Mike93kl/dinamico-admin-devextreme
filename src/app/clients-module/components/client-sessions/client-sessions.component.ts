@@ -8,11 +8,10 @@ import {PopupService} from '../../../services/popup.service';
 import {DatePipe} from '@angular/common';
 import {SessionService} from '../../../services/session.service';
 import {SessionModel} from '../../../models/SessionModel';
-import {SessionTypeService} from '../../../services/session-type.service';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {ClientPackageModel} from '../../../models/ClientPackageModel';
 import {ClientModel} from '../../../models/ClientModel';
-import {from, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 
 declare var $: any;
 
@@ -22,6 +21,7 @@ declare var $: any;
   styleUrls: ['./client-sessions.component.css']
 })
 export class ClientSessionsComponent implements OnInit, OnDestroy {
+  i = 0;
   @Input() client: ClientModel;
   @Input() sessionTypes: SessionTypeModel[];
   clientSessions: ClientSessionModel[];
@@ -36,6 +36,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   private chosenSession: SessionModel;
   limit = 100;
   allSessions: SessionModel[];
+  subSessions: { sessionId: string; canceled: boolean; uid: string } [];
   // subs
   sessionTypeSub: Subscription;
   allSessionsSub: Subscription;
@@ -63,38 +64,48 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       .pipe(take(1))
       .subscribe(clientSessions => {
         this.clientSessions = clientSessions;
-        const subSessions = this.clientSessions.map(e => {
-          return {
-            sessionId: e.sessionId,
-            canceled: e.canceled
-          };
-        });
+        this.subSessions
+          = Object.values(this.clientSessions.reduce((p, c, i) => {
+          if (!p[c.sessionId]) {
+            p[c.sessionId] = {sessionId: c.sessionId, canceled: c.canceled, uid: c.uid};
+          } else {
+            const temp = p[c.sessionId];
+            p[c.sessionId] = temp.canceled && c.canceled ? temp :
+              (!temp.canceled && c.canceled ? temp : (temp.canceled && !c.canceled) ? {
+                sessionId: c.sessionId, canceled: c.canceled, uid: c.uid
+              } : temp);
+          }
+          return p;
+        }, {}));
         this.allSessions = this.allSessions.map(session => {
           session.sessionType = this.sessionTypes.find(t => t.uid === session.sessionTypeId);
           session.text = session.sessionType.title;
           session.startDate = new Date(session.startDate.seconds * 1000);
           session.endDate = new Date(session.endDate.seconds * 1000);
-          const isClientInSession = subSessions.find(e => e.sessionId === session.uid);
+          const isClientInSession = this.subSessions.find(e => e.sessionId === session.uid);
           if (!isClientInSession) {
+            session.disabled = true;
             if (session.isFull || session.subscriptions.length >= session.spots) {
               session.color = '#21890a';
             }
-            return session;
-          }
-          if (session.subscriptions.includes(this.client.uid)) {
-            session.color = '#895de7';
             return session;
           }
 
           if (isClientInSession.canceled) {
             session.disabled = true;
             session.color = '#a33232';
-          } else {
-            session.color = '#2575a0';
+            return session;
           }
+
+          if (session.subscriptions.includes(this.client.uid)) {
+            session.color = '#895de7';
+            return session;
+          }
+          session.color = '#2575a0';
           return session;
         });
-        console.log(this.allSessions);
+        this.i++;
+        console.table(this.allSessions);
       }, error => {
         console.log(error);
         this.popup.error('Could not fetch client sessions. Try refreshing the page');
@@ -108,7 +119,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   async onAppointmentDeleting($event: any): Promise<void> {
     const deferred = new $.Deferred();
     $event.cancel = deferred.promise();
-    const clientSession = this.clientSessions.find(cs => cs.sessionId ===
+    const clientSession = this.subSessions.find(cs => cs.sessionId ===
       $event.appointmentData.uid);
 
     if (!clientSession) {
@@ -216,7 +227,6 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           e.collapsed = false;
           return e;
         });
-        console.log('client pkgs matches session: ', this.clientsActivePackagesForSession);
         this.showActivePackagesPopup = true;
       }, error => {
         this.loadingVisible = false;
@@ -242,7 +252,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       .subscribe(result => {
         this.loadingVisible = false;
         if (result.success) {
-          this.popup.success('Session booked successfuly !');
+          this.popup.success('Session booked successfully !');
           this.clientsActivePackagesForSession = null;
           this.showActivePackagesPopup = false;
           this.showSessionsForDatePopup = false;
@@ -307,7 +317,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   }
 
   fetchAllSessions(): void {
-    this.allSessionsSub =  this.sessionService.getAllSessions(this.limit)
+    this.allSessionsSub = this.sessionService.getAllSessions(this.limit)
       .subscribe(sessions => {
         this.allSessions = sessions;
         this.fetchClientSessions();
@@ -375,7 +385,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
                 this.fetchPackagesMatchesSession(data.sessionTypeId);
               },
               text: data.isFull || data.subscriptions.length >= data.spots ? 'Session is Full' : 'Subscribe to Session',
-              disabled: (data.isFull || data.subscriptions.length >= data.spots) || data.subscriptions.includes(this.client.uid)
+              disabled: (data.isFull || data.subscriptions.length >= data.spots)
+                || data.subscriptions.includes(this.client.uid) || this.currentDate > data.startDate
             }
           },
         ]
@@ -388,7 +399,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     form.getEditor('endDate')
       .option('value', endDate);
     actions[0].onClick = () => {
-      this.scheduleSession(startDate, endDate);
+      this.scheduleSession(startDate, endDate)
+        .then();
     };
     popup.option('toolbarItems', actions);
     return {
