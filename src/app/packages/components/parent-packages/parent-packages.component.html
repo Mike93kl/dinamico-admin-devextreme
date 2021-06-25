@@ -1,0 +1,32 @@
+<div class="row">
+    <div class="col-8">
+        <h4> Root Packages </h4>
+    </div>
+    <div class="col-4">
+        <button (click)="addingPackage = !addingPackage" class="btn btn-outline-primary float-right"><i class="fas fa-plus-circle"></i></button>
+    </div>
+</div>
+<div class="row" *ngIf="addingPackage">
+    <div class="col-8">
+        <input type="text" class="form-control" placeholder="Parent package title" #packageTitle>
+    </div>
+    <div class="col-4">
+        <button (click)="createPackage(packageTitle.value)" class="btn btn-primary">Create</button>
+    </div>
+</div>
+<hr>
+<div class="row">
+  <div class="col-12">
+    <div class="form">
+        <dx-tree-view *ngIf="tree[0].items.length > 0"
+            [dataSource]="tree"
+            [width]="500"
+            itemTemplate="itemTemplate">
+            <div *dxTemplate="let p of 'itemTemplate'">
+                <p [ngClass]="{ 'text-red': p.act === false }">{{p.text}}</p>
+            </div>
+        </dx-tree-view>
+    </div>
+  </div>
+</div>
+

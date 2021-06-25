@@ -6,6 +6,8 @@ import {SessionTypeService} from '../../../services/session-type.service';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {Subscription} from 'rxjs';
 import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import { ParentPackagesService } from 'src/app/services/parent-packages.service';
+import { ParentPackageModel } from 'src/app/models/ParentPackageModel';
 
 @Component({
   selector: 'app-packages',
@@ -19,12 +21,14 @@ export class PackagesComponent implements OnInit, OnDestroy {
   selectedPackage: PackageModel;
   selectedPackageCopy: PackageModel;
   showSelectedPackage: boolean;
+  parentPackages: ParentPackageModel[];
   // subs
   packagesSub: Subscription;
   sessionTypeSub: Subscription;
+  parentPackageSub: Subscription;
 
   constructor(private service: PackagesService, private popup: PopupService,
-              private sessionTypeService: SessionTypeService) {
+              private sessionTypeService: SessionTypeService, private parentPackagesService: ParentPackagesService) {
   }
 
   ngOnInit(): void {
@@ -36,6 +40,13 @@ export class PackagesComponent implements OnInit, OnDestroy {
       console.log(error);
       this.popup.error(UNEXPECTED_ERROR + ` Try to refresh the page`);
     });
+    this.parentPackageSub = this.parentPackagesService.getAll().subscribe(res => {
+        this.parentPackages = res;
+    }, err => {
+      console.log(err);
+      this.popup.error('Could not fetch parent packages! Please refresh the page.' 
+      + ' If problem persists please contact support');
+    })
   }
 
   private fetchPackages(): void {
@@ -74,12 +85,16 @@ export class PackagesComponent implements OnInit, OnDestroy {
     if (!this.isPackageValid(this.newPackage)) {
       return;
     }
+  
+    const parentPackage = this.parentPackages.find(p => p.uid === this.newPackage.parentPackageId);
     this.newPackage.canExpire = this.newPackage.daysToExpire !== 0;
     this.newPackage.description = this.createAutomatedDescription(this.newPackage);
     try {
       const pkg = Object.assign({}, this.newPackage);
       delete pkg.isInEditMode;
-      await this.service.create([pkg]);
+      const inserted = await this.service.create([pkg]);
+      parentPackage.children.push(inserted[0].uid);
+      await this.parentPackagesService.update([parentPackage]);
       this.popup.success(`Package ${this.newPackage.title} created!`);
       this.newPackage = null;
     } catch (e) {
@@ -111,6 +126,10 @@ export class PackagesComponent implements OnInit, OnDestroy {
         this.popup.error(`Please choose a session type at position ${i + 1}`);
         return false;
       }
+    }
+    if(pkg.parentPackageId === '' || !this.parentPackages.find(p => p.uid === pkg.parentPackageId)) {
+      this.popup.error('Parent package not found! Orphan packages are now allowed');
+      return false;
     }
     return true;
   }
@@ -155,10 +174,20 @@ export class PackagesComponent implements OnInit, OnDestroy {
     selectedPackage.description = this.createAutomatedDescription(selectedPackage);
     try {
       const pkg = Object.assign({}, selectedPackage);
-      delete pkg.isInEditMode;
-      await this.service.update([selectedPackage]);
-      this.popup.success(`Package ${selectedPackage.title} Updated!`);
-      selectedPackage.isInEditMode = false;
+      await this.parentPackagesService.findChildAndRemove(pkg.uid);
+      setTimeout(async () => {
+        const parentPackage = this.parentPackages.find(p => p.uid === pkg.parentPackageId);
+        delete pkg.isInEditMode;
+        await this.service.update([selectedPackage]);
+        if(!parentPackage.children) {
+          parentPackage.children = [selectedPackage.uid]
+        } else {
+          parentPackage.children.push(selectedPackage.uid);
+        }
+        await this.parentPackagesService.update([parentPackage]);
+        this.popup.success(`Package ${selectedPackage.title} Updated!`);
+        selectedPackage.isInEditMode = false;
+      }, 1000);
     } catch (e) {
       console.log(e);
       this.popup.error(UNEXPECTED_ERROR);

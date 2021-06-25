@@ -11,4 +11,5 @@ export interface PackageModel {
   eligibleSessionTypes: EligibleSessionTypeModel[];
   isInEditMode?: boolean;
   showToUser?: boolean;
+  parentPackageId?: string;
 }

@@ -6,11 +6,11 @@ import {SharedModule} from '../shared/shared.module';
 import {PackagesRoutingModule} from './packages.routing.module';
 import {DxListModule, DxPopupModule, DxScrollViewModule} from 'devextreme-angular';
 import {FormsModule} from '@angular/forms';
-
-
+import {ParentPackagesComponent} from './components/parent-packages/parent-packages.component'
+import { DxTreeViewModule } from 'devextreme-angular';
 
 @NgModule({
-  declarations: [MainComponent, PackagesComponent],
+  declarations: [MainComponent, PackagesComponent, ParentPackagesComponent],
   imports: [
     CommonModule,
     SharedModule,
@@ -18,7 +18,8 @@ import {FormsModule} from '@angular/forms';
     DxListModule,
     FormsModule,
     DxPopupModule,
-    DxScrollViewModule
+    DxScrollViewModule,
+    DxTreeViewModule
   ]
 })
 export class PackagesModule { }
