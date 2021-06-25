@@ -3,6 +3,7 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
+  useEmulators: true,
   production: false,
   firebaseConfig: {
     apiKey: 'AIzaSyD8s-6YOC5OauVR5ZU4I5nxu7bnroO5KAA',
@@ -13,6 +14,13 @@ export const environment = {
     messagingSenderId: '258221997796',
     appId: '1:258221997796:web:4d5ccd979ef9e84312f6f1',
     measurementId: 'G-DQLYFS4W4X'
+        // host: 'localhost:8081',
+        // ssl: false,
+        // apiKey: 'AIzaSyD8s-6YOC5OauVR5ZU4I5nxu7bnroO5KAA',
+        // databaseURL: 'http://localhost:3333?ns=1:258221997796:web:4d5ccd979ef9e84312f6f1',
+        // projectId: 'dynamico-gym',
+        // appId: '1:258221997796:web:4d5ccd979ef9e84312f6f1',
+        // measurementId: 'G-DQLYFS4W4X',
 
   }
 };
