@@ -16,16 +16,20 @@ import {ClientsModule} from './clients-module/clients.module';
 import {SharedModule} from './shared/shared.module';
 import {AppointmentsModule} from './appointments/appointments.module';
 import {PackagesModule} from './packages/packages.module';
+import {NewsFeedModule} from './newsfeed/newsfeed.module'
+import { DropZoneDirective } from './directives/drop-zone.directive';
+// emulators
 import { USE_EMULATOR as USE_AUTH_EMULATOR } from '@angular/fire/auth';
 import { USE_EMULATOR as USE_FIRESTORE_EMULATOR } from '@angular/fire/firestore';
 import { USE_EMULATOR as USE_FUNCTIONS_EMULATOR } from '@angular/fire/functions';
-
+import {AngularFireStorageModule} from '@angular/fire/storage';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     DashboardComponent,
+    DropZoneDirective
   ],
   imports: [
     BrowserModule,
@@ -36,10 +40,12 @@ import { USE_EMULATOR as USE_FUNCTIONS_EMULATOR } from '@angular/fire/functions'
     AngularFireDatabaseModule,
     AngularFirestoreModule,
     AngularFireFunctionsModule,
+    AngularFireStorageModule,
     ClientsModule,
     SharedModule,
     AppointmentsModule,
-    PackagesModule
+    PackagesModule,
+    NewsFeedModule
   ],
   providers: [
     { provide: USE_AUTH_EMULATOR, useValue: environment.useEmulators ? ['localhost', 1111] : undefined },
