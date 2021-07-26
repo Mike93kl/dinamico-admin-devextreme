@@ -9,10 +9,12 @@ import {FunctionService} from '../../services/function.service';
 })
 export class SideNavComponent implements OnInit {
   navigation: any[] = [
+  
     {id: 0, text: 'Dashboard', icon: 'fields', path: ''},
-    {id: 1, text: 'Clients', icon: 'card', path: 'clients'},
-    {id: 2, text: 'Appointments', icon: 'rowproperties', path: 'appointments'},
-    {id: 3, text: 'Packages', icon: 'box', path: 'packages'}
+    {id: 1, text: 'Posts', icon: 'comment', path: 'newsfeed'},
+    {id: 2, text: 'Clients', icon: 'card', path: 'clients'},
+    {id: 4, text: 'Appointments', icon: 'rowproperties', path: 'appointments'},
+    {id: 5, text: 'Packages', icon: 'box', path: 'packages'}
   ];
   isDrawerOpen = false;
   buttonOptions: any = {
