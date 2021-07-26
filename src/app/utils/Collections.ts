@@ -7,3 +7,4 @@ export const SESSION_TYPES = 'SessionTypes';
 export const CLIENT_SESSIONS = 'ClientSessions';
 export const CLIENT_PACKAGES = 'ClientPackages';
 export const PARENT_PACKAGES = 'ParentPackages';
+export const POSTS = "Posts";

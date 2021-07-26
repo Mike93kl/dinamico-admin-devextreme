@@ -1,0 +1,42 @@
+<div class="row my-4">
+  <div class="col-3"></div>
+  <div class="col-6">
+    <a routerLink="post" class="btn btn-outline-primary float-right">Create New</a>
+  </div>
+  <div class="col-3"></div>
+</div>
+
+<div class="row">
+
+    <div class="col-3"></div>
+    <div class="col-6">
+
+        <div class="card my-4"  *ngFor="let post of posts; index as i">
+            <p style="margin: 20px">#{{i + 1}}</p>
+            <img *ngIf="post.imageURL"  class="card-img-top" src="{{post.imageURL}}" alt="Card image cap">
+            <div class="card-body">
+              <h5 *ngIf="post.title" class="card-title">{{post.title}}</h5>
+              <p class="card-text" *ngIf="post.text">{{post.text}}</p>
+              <a routerLink="post/{{post.uid}}" class="btn btn-primary">View Post</a>
+            </div>
+          </div>
+
+    </div>
+    <div class="col-3"></div>
+
+</div>
+
+
+<!--Loader-->
+<dx-load-panel
+  #loadPanel
+  [position]="{ of: '#scheduler' }"
+  shadingColor="rgba(0,0,0,0.4)"
+  [(visible)]="loadingVisible"
+  [showIndicator]="true"
+  [showPane]="true"
+  [shading]="true"
+  [closeOnOutsideClick]="false">
+</dx-load-panel>
+
+

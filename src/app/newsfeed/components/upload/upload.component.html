@@ -1,14 +1,11 @@
-<div class="dropzone"
-    dropzone
-    (hovered)="toggleHover($event)"
-    (dropped)="startUpload($event)"
+<div class="dropzone" dropzone (hovered)="toggleHover($event)" (dropped)="startUpload($event)"
     [class.hovering]="isHovering">
 
     <h3>Drop Zone</h3>
-    <p>Drag and drop a file</p>
+    <p>Drag and drop a .jpg, .jpeg or a .png</p>
     <div class="file">
         <label class="file-label"></label>
-        <input type="file" (change)="startUpload($event.target.files)"/>
+        <input type="file" (change)="startUpload($event.target.files)" />
 
 
 
@@ -22,10 +19,70 @@
 
 </div>
 
-<div *ngIf="downloadURL | async as u">
-    <img [src]="u"/>
+
+<div class="row">
+
+    <div class="col-3"></div>
+    <div class="col-6">
+
+        <div class="card">
+            <img *ngIf="!downloadURL && post.imageURL" class="card-img-top" src="{{post.imageURL}}" alt="Card image cap">
+            <img *ngIf="downloadURL | async as u" class="card-img-top" [src]="u" alt="Card image cap">
+            
+            <div class="card-body">
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" [(ngModel)]="post.title" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>Text</label>
+                    <textarea class="form-control" [(ngModel)]="post.text"></textarea>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" [(ngModel)]="post.visible"
+                        id="flexCheckDefault">
+                    <label class="form-check-label" for="flexCheckDefault">
+                        Public
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" [(ngModel)]="post.notifyUsers"
+                        id="flexCheckDefault1">
+                    <label class="form-check-label" for="flexCheckDefault1">
+                        Notify users
+                    </label>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+    <div class="col-3"></div>
+
 </div>
 
-<!-- <button (click)="task.pause()" [disabled]="!isActive(snap)"> Pause </button>
-<button (click)="task.cancel()" [disabled]="!isActive(snap)">Cancel</button>
-<button (click)="task.resume()" [disabled]="!(snap?.state === 'paused')">Resume</button> -->
+<div class="row mt-4">
+    <div class="col-3"></div>
+    <div class="col-6">
+        <button (click)="savePost()" class="btn btn-outline-success form-control">Save</button>
+    </div>
+    <div class="col-3"></div>
+</div>
+
+
+
+
+
+
+
+
+
+<!--Loader-->
+<dx-load-panel #loadPanel [position]="{ of: '#scheduler' }" shadingColor="rgba(0,0,0,0.4)" [(visible)]="loadingVisible"
+    [showIndicator]="true" [showPane]="true" [shading]="true" [closeOnOutsideClick]="false">
+</dx-load-panel>

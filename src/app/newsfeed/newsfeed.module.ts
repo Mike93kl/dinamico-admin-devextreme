@@ -6,15 +6,21 @@ import {NewsFeedRoutingModule} from './newsfeed.routing.module';
 import {FormsModule} from '@angular/forms'
 import { DxTreeViewModule } from 'devextreme-angular';
 import {UploadComponent} from './components/upload/upload.component'
+import {AllpostsComponent} from './components/allposts/allposts.component'
+import {PostComponent} from './components/post/post.component'
+import {DxLoadPanelModule} from 'devextreme-angular'
+import { DxButtonModule } from "devextreme-angular";
 
 @NgModule({
-  declarations: [MainComponent, UploadComponent],
+  declarations: [MainComponent, UploadComponent, AllpostsComponent, PostComponent],
   imports: [
     CommonModule,
     SharedModule,
     NewsFeedRoutingModule,
     FormsModule,
-    DxTreeViewModule
+    DxTreeViewModule,
+    DxLoadPanelModule,
+    DxButtonModule
   ]
 })
 export class NewsFeedModule { }
