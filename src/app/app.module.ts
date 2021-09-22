@@ -48,9 +48,9 @@ import {AngularFireStorageModule} from '@angular/fire/storage';
     NewsFeedModule
   ],
   providers: [
-    { provide: USE_AUTH_EMULATOR, useValue: environment.useEmulators ? ['localhost', 1111] : undefined },
-    { provide: USE_FIRESTORE_EMULATOR, useValue: environment.useEmulators ? ['localhost', 3333] : undefined },
-    { provide: USE_FUNCTIONS_EMULATOR, useValue: environment.useEmulators ? ['localhost', 2222] : undefined },
+    { provide: USE_AUTH_EMULATOR, useValue: environment.useEmulators ? ['localhost', 1231] : undefined },
+    { provide: USE_FIRESTORE_EMULATOR, useValue: environment.useEmulators ? ['localhost', 1233] : undefined },
+    { provide: USE_FUNCTIONS_EMULATOR, useValue: environment.useEmulators ? ['localhost', 1232] : undefined },
   ],
   bootstrap: [AppComponent]
 })
