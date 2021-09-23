@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ParentPackageModel } from '../models/ParentPackageModel';
 import {FirebaseService} from './FirebaseService';
 import {PACKAGES, PARENT_PACKAGES} from '../utils/Collections'

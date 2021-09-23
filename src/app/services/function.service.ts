@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {AngularFireFunctions} from '@angular/fire/functions';
+import {AngularFireFunctions} from '@angular/fire/compat/functions';
 import {
   ALTER_MAX_USAGES, BOOK_SESSION, CANCEL_CLIENT_SESSION,
   CLIENTS_ACTIVE_PACKAGES,

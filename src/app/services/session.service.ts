@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {AngularFirestore} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/compat/firestore';
 import {FirebaseService} from './FirebaseService';
 import {SessionModel} from '../models/SessionModel';
 import {Observable, of} from 'rxjs';

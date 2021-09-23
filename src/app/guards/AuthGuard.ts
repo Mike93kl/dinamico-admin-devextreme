@@ -1,4 +1,4 @@
-import {loggedIn} from '@angular/fire/auth-guard';
+import {loggedIn} from '@angular/fire/compat/auth-guard';
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {AuthService} from '../services/auth.service';

@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {FirebaseService} from './FirebaseService';
 import {ClientModel} from '../models/ClientModel';
 import {Observable} from 'rxjs';
-import {AngularFirestore} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/compat/firestore';
 import {FunctionService} from './function.service';
 import {CLIENT_PACKAGES, CLIENT_SESSIONS, CLIENTS, PACKAGES, SESSION_TYPES, SESSIONS} from '../utils/Collections';
 import {FunctionResponse} from '../models/FunctionResponse';

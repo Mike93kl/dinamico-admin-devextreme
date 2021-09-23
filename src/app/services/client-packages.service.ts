@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {FirebaseService} from './FirebaseService';
 import {ClientPackageModel} from '../models/ClientPackageModel';
-import {AngularFirestore} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/compat/firestore';
 import {CLIENT_PACKAGES} from '../utils/Collections';
 
 @Injectable({

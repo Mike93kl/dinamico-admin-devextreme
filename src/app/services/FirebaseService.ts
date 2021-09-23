@@ -1,6 +1,6 @@
 import {Observable} from 'rxjs';
-import {AngularFirestore} from '@angular/fire/firestore';
-import firebase from 'firebase';
+import {AngularFirestore} from '@angular/fire/compat/firestore';
+import firebase from 'firebase/compat';
 import CollectionReference = firebase.firestore.CollectionReference;
 import {Model} from '../models/Model';
 

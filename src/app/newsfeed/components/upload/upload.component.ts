@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AngularFireStorage, AngularFireUploadTask } from '@angular/fire/storage';
+import { AngularFireStorage, AngularFireUploadTask } from '@angular/fire/compat/storage';
 import { Observable } from 'rxjs'
 import { Post } from 'src/app/models/Post';
 import { PopupService } from 'src/app/services/popup.service';
@@ -67,7 +67,8 @@ export class UploadComponent implements OnInit {
     const file = event.item(0);
 
     if (file.type.split('/')[0] !== 'image') {
-      // error
+      this.loadingVisible = false;
+      this.popup.error('Files allowed: .png, .jpg, .jpeg');
       return;
     }
 
