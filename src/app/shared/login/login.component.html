@@ -1,23 +1,12 @@
-<div class="row">
+<div class="login-wrapper">
 
-  <div class="col-6">
-    <img src="/assets/img/dinam.jpg" width="500px" height="500px">
+  <div class="login-form">
+
+    <img src="/assets/img/dinam.png">
+
+    <input type="text" placeholder="ex. john@doe.com" name="email" [(ngModel)]="email" class="form-control">
+    <input type="password" placeholder="Enter password" name="pwd" [(ngModel)]="password" class="form-control">
+    <button (click)="login()" class="btn btn-primary form-control">login</button>
   </div>
-  <div class="col-4">
-    <div class="vertical-center">
-      <div class="container">
-        <div class="form-group">
-          <label> Email </label>
-          <input type="text" placeholder="ex. john@doe.com" name="email" [(ngModel)]="email" class="form-control">
-        </div>
-        <div class="form-group">
-          <label> Password </label>
-          <input type="password" placeholder="Enter password" name="pwd" [(ngModel)]="password" class="form-control">
-        </div>
-        <div class="form-group">
-          <button (click)="login()" class="btn btn-primary form-control">login</button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </div>
