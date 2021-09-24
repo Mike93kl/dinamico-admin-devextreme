@@ -87,4 +87,30 @@ export class PopupService {
       }
     });
   }
+
+
+  confirm(msg: string, onResult: (confirmed: boolean) => void) {
+    const dialog = custom({
+      showTitle: false,
+      messageHtml: `
+        <div class="container text-center">
+            <h5 style="color: royalblue"> Are you sure? </h5>
+            <hr>
+            <p>
+                <strong>${msg}</strong>
+            </p>
+        </div>
+      `,
+      buttons: [{
+        text: 'CANCEL',
+        onClick: () => {
+          onResult(false);
+        }
+      }, {
+        text: 'OK',
+        onClick: () => onResult(true)
+      }]
+    });
+    dialog.show();
+  }
 }

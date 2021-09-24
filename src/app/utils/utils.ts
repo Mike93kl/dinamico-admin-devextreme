@@ -1,5 +1,5 @@
 import {FunctionResponse} from '../models/FunctionResponse';
-import {UNEXPECTED_ERROR} from './ui_messages';
+import {MSG_UNEXPECTED_ERROR} from './ui_messages';
 
 export function handleFunctionResponseWithPromise(promise: any, response: FunctionResponse): any {
   if (response.success) {
@@ -9,10 +9,10 @@ export function handleFunctionResponseWithPromise(promise: any, response: Functi
   if (response.data && response.data.uiMessage) {
     return promise.reject(response.data.uiMessage);
   }
-  return promise.reject(UNEXPECTED_ERROR);
+  return promise.reject(MSG_UNEXPECTED_ERROR);
 }
 
 export function rejectFunctionResponsePromise(promise: any, error: any): any {
   console.log('FN ERROR: ', error);
-  return promise.reject(UNEXPECTED_ERROR);
+  return promise.reject(MSG_UNEXPECTED_ERROR);
 }

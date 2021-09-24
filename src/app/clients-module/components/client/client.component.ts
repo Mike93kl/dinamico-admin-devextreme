@@ -4,7 +4,7 @@ import {ClientService} from '../../../services/client.service';
 import {Subscription} from 'rxjs';
 import {ClientModel} from '../../../models/ClientModel';
 import {PopupService} from '../../../services/popup.service';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {ClientSessionModel} from '../../../models/ClientSessionModel';
 import {SessionTypeService} from '../../../services/session-type.service';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
@@ -59,7 +59,7 @@ export class ClientComponent implements OnInit, OnDestroy {
 
   showErrorAndExit(error: any): void {
     console.log(error);
-    this.popup.error(UNEXPECTED_ERROR, () => {
+    this.popup.error(MSG_UNEXPECTED_ERROR, () => {
       this.router.navigate(['/clients']);
     });
   }
@@ -115,7 +115,7 @@ export class ClientComponent implements OnInit, OnDestroy {
       .catch(e => {
         console.log('Error updating client: ', e);
         this.updating = false;
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 

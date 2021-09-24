@@ -5,7 +5,7 @@ import {PopupService} from '../../../services/popup.service';
 import {SessionTypeService} from '../../../services/session-type.service';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {Subscription} from 'rxjs';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import { ParentPackagesService } from 'src/app/services/parent-packages.service';
 import { ParentPackageModel } from 'src/app/models/ParentPackageModel';
 
@@ -38,7 +38,7 @@ export class PackagesComponent implements OnInit, OnDestroy {
       this.fetchPackages();
     }, error => {
       console.log(error);
-      this.popup.error(UNEXPECTED_ERROR + ` Try to refresh the page`);
+      this.popup.error(MSG_UNEXPECTED_ERROR + ` Try to refresh the page`);
     });
     this.parentPackageSub = this.parentPackagesService.getAll().subscribe(res => {
         this.parentPackages = res;
@@ -55,7 +55,7 @@ export class PackagesComponent implements OnInit, OnDestroy {
       console.log(this.packages);
     }, error => {
       console.log(error);
-      this.popup.error(UNEXPECTED_ERROR + ` Try to refresh the page`);
+      this.popup.error(MSG_UNEXPECTED_ERROR + ` Try to refresh the page`);
     });
   }
 
@@ -99,7 +99,7 @@ export class PackagesComponent implements OnInit, OnDestroy {
       this.newPackage = null;
     } catch (e) {
       console.log(e);
-      this.popup.error(UNEXPECTED_ERROR);
+      this.popup.error(MSG_UNEXPECTED_ERROR);
     }
   }
 
@@ -190,7 +190,7 @@ export class PackagesComponent implements OnInit, OnDestroy {
       }, 1000);
     } catch (e) {
       console.log(e);
-      this.popup.error(UNEXPECTED_ERROR);
+      this.popup.error(MSG_UNEXPECTED_ERROR);
     }
   }
 }

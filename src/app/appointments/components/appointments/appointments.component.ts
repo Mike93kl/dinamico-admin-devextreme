@@ -5,7 +5,7 @@ import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {PopupService} from '../../../services/popup.service';
 import {SessionService} from '../../../services/session.service';
 import {SessionModel} from '../../../models/SessionModel';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {ClientModel} from '../../../models/ClientModel';
 import {ClientService} from '../../../services/client.service';
 import {take} from 'rxjs/operators';
@@ -184,7 +184,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       .catch(e => {
         console.log(e);
         deferred.reject(e);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
     $event.cancel = deferred.promise();
   }
@@ -207,13 +207,13 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
           if (done) {
             deferred.resolve();
           } else {
-            this.popup.error(UNEXPECTED_ERROR);
+            this.popup.error(MSG_UNEXPECTED_ERROR);
             deferred.reject();
           }
         })
         .catch(error => {
           console.log(error);
-          this.popup.error(UNEXPECTED_ERROR);
+          this.popup.error(MSG_UNEXPECTED_ERROR);
           deferred.reject();
         });
       $event.cancel = deferred.promise();
@@ -229,7 +229,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       .catch(e => {
         console.log(e);
         deferred.reject();
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
     $event.cancel = deferred.promise();
   }
@@ -255,7 +255,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       })
       .catch(error => {
         console.log(error);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 
@@ -278,12 +278,12 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
           }
           return;
         }
-        this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
+        this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : MSG_UNEXPECTED_ERROR);
       })
       .catch(error => {
         this.loadingVisible = false;
         console.log(error);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 
@@ -330,7 +330,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       .catch(error => {
         console.log(error);
         this.loadingVisible = false;
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 }

@@ -3,7 +3,7 @@ import {SessionTypeService} from '../../../services/session-type.service';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {Subscription} from 'rxjs';
 import {PopupService} from '../../../services/popup.service';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 
 @Component({
   selector: 'app-session-types',
@@ -27,7 +27,7 @@ export class SessionTypesComponent implements OnInit, OnDestroy {
       });
     }, error => {
       console.log(error);
-      this.popup.error(UNEXPECTED_ERROR);
+      this.popup.error(MSG_UNEXPECTED_ERROR);
     });
   }
 
@@ -58,13 +58,13 @@ export class SessionTypesComponent implements OnInit, OnDestroy {
     delete s.locked;
     this.service.update([s])
       .then(() => this.popup.success('Session Type Updated'))
-      .catch(() => this.popup.error(UNEXPECTED_ERROR));
+      .catch(() => this.popup.error(MSG_UNEXPECTED_ERROR));
   }
 
   private create(s: SessionTypeModel): void {
     delete s.isNew;
     this.service.create([s])
       .then(() => this.popup.success('Session Type Created'))
-      .catch(() => this.popup.error(UNEXPECTED_ERROR));
+      .catch(() => this.popup.error(MSG_UNEXPECTED_ERROR));
   }
 }

@@ -7,7 +7,7 @@ import {take} from 'rxjs/operators';
 import {SessionModel} from '../../../models/SessionModel';
 import {PopupService} from '../../../services/popup.service';
 import {ClientSessionModel} from '../../../models/ClientSessionModel';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 
 declare var $: any;
 
@@ -129,14 +129,14 @@ export class AttendanceComponent implements OnInit, OnDestroy, AfterViewInit {
       .then((ok) => {
         this.loadingVisible = false;
         if (!ok) {
-          this.popup.error(UNEXPECTED_ERROR);
+          this.popup.error(MSG_UNEXPECTED_ERROR);
         } else {
           clientSession.attended = !clientSession.attended;
         }
       }).catch(e => {
       console.log(e);
       this.loadingVisible = false;
-      this.popup.error(UNEXPECTED_ERROR);
+      this.popup.error(MSG_UNEXPECTED_ERROR);
     });
   }
 }

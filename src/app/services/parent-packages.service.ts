@@ -4,6 +4,7 @@ import { ParentPackageModel } from '../models/ParentPackageModel';
 import {FirebaseService} from './FirebaseService';
 import {PACKAGES, PARENT_PACKAGES} from '../utils/Collections'
 import { PackageModel } from '../models/PackageModel';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -50,5 +51,21 @@ export class ParentPackagesService extends FirebaseService<ParentPackageModel> {
       await this.update([data]);
     }
     return true;
+  }
+
+  async removeByIds(packagesUIDs: string[]): Promise<boolean> {
+    for(const uid of packagesUIDs) {
+      const packagesDocs = await firstValueFrom(this.fs.collection(PACKAGES, ref => {
+        return ref.where('parentPackageId', '==', uid)
+      }).get());
+
+      packagesDocs.docs.forEach(async (d) => {
+        const pkg = d.data() as PackageModel;
+        await this.fs.collection(PACKAGES).doc(pkg.uid)
+          .update({parentPackageId: null, active: false});
+      })
+
+    }
+    return super.removeByIds(packagesUIDs);
   }
 }

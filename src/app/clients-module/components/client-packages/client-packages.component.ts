@@ -8,7 +8,7 @@ import {PopupService} from '../../../services/popup.service';
 import {PackagesService} from '../../../services/packages.service';
 import {PackageModel} from '../../../models/PackageModel';
 import {take} from 'rxjs/operators';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {confirm} from 'devextreme/ui/dialog';
 import {ClientPackagesService} from '../../../services/client-packages.service';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
@@ -118,11 +118,11 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
           };
           return;
         }
-        this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
+        this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : MSG_UNEXPECTED_ERROR);
       }, error => {
         this.loadingVisible = false;
         console.log(error);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 
@@ -172,7 +172,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
       .catch(error => {
         this.loadingVisible = false;
         console.log(error);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
 
   }
@@ -246,7 +246,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
       .catch(e => {
         console.log(e);
         this.loadingVisible = false;
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 }

@@ -6,7 +6,7 @@ import {SessionModel} from '../../../models/SessionModel';
 import {ClientModel} from '../../../models/ClientModel';
 import {SessionTypeService} from '../../../services/session-type.service';
 import {PopupService} from '../../../services/popup.service';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 
 declare var $: any;
@@ -47,7 +47,7 @@ export class ScheduleReportComponent implements OnInit {
       this.formatData(history.state.data.result);
     }, error => {
       console.log(error);
-      this.popup.error(UNEXPECTED_ERROR);
+      this.popup.error(MSG_UNEXPECTED_ERROR);
     });
   }
 

@@ -1,32 +1,52 @@
-<div class="row">
-    <div class="col-8">
-        <h4> Root Packages </h4>
+<div id="packages" class="p-packages-wrapper">
+    <div class="p-title-add-btn-wrapper">
+        <h4>Root Packages</h4>
+
+        <button (click)="addingPackage = !addingPackage" class="btn btn-outline-primary float-right">
+            <i class="fas fa-plus-circle"></i></button>
     </div>
-    <div class="col-4">
-        <button (click)="addingPackage = !addingPackage" class="btn btn-outline-primary float-right"><i class="fas fa-plus-circle"></i></button>
-    </div>
-</div>
-<div class="row" *ngIf="addingPackage">
-    <div class="col-8">
+    <div class="p-add-input-wrapper" *ngIf="addingPackage">
         <input type="text" class="form-control" placeholder="Parent package title" #packageTitle>
-    </div>
-    <div class="col-4">
         <button (click)="createPackage(packageTitle.value)" class="btn btn-primary">Create</button>
     </div>
-</div>
-<hr>
-<div class="row">
-  <div class="col-12">
-    <div class="form">
-        <dx-tree-view *ngIf="tree[0].items.length > 0"
-            [dataSource]="tree"
-            [width]="500"
-            itemTemplate="itemTemplate">
-            <div *dxTemplate="let p of 'itemTemplate'">
-                <p [ngClass]="{ 'text-red': p.act === false }">{{p.text}}</p>
-            </div>
-        </dx-tree-view>
-    </div>
-  </div>
+
 </div>
 
+<div class="row">
+    <div class="col-12">
+        <div class="form">
+            <dx-tree-view *ngIf="tree[0].items.length > 0" [dataSource]="tree" [width]="500"
+                itemTemplate="itemTemplate">
+                <div *dxTemplate="let p of 'itemTemplate'; let i = index;">
+                    <div class="parent-package-details">
+                        <p class="p-item" [ngClass]="{ 'text-red': p.act === false, 'p-item-parent': p.editable }">
+                            {{p.text}}</p>
+                        <i *ngIf="p.editable" class="p-update-pencil" (click)="openUpdatePopup(p, i)"
+                            class="fas fa-pencil-alt"></i>
+                    </div>
+                </div>
+            </dx-tree-view>
+        </div>
+    </div>
+</div>
+
+
+<dx-popup width="400" height="400" [closeOnOutsideClick]="false" [(visible)]="updateTreeItem"
+    (onHidden)="onUpdatePopupHidden($event)">
+
+
+    <div class="p-update" *ngIf="updateTreeItem">
+        <h5>Update Parent package title</h5>
+        <input type="text" class="form-control" [(ngModel)]="updateTreeItem.text" #title>
+        <button (click)="update()" class="btn btn-outline-success form-control">Update</button>
+        <button (click)="deleteParentPackage()" class="btn btn-outline-danger">Delete</button>
+    </div>
+
+</dx-popup>
+
+
+
+<!--Loader-->
+<dx-load-panel #loadPanel shadingColor="rgba(0,0,0,0.4)" [position]="{ of: '#packages' }" [(visible)]="loadingVisible"
+    [showIndicator]="true" [showPane]="true" [shading]="true" [closeOnOutsideClick]="false">
+</dx-load-panel>

@@ -1,3 +1,49 @@
 .text-red {
     color: red;
 }
+
+.p-packages-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    height: auto;
+}
+
+.p-title-add-btn-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.p-add-input-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.p-item {
+    letter-spacing: 0.1em;
+    font-size: 1em;
+    font-weight: 600;
+   
+}
+
+.parent-package-details {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+.p-update-pencil {
+    cursor: pointer;
+}
+
+.p-item-parent {
+    text-transform: uppercase;
+}
+
+.p-update {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}

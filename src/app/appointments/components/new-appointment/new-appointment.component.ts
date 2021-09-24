@@ -4,7 +4,7 @@ import {SessionTypeService} from '../../../services/session-type.service';
 import {Subscription} from 'rxjs';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {PopupService} from '../../../services/popup.service';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {Router} from '@angular/router';
 import {SessionService} from '../../../services/session.service';
 import {DatePipe} from '@angular/common';

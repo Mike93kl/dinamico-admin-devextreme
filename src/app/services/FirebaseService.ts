@@ -50,6 +50,13 @@ export class FirebaseService<T extends Model> {
     return true;
   }
 
+  async removeByIds(uids: string[]): Promise<boolean> {
+    for (const uid of uids) {
+      await this.fs.collection(this.collection).doc(uid).delete();
+    }
+    return true;
+  }
+
   async create(objects: T[]): Promise<T[]> {
     const saved = [];
     for (const object of objects) {

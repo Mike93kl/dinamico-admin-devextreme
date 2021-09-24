@@ -2,7 +2,7 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ClientSessionModel} from '../../../models/ClientSessionModel';
 import {confirm} from 'devextreme/ui/dialog';
 import {take} from 'rxjs/operators';
-import {UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {ClientService} from '../../../services/client.service';
 import {PopupService} from '../../../services/popup.service';
 import {DatePipe} from '@angular/common';
@@ -154,12 +154,12 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
               return;
             }
             this.popup.error(result.data.uiMessage ?
-              result.data.uiMessage : UNEXPECTED_ERROR);
+              result.data.uiMessage : MSG_UNEXPECTED_ERROR);
             deferred.reject();
           }, error => {
             this.loadingVisible = false;
             console.log(error);
-            this.popup.error(UNEXPECTED_ERROR);
+            this.popup.error(MSG_UNEXPECTED_ERROR);
             deferred.reject();
           });
 
@@ -215,7 +215,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         this.loadingVisible = false;
         console.log('active packages for session: ', result);
         if (!result.success) {
-          this.popup.error(result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
+          this.popup.error(result.data.uiMessage ? result.data.uiMessage : MSG_UNEXPECTED_ERROR);
           return;
         }
         if (result.data.packages.length === 0) {
@@ -231,7 +231,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       }, error => {
         this.loadingVisible = false;
         console.log(error);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 
@@ -260,11 +260,11 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           this.chosenSession = null;
           return;
         }
-        this.popup.error(result.data.uiMessage ? result.data.uiMessage : UNEXPECTED_ERROR);
+        this.popup.error(result.data.uiMessage ? result.data.uiMessage : MSG_UNEXPECTED_ERROR);
       }, error => {
         this.loadingVisible = false;
         console.log(error);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 
@@ -304,7 +304,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       })
       .catch((e) => {
         console.log(e);
-        this.popup.error(UNEXPECTED_ERROR);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
       });
   }
 
