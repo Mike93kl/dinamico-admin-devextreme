@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { debounceTime, Subscription, take } from 'rxjs';
 import { ParentPackageModel } from 'src/app/models/ParentPackageModel';
 import { PopupService } from 'src/app/services/popup.service';
 import { ParentPackagesService } from '../../../services/parent-packages.service'
-import { MSG_DELETE_PARENT_PACKAGE, MSG_FAILED_TO_DELETE_PACKAGE, MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE } from '../../../utils/ui_messages';
+import { MSG_DELETE_PARENT_PACKAGE, MSG_FAILED_TO_DELETE_PACKAGE, MSG_PPC_EMPTY_TITLE_NOT_ALLOWED, MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE } from '../../../utils/ui_messages';
 import { DxTreeViewComponent } from 'devextreme-angular'
 
 
@@ -25,6 +25,10 @@ interface TreeItem {
 export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild(DxTreeViewComponent, { static: false }) treeView: DxTreeViewComponent | undefined;
+  // outputs -> parent packages to the PackagesComponent
+  @Output() onPackagesUpdated: EventEmitter<ParentPackageModel[]> = new EventEmitter<ParentPackageModel[]>();
+  @Output() onParentPackageDeleted: EventEmitter<ParentPackageModel> = new EventEmitter<ParentPackageModel>();
+
   parentPackages: ParentPackageModel[];
   tree: TreeItem[] = [{
     id: null,
@@ -60,12 +64,19 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
 
 
   createPackage(title: string) {
+    title = title.trim();
+    if(title == '') {
+      this.popup.error(MSG_PPC_EMPTY_TITLE_NOT_ALLOWED)
+      return;
+    }
     this.loadingVisible = true;
     this.addingPackage = false;
     this.service.create([{
       title, children: []
     }]).then(async pkg => {
       // add package to tree-view
+      this.parentPackages.push(pkg[0]);
+      this.onPackagesUpdated.emit(this.parentPackages);
       this.tree[0].items.push({
         id: pkg[0].uid,
         text: pkg[0].title,
@@ -85,6 +96,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   private getAllParentPackages(): void {
     this.service.getAll().pipe(take(1)).subscribe(packages => {
       this.parentPackages = packages;
+      this.onPackagesUpdated.emit(this.parentPackages);
       this.setUpTree(packages);
     }, error => {
       console.log(error);
@@ -134,9 +146,15 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
 
   async update(): Promise<void> {
     if (!this.updateTreeItemCopy) return;
+    const ppackage = this.parentPackages.find(p => p.uid == this.updateTreeItem.id);
+    if(!ppackage) return;
     this.loadingVisible = true;
     this.service.update([{ uid: this.updateTreeItem.id, title: this.updateTreeItem.text }])
-      .then(() => this.updateTreeItemCopy.updated = true)
+      .then(() => {
+        this.updateTreeItemCopy.updated = true
+        ppackage.title = this.updateTreeItem.text;
+        this.onPackagesUpdated.emit(this.parentPackages);
+      })
       .catch((e) => {
         console.log(e);
         this.popup.error(MSG_UNEXPECTED_ERROR)
@@ -173,6 +191,13 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
         this.updateTreeItemCopy = undefined;
         this.tree[0].items.splice(index, 1);
         await this.treeView?.instance.getDataSource().load();
+        const ppackage = this.parentPackages.find(p => p.uid == uid);
+        if(!ppackage) return;
+        const pindex = this.parentPackages.indexOf(ppackage);
+        if(pindex == -1) return;
+        const _ppackage = this.parentPackages.splice(pindex, 1);
+        this.onPackagesUpdated.emit(this.parentPackages);
+        this.onParentPackageDeleted.emit(_ppackage[0]);
         return;
       }
 
@@ -191,6 +216,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
     if (!item) return;
     const index = this.tree[0].items.indexOf(item);
     if (index == -1) return;
+    this.loadingVisible = true;
     this.service.getOne(uid).pipe(take(1)).subscribe(async pPackage => {
       if (pPackage.children && pPackage.children.length > 0) {
         this.tree[0].items[index].items =
@@ -203,8 +229,10 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
             }
           })
         await this.treeView?.instance.getDataSource().load();
+        this.loadingVisible = false;
       }
     }, error => {
+      this.loadingVisible = false;
       console.log(error);
     });
   }

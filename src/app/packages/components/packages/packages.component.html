@@ -1,100 +1,100 @@
-<app-parent-packages></app-parent-packages>
+<section id="packages-section">
+  <app-parent-packages 
+    (onPackagesUpdated)="onParentPackagesUpdated($event)"
+    (onParentPackageDeleted)="onParentPackageDeleted($event)"></app-parent-packages>
+
+  <div id="packages">
+
+    <div class="packages-title-wrapper">
+  
+      <h4>Packages</h4>
+      <button (click)="initNewPackage()" class="btn btn-outline-primary float-right">
+        <i class="fas fa-box"></i>
+      </button>
+    </div>
+  
+  
+    <div class="list-container">
+      <dx-list #list [dataSource]="packages" [height]="650" [searchEnabled]="true" searchExpr="title"
+        searchMode="contains">
+        <div *dxTemplate="let data of 'item'">
+          <div class="row">
+            <div class="col-8">
+              <h6 (click)="selectedPackage = data">{{ data.title }} <sup class="orphan" *ngIf="!data.parentPackageId"> orphan </sup> </h6>
+            </div>
+            <div class="col-4">
+              <i *ngIf="data.active" class="fas fa-check-circle text-success"></i>
+              <i *ngIf="!data.active" class="fas fa-times text-danger"></i>
+            </div>
+          </div>
+        </div>
+      </dx-list>
+    </div>
+  
+  </div>
+  
+
+</section>
+
+
+
 <hr>
 <br>
-<div class="row">
-  <div class="col-8">
-    <h4>Packages</h4>
-  </div>
-  <div class="col-4">
-    <button (click)="initNewPackage()" class="btn btn-outline-primary float-right">
-      <i class="fas fa-box"></i>
-    </button>
-  </div>
-</div>
-<hr>
-<div class="list-container">
-  <dx-list
-    #list
-    [dataSource]="packages"
-    [height]="650"
-    [searchEnabled]="true"
-    searchExpr="title"
-    searchMode="contains">
-    <div *dxTemplate="let data of 'item'">
-      <div class="row">
-        <div class="col-8">
-          <h6 (click)="selectPackage(data)">{{ data.title }}</h6>
-        </div>
-        <div class="col-4">
-          <i *ngIf="data.active" class="fas fa-check-circle text-success"></i>
-          <i *ngIf="!data.active" class="fas fa-times text-danger"></i>
-        </div>
-      </div>
-    </div>
-  </dx-list>
-</div>
+
+
 
 <!-- Selected Package Popup -->
-<dx-popup *ngIf="selectedPackage"
-          width="700"
-          height="650"
-          [showTitle]="true"
-          [title]="selectedPackage.title"
-          [closeOnOutsideClick]="false"
-          [(visible)]="showSelectedPackage">
+<dx-popup *ngIf="selectedPackage" width="700" height="650" [showTitle]="true" [title]="selectedPackage.title"
+  [closeOnOutsideClick]="false" [(visible)]="selectedPackage">
   <dx-scroll-view width="100%" height="100%">
     <div style="padding: 20px">
       <div class="row my-3">
         <div class="col-6">
-          <button
-            (click)="updatePackage(selectedPackage)"
-            *ngIf="selectedPackage.isInEditMode && selectedPackage.eligibleSessionTypes.length > 0" class="btn btn-outline-success float-left">
-           Update
+          <button (click)="updatePackage(selectedPackage)"
+            *ngIf="selectedPackage.isInEditMode && selectedPackage.eligibleSessionTypes.length > 0"
+            class="btn btn-outline-success float-left">
+            Update
           </button>
         </div>
         <div class="col-6">
-          <i class="float-right"
-             [ngClass]="{'fas fa-pen-alt text-primary': !selectedPackage.isInEditMode,
-             'fas fa-times text-warning': selectedPackage.isInEditMode}"
-             (click)="toggleEditPackage(selectedPackage)"
-              style="cursor: pointer;"></i>
+          <i class="float-right" [ngClass]="{'fas fa-pen-alt text-primary': !selectedPackage.isInEditMode,
+             'fas fa-times text-warning': selectedPackage.isInEditMode}" (click)="toggleEditPackage(selectedPackage)"
+            style="cursor: pointer;"></i>
         </div>
       </div>
       <div class="form-group">
         <label>Title: </label>
         <input type="text" [(ngModel)]="selectedPackage.title" class="form-control"
-               [readOnly]="!selectedPackage.isInEditMode">
+          [readOnly]="!selectedPackage.isInEditMode">
       </div>
       <div class="form-group">
         <label>Parent Package (required):</label>
-        <select [(ngModel)]="selectedPackage.parentPackageId" class="form-control" [disabled]="!selectedPackage.isInEditMode" >
+        <select [(ngModel)]="selectedPackage.parentPackageId" class="form-control"
+          [disabled]="!selectedPackage.isInEditMode">
           <option *ngFor="let p of parentPackages" value="{{ p.uid }}">{{ p.title }}</option>
         </select>
       </div>
       <div class="form-group">
         <label>Days to Expire After Purchase: </label>
         <input type="number" min="0" [(ngModel)]="selectedPackage.daysToExpire" class="form-control"
-               [readOnly]="!selectedPackage.isInEditMode">
+          [readOnly]="!selectedPackage.isInEditMode">
       </div>
       <div class="form-group">
         <label>Price: </label>
         <input type="number" min="0" [(ngModel)]="selectedPackage.price" class="form-control"
-               [disabled]="!selectedPackage.isInEditMode">
+          [disabled]="!selectedPackage.isInEditMode">
       </div>
       <div class="form-check my-2">
-        <input class="form-check-input" type="checkbox"
-               [disabled]="!selectedPackage.isInEditMode"
-               value="" id="ac1" [(ngModel)]="selectedPackage.active">
+        <input class="form-check-input" type="checkbox" [disabled]="!selectedPackage.isInEditMode" value="" id="ac1"
+          [(ngModel)]="selectedPackage.active">
         <label class="form-check-label" for="ac1">
           Clients can see and purchase this package
         </label>
       </div>
       <hr>
-      <button *ngIf="selectedPackage.isInEditMode"
-              (click)="selectedPackage.eligibleSessionTypes.unshift({
+      <button *ngIf="selectedPackage.isInEditMode" (click)="selectedPackage.eligibleSessionTypes.unshift({
                 sessionTypeId: '', maxUsages: 0
-              })"
-              class="btn btn-outline-primary my-2">Add Eligible session type</button>
+              })" class="btn btn-outline-primary my-2">Add Eligible session type</button>
 
       <div class="row my-2" *ngIf="!selectedPackage.isInEditMode">
         <div class="col-12">
@@ -110,15 +110,14 @@
             </select>
           </div>
         </div>
-        <div class="col-5"
-        [ngClass]="{'col-6': !selectedPackage.isInEditMode, 'col-5': selectedPackage.isInEditMode}"
-        >
+        <div class="col-5" [ngClass]="{'col-6': !selectedPackage.isInEditMode, 'col-5': selectedPackage.isInEditMode}">
           <label>Max Usages</label>
           <input type="number" [(ngModel)]="el.maxUsages" class="form-control"
-                 [readOnly]="!selectedPackage.isInEditMode">
+            [readOnly]="!selectedPackage.isInEditMode">
         </div>
         <div class="col-1" *ngIf="selectedPackage.isInEditMode">
-          <sup class="text-danger" style="cursor: pointer" (click)="selectedPackage.eligibleSessionTypes.splice(i, 1)">X</sup>
+          <sup class="text-danger" style="cursor: pointer"
+            (click)="selectedPackage.eligibleSessionTypes.splice(i, 1)">X</sup>
         </div>
       </div>
     </div>
@@ -126,39 +125,34 @@
 </dx-popup>
 
 
-<dx-popup *ngIf="newPackage"
-          width="700"
-          height="650"
-          [showTitle]="true"
-          title="Create new Package"
-          [closeOnOutsideClick]="false"
-          [(visible)]="newPackage">
+<dx-popup *ngIf="newPackage" width="700" height="650" [showTitle]="true" title="Create new Package"
+  [closeOnOutsideClick]="false" [(visible)]="newPackage">
   <dx-scroll-view width="100%" height="100%">
     <div style="padding: 20px">
       <div class="row">
         <div class="col-12">
           <button (click)="createPackage()" *ngIf="newPackage.eligibleSessionTypes?.length > 0"
-                  class="btn btn-outline-primary float-right">
+            class="btn btn-outline-primary float-right">
             <i class="far fa-save"></i> Save
           </button>
         </div>
       </div>
       <hr>
-      <div class="form-group">
+      <div class="form-group my-1">
         <label>Title: </label>
         <input type="text" [(ngModel)]="newPackage.title" class="form-control">
       </div>
-      <div class="form-group">
+      <div class="form-group my-1">
         <label>Parent Package (required):</label>
         <select [(ngModel)]="newPackage.parentPackageId" class="form-control">
           <option *ngFor="let p of parentPackages" value="{{ p.uid }}">{{ p.title }}</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="form-group my-1">
         <label>Days to Expire After Purchase: (If package does not expire, set the value to 0)</label>
         <input type="number" min="0" [(ngModel)]="newPackage.daysToExpire" class="form-control">
       </div>
-      <div class="form-group">
+      <div class="form-group my-1">
         <label>Price: </label>
         <input type="number" min="0" [(ngModel)]="newPackage.price" class="form-control">
       </div>
@@ -168,8 +162,7 @@
           Clients can see and purchase this package
         </label>
       </div>
-      <button class="btn btn-outline-primary my-4"
-              (click)="newPackage.eligibleSessionTypes.unshift({
+      <button class="btn btn-outline-primary my-4" (click)="newPackage.eligibleSessionTypes.unshift({
           sessionTypeId: '', maxUsages: 0
         })">
         Add Eligible session type
@@ -177,7 +170,7 @@
 
       <div class="row" *ngFor="let el of newPackage.eligibleSessionTypes; let i = index">
         <div class="col-6">
-          <div class="form-group">
+          <div class="form-group my-1">
             <label>Session Type</label>
             <select [(ngModel)]="el.sessionTypeId" class="form-control">
               <option *ngFor="let s of sessionTypes" value="{{ s.uid }}">{{ s.title }}</option>
@@ -196,3 +189,8 @@
   </dx-scroll-view>
 </dx-popup>
 
+
+<!--Loader-->
+<dx-load-panel #loadPanel shadingColor="rgba(0,0,0,0.4)" [position]="{ of: '#packages-section' }" [(visible)]="loadingVisible"
+    [showIndicator]="true" [showPane]="true" [shading]="true" [closeOnOutsideClick]="false">
+</dx-load-panel>

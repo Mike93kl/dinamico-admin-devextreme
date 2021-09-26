@@ -28,3 +28,32 @@
   max-width: 350px;
   width: 100%;
 }
+
+#packages-section {
+  display: flex;
+  flex-direction: row;
+  gap: 80px;
+}
+
+#packages {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100% !important;
+}
+
+app-parent-packages {
+  width: 100% !important;
+}
+
+.packages-title-wrapper {
+  display: flex;
+  width: 100%;
+  height: auto;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.orphan {
+  color: red;
+}
