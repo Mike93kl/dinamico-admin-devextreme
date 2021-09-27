@@ -19,3 +19,5 @@ export const MSG_FAILED_TO_DELETE_PACKAGE = 'Deleting parent package failed. Ple
  */
 export const MSG_FAILED_TO_UPDATE_PARENT_PACKAGE = 'Failed to update parent package, please set this package to '
     + 'NOT visible and immediately contact support!';
+export const MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT = 'Failed to remove child package of the previous parent package, '
+    + 'please contact support immediately and provide as much detail as possible to resolve the issue';

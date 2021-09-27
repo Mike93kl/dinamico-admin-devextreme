@@ -5,11 +5,15 @@ import { PopupService } from '../../../services/popup.service';
 import { SessionTypeService } from '../../../services/session-type.service';
 import { SessionTypeModel } from '../../../models/SessionTypeModel';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { MSG_FAILED_TO_UPDATE_PARENT_PACKAGE, MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE } from '../../../utils/ui_messages';
+import { MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT, MSG_FAILED_TO_UPDATE_PARENT_PACKAGE, MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE } from '../../../utils/ui_messages';
 import { ParentPackagesService } from 'src/app/services/parent-packages.service';
 import { ParentPackageModel } from 'src/app/models/ParentPackageModel';
 import { ParentPackagesComponent } from '../parent-packages/parent-packages.component';
 import { DxListComponent } from 'devextreme-angular';
+
+interface PackageModelCopy extends PackageModel {
+  updated?: boolean;
+}
 
 @Component({
   selector: 'app-packages',
@@ -26,7 +30,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
   sessionTypes: SessionTypeModel[];
   newPackage: PackageModel;
   selectedPackage: PackageModel;
-  selectedPackageCopy: PackageModel;
+  selectedPackageCopy: PackageModelCopy;
   showSelectedPackage: boolean;
   parentPackages: ParentPackageModel[];
   // subs
@@ -79,6 +83,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
   // METHODS TRIGGERED FROM ParentPackagesComponent
   onParentPackagesUpdated($event) {
     this.parentPackages = $event;
+    console.log('got parent-packages: ', this.parentPackages)
   }
 
   onParentPackageDeleted($event: ParentPackageModel) {
@@ -89,14 +94,22 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       return p;
     })
+    console.log('parent-pkg deleted', this.parentPackages)
   }
    // [END OF] METHODS TRIGGERED FROM ParentPackagesComponent
+
+
+   ///////////////////////////////////////////////////////////
+   /////// UPDATE PACKAGE FLOW //////////////////////////////
+   /////////////////////////////////////////////////////////
+   
 
   toggleEditPackage(selectedPackage: PackageModel): void {
     if (!selectedPackage.isInEditMode) {
       selectedPackage.isInEditMode = true;
       this.selectedPackageCopy = Object.assign({}, this.selectedPackage);
       this.selectedPackageCopy.eligibleSessionTypes = [...this.selectedPackage.eligibleSessionTypes];
+      this.selectedPackageCopy.updated = false;
       return;
     }
 
@@ -112,32 +125,53 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isPackageValid(selectedPackage)) {
       return;
     }
+    this.loadingVisible = true;
     selectedPackage.isInEditMode = false;
     selectedPackage.canExpire = selectedPackage.daysToExpire !== 0;
     selectedPackage.description = this.createAutomatedDescription(selectedPackage);
     try {
       const pkg = Object.assign({}, selectedPackage);
-      await this.parentPackagesService.findChildAndRemove(pkg.uid);
-      setTimeout(async () => {
-        const parentPackage = this.parentPackages.find(p => p.uid === pkg.parentPackageId);
-        delete pkg.isInEditMode;
-        await this.service.update([selectedPackage]);
-        if (!parentPackage.children) {
-          parentPackage.children = [selectedPackage.uid]
-        } else {
-          parentPackage.children.push(selectedPackage.uid);
+      delete pkg.isInEditMode;
+      const packageUpdated = await this.service.update([selectedPackage]);
+      if(!packageUpdated) throw 'Package Not Updated Error';
+      const parentUpdated = this.selectedPackageCopy.parentPackageId !== 
+        this.selectedPackage.parentPackageId;
+
+      if(parentUpdated) {
+        let parentUpdated = await this.parentPackagesService.removeChild(this.selectedPackageCopy.parentPackageId, pkg.uid);
+        if(!parentUpdated) {
+          this.popup.error(MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT);
+          return;
         }
-        await this.parentPackagesService.update([parentPackage]);
-        this.popup.success(`Package ${selectedPackage.title} Updated!`);
-        selectedPackage.isInEditMode = false;
-      }, 1000);
+
+        await this.parentPackagesComponent.updateChildrenOf(this.selectedPackageCopy.parentPackageId)
+
+        parentUpdated = await this.parentPackagesService.addPackageChild(pkg.parentPackageId, pkg.uid);
+
+        if(!parentUpdated) {
+          this.popup.error(MSG_FAILED_TO_UPDATE_PARENT_PACKAGE);
+          return;
+        }
+        await this.parentPackagesComponent.updateChildrenOf(
+          pkg.parentPackageId);
+      }
+      selectedPackage.isInEditMode = false;
+      this.loadingVisible = false;
+      
     } catch (e) {
       console.log(e);
+      this.loadingVisible = false;
       this.popup.error(MSG_UNEXPECTED_ERROR);
     }
   }
 
+  onSelectedPackagePopupHidden($event) {
+    console.log('update popup hidden')
+  }
 
+   
+  /////// [end of ] UPDATE PACKAGE FLOW //////
+   
 
   ////////////////////////////
   // CREATE PACKAGE FLOW ////
@@ -170,7 +204,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loadingVisible = false;
         return;
       }
-      this.parentPackagesComponent?.updateOneParentById(parentPackage.uid)
+      this.parentPackagesComponent?.updateChildrenOf(parentPackage.uid)
       this.newPackage = null;
       this.loadingVisible = false;
     } catch (e) {

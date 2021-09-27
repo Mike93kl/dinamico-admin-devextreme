@@ -5,7 +5,7 @@ import {FirebaseService} from './FirebaseService';
 import {PACKAGES, PARENT_PACKAGES} from '../utils/Collections'
 import { PackageModel } from '../models/PackageModel';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
-import {arrayUnion} from 'firebase/firestore'
+import {arrayUnion, arrayRemove} from 'firebase/firestore'
 
 @Injectable({
   providedIn: 'root'
@@ -78,5 +78,15 @@ export class ParentPackagesService extends FirebaseService<ParentPackageModel> {
         console.log(e);
         return false;
       })
+  }
+
+
+  removeChild(parentPackageId: string, packageUID: string): Promise<boolean> {
+    return this.fs.collection(PARENT_PACKAGES).doc(parentPackageId)
+      .update({children: arrayRemove(packageUID)}).then(() => true)
+      .catch((e) => {
+        console.log(e);
+        return false;
+      });
   }
 }
