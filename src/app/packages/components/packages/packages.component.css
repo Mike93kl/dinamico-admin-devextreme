@@ -57,3 +57,36 @@ app-parent-packages {
 .orphan {
   color: red;
 }
+
+.package-item {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+  height: auto;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.open-btn {
+  justify-self: flex-end;
+}
+
+.active-flag {
+
+}
+
+.selected-action-wrapper {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap:30px;
+  margin-bottom: 20px;
+}
+
+.toggle-edit {
+  justify-self: flex-end;
+}

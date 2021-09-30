@@ -1,19 +1,21 @@
-import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { PackageModel } from '../../../models/PackageModel';
-import { PackagesService } from '../../../services/packages.service';
-import { PopupService } from '../../../services/popup.service';
-import { SessionTypeService } from '../../../services/session-type.service';
-import { SessionTypeModel } from '../../../models/SessionTypeModel';
-import { firstValueFrom, Subscription } from 'rxjs';
-import { MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT, MSG_FAILED_TO_UPDATE_PARENT_PACKAGE, MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE } from '../../../utils/ui_messages';
-import { ParentPackagesService } from 'src/app/services/parent-packages.service';
-import { ParentPackageModel } from 'src/app/models/ParentPackageModel';
-import { ParentPackagesComponent } from '../parent-packages/parent-packages.component';
-import { DxListComponent } from 'devextreme-angular';
+import {Component, OnDestroy, OnInit, ViewChild, AfterViewInit} from '@angular/core';
+import {PackageModel} from '../../../models/PackageModel';
+import {PackagesService} from '../../../services/packages.service';
+import {PopupService} from '../../../services/popup.service';
+import {SessionTypeService} from '../../../services/session-type.service';
+import {SessionTypeModel} from '../../../models/SessionTypeModel';
+import {firstValueFrom, Subscription} from 'rxjs';
+import {
+  MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT,
+  MSG_FAILED_TO_UPDATE_PARENT_PACKAGE, MSG_PC_FAILED_TO_UPDATE_PACKAGE,
+  MSG_UNEXPECTED_ERROR,
+  MSG_UNEXPECTED_ERROR_REFRESH_PAGE
+} from '../../../utils/ui_messages';
+import {ParentPackagesService} from 'src/app/services/parent-packages.service';
+import {ParentPackageModel} from 'src/app/models/ParentPackageModel';
+import {ParentPackagesComponent} from '../parent-packages/parent-packages.component';
+import {DxListComponent} from 'devextreme-angular';
 
-interface PackageModelCopy extends PackageModel {
-  updated?: boolean;
-}
 
 @Component({
   selector: 'app-packages',
@@ -30,7 +32,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
   sessionTypes: SessionTypeModel[];
   newPackage: PackageModel;
   selectedPackage: PackageModel;
-  selectedPackageCopy: PackageModelCopy;
+  selectedPackageCopy: PackageModel;
   showSelectedPackage: boolean;
   parentPackages: ParentPackageModel[];
   // subs
@@ -39,7 +41,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
   parentPackageSub: Subscription;
 
   constructor(private service: PackagesService, private popup: PopupService,
-    private sessionTypeService: SessionTypeService, private parentPackagesService: ParentPackagesService) {
+              private sessionTypeService: SessionTypeService, private parentPackagesService: ParentPackagesService) {
   }
 
 
@@ -48,7 +50,6 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
   /////////////////////////////////
 
   ngAfterViewInit(): void {
-    console.log('dxList', this.dxList != null)
   }
 
   ngOnInit(): void {
@@ -58,7 +59,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     }).catch((e) => {
       console.log(e);
       this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
-    })
+    });
   }
 
 
@@ -69,47 +70,49 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (e) {
     }
   }
+
   ////////////////////////////////////////////////
   ///////// [END OF] LIFECYCLE METHODS //////////
   ///////////////////////////////////////////////
 
   private async fetchRequiredData(): Promise<void> {
+    this.loadingVisible = true;
     // session-types
     this.sessionTypes = await firstValueFrom(this.sessionTypeService.getAll());
     // packages
     this.packages = await firstValueFrom(this.service.getAll());
+    this.loadingVisible = false;
   }
 
   // METHODS TRIGGERED FROM ParentPackagesComponent
-  onParentPackagesUpdated($event) {
+  onParentPackagesUpdated($event): void {
     this.parentPackages = $event;
-    console.log('got parent-packages: ', this.parentPackages)
   }
 
-  onParentPackageDeleted($event: ParentPackageModel) {
+  onParentPackageDeleted($event: ParentPackageModel): void {
     this.packages = this.packages?.map((p) => {
-      if(p.parentPackageId == $event.uid) {
+      if (p.parentPackageId === $event.uid) {
         p.parentPackageId = null;
         p.active = false;
       }
       return p;
-    })
-    console.log('parent-pkg deleted', this.parentPackages)
+    });
   }
-   // [END OF] METHODS TRIGGERED FROM ParentPackagesComponent
 
+  // [END OF] METHODS TRIGGERED FROM ParentPackagesComponent
 
-   ///////////////////////////////////////////////////////////
-   /////// UPDATE PACKAGE FLOW //////////////////////////////
-   /////////////////////////////////////////////////////////
-   
+  ///////////////////////////////////////////////////////////
+  /////// UPDATE PACKAGE FLOW //////////////////////////////
+  /////////////////////////////////////////////////////////
+
 
   toggleEditPackage(selectedPackage: PackageModel): void {
     if (!selectedPackage.isInEditMode) {
       selectedPackage.isInEditMode = true;
       this.selectedPackageCopy = Object.assign({}, this.selectedPackage);
-      this.selectedPackageCopy.eligibleSessionTypes = [...this.selectedPackage.eligibleSessionTypes];
-      this.selectedPackageCopy.updated = false;
+      this.selectedPackageCopy.eligibleSessionTypes = this.selectedPackage.eligibleSessionTypes.map(e => {
+        return {...e};
+      });
       return;
     }
 
@@ -132,32 +135,33 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     try {
       const pkg = Object.assign({}, selectedPackage);
       delete pkg.isInEditMode;
-      const packageUpdated = await this.service.update([selectedPackage]);
-      if(!packageUpdated) throw 'Package Not Updated Error';
-      const parentUpdated = this.selectedPackageCopy.parentPackageId !== 
+      const updated = await this.service.update([selectedPackage]);
+      if (!updated) {
+        this.popup.error(MSG_PC_FAILED_TO_UPDATE_PACKAGE);
+        return;
+      }
+      let parentUpdated = this.selectedPackageCopy.parentPackageId !==
         this.selectedPackage.parentPackageId;
 
-      if(parentUpdated) {
-        let parentUpdated = await this.parentPackagesService.removeChild(this.selectedPackageCopy.parentPackageId, pkg.uid);
-        if(!parentUpdated) {
-          this.popup.error(MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT);
-          return;
+      if (parentUpdated) {
+        if (!!this.selectedPackageCopy.parentPackageId) {
+          parentUpdated = await this.parentPackagesService.removeChild(this.selectedPackageCopy.parentPackageId, pkg.uid);
+          if (!parentUpdated) {
+            this.popup.error(MSG_FAILED_TO_REMOVE_CHILD_PACKAGE_OF_OLD_PARENT);
+            return;
+          }
+          await this.parentPackagesComponent.updateChildrenOf(this.selectedPackageCopy.parentPackageId);
         }
-
-        await this.parentPackagesComponent.updateChildrenOf(this.selectedPackageCopy.parentPackageId)
-
         parentUpdated = await this.parentPackagesService.addPackageChild(pkg.parentPackageId, pkg.uid);
-
-        if(!parentUpdated) {
+        if (!parentUpdated) {
           this.popup.error(MSG_FAILED_TO_UPDATE_PARENT_PACKAGE);
           return;
         }
-        await this.parentPackagesComponent.updateChildrenOf(
-          pkg.parentPackageId);
+        await this.parentPackagesComponent.updateChildrenOf(pkg.parentPackageId);
       }
       selectedPackage.isInEditMode = false;
       this.loadingVisible = false;
-      
+
     } catch (e) {
       console.log(e);
       this.loadingVisible = false;
@@ -165,13 +169,8 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  onSelectedPackagePopupHidden($event) {
-    console.log('update popup hidden')
-  }
-
-   
   /////// [end of ] UPDATE PACKAGE FLOW //////
-   
+
 
   ////////////////////////////
   // CREATE PACKAGE FLOW ////
@@ -185,6 +184,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
       eligibleSessionTypes: []
     };
   }
+
   async createPackage(): Promise<void> {
     if (!this.isPackageValid(this.newPackage)) {
       return;
@@ -199,12 +199,12 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
       const inserted = await this.service.create([pkg]);
       this.packages.push(inserted[0]);
       const parentUpdated = await this.parentPackagesService.addPackageChild(parentPackage.uid, inserted[0].uid);
-      if(!parentUpdated) {
+      if (!parentUpdated) {
         this.popup.error(MSG_FAILED_TO_UPDATE_PARENT_PACKAGE);
         this.loadingVisible = false;
         return;
       }
-      this.parentPackagesComponent?.updateChildrenOf(parentPackage.uid)
+      this.parentPackagesComponent?.updateChildrenOf(parentPackage.uid);
       this.newPackage = null;
       this.loadingVisible = false;
     } catch (e) {
@@ -253,15 +253,15 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
   //////////////////////////////////////////
   // PACKAGE AUTO-GENERATED DESCRIPTION ///
   ////////////////////////////////////////
-  private createAutomatedDescription(pckg: PackageModel): string {
+  private createAutomatedDescription(pkg: PackageModel): string {
     let str = 'Allows the subscription of: \n';
-    for (const eligible of pckg.eligibleSessionTypes) {
+    for (const eligible of pkg.eligibleSessionTypes) {
       const sessionType = this.sessionTypes.find(s => s.uid === eligible.sessionTypeId);
       str += `* **${sessionType.title}** Session, for **${eligible.maxUsages}** times \n`;
     }
     str += '\n\n';
-    if (pckg.canExpire) {
-      str += `**This package expires after ${pckg.daysToExpire} days of purchase**`;
+    if (pkg.canExpire) {
+      str += `**This package expires after ${pkg.daysToExpire} days of purchase**`;
     } else {
       str += `**This package does not expire**`;
     }

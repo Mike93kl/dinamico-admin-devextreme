@@ -1,11 +1,16 @@
-import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit, Output, EventEmitter } from '@angular/core';
-import { debounceTime, firstValueFrom, Subscription, take } from 'rxjs';
-import { ParentPackageModel } from 'src/app/models/ParentPackageModel';
-import { PopupService } from 'src/app/services/popup.service';
-import { ParentPackagesService } from '../../../services/parent-packages.service'
-import { MSG_DELETE_PARENT_PACKAGE, MSG_FAILED_TO_DELETE_PACKAGE, MSG_PPC_EMPTY_TITLE_NOT_ALLOWED, MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE } from '../../../utils/ui_messages';
-import { DxTreeViewComponent } from 'devextreme-angular'
-
+import {Component, OnDestroy, OnInit, ViewChild, AfterViewInit, Output, EventEmitter} from '@angular/core';
+import {debounceTime, firstValueFrom, Subscription, take} from 'rxjs';
+import {ParentPackageModel} from 'src/app/models/ParentPackageModel';
+import {PopupService} from 'src/app/services/popup.service';
+import {ParentPackagesService} from '../../../services/parent-packages.service'
+import {
+  MSG_DELETE_PARENT_PACKAGE,
+  MSG_FAILED_TO_DELETE_PACKAGE,
+  MSG_PPC_EMPTY_TITLE_NOT_ALLOWED,
+  MSG_UNEXPECTED_ERROR,
+  MSG_UNEXPECTED_ERROR_REFRESH_PAGE
+} from '../../../utils/ui_messages';
+import {DxTreeViewComponent} from 'devextreme-angular'
 
 
 interface TreeItem {
@@ -24,7 +29,7 @@ interface TreeItem {
 })
 export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  @ViewChild(DxTreeViewComponent, { static: false }) treeView: DxTreeViewComponent | undefined;
+  @ViewChild(DxTreeViewComponent, {static: false}) treeView: DxTreeViewComponent | undefined;
   // outputs -> parent packages to the PackagesComponent
   @Output() onPackagesUpdated: EventEmitter<ParentPackageModel[]> = new EventEmitter<ParentPackageModel[]>();
   @Output() onParentPackageDeleted: EventEmitter<ParentPackageModel> = new EventEmitter<ParentPackageModel>();
@@ -48,14 +53,18 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   loadingVisible = false;
   // subs
   parentPackagesSub: Subscription | undefined;
+
   constructor(private service: ParentPackagesService, private popup: PopupService,) {
   }
+
   // Lifecycle
   ngOnInit(): void {
   }
+
   ngAfterViewInit(): void {
     this.getAllParentPackages();
   }
+
   ngOnDestroy(): void {
     this.parentPackagesSub?.unsubscribe();
   }
@@ -65,7 +74,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
 
   createPackage(title: string) {
     title = title.trim();
-    if(title == '') {
+    if (title == '') {
       this.popup.error(MSG_PPC_EMPTY_TITLE_NOT_ALLOWED)
       return;
     }
@@ -131,9 +140,9 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
 
-   ////////////////////////////////
+  ////////////////////////////////
   // UPDATE PARENT PACKAGE FLOW //
- ////////////////////////////////
+  ////////////////////////////////
 
   openUpdatePopup(p: TreeItem, index: number) {
     this.updateTreeItemCopy = {
@@ -147,9 +156,9 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   async update(): Promise<void> {
     if (!this.updateTreeItemCopy) return;
     const ppackage = this.parentPackages.find(p => p.uid == this.updateTreeItem.id);
-    if(!ppackage) return;
+    if (!ppackage) return;
     this.loadingVisible = true;
-    this.service.update([{ uid: this.updateTreeItem.id, title: this.updateTreeItem.text }])
+    this.service.update([{uid: this.updateTreeItem.id, title: this.updateTreeItem.text}])
       .then(() => {
         this.updateTreeItemCopy.updated = true
         ppackage.title = this.updateTreeItem.text;
@@ -160,9 +169,9 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
         this.popup.error(MSG_UNEXPECTED_ERROR)
         this.updateTreeItemCopy.updated = false;
       }).finally(() => {
-        this.loadingVisible = false;
-        this.updateTreeItem = undefined;
-      })
+      this.loadingVisible = false;
+      this.updateTreeItem = undefined;
+    })
   }
 
   onUpdatePopupHidden($e) {
@@ -178,23 +187,23 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
 
   ////////////////////////////////
   //        DELETE FLOW        //
- ////////////////////////////////
+  ////////////////////////////////
   deleteParentPackage() {
     const uid = this.updateTreeItem.id;
     this.popup.confirm(MSG_DELETE_PARENT_PACKAGE, async (confirmed) => {
-      if(!confirmed) return;
+      if (!confirmed) return;
       this.loadingVisible = true;
       const deleted = await this.service.removeByIds([uid])
-      if(deleted) {
-        this.loadingVisible=false;
+      if (deleted) {
+        this.loadingVisible = false;
         const index = this.tree[0].items.findIndex(e => e.id == this.updateTreeItem.id);
-        if(index == -1) return;
+        if (index == -1) return;
         this.updateTreeItem = undefined;
         this.updateTreeItemCopy = undefined;
         this.tree[0].items.splice(index, 1);
         await this.treeView?.instance.getDataSource().load();
         const pindex = this.parentPackages.findIndex(p => p.uid == uid);
-        if(pindex == -1) return;
+        if (pindex == -1) return;
         const _ppackage = this.parentPackages.splice(pindex, 1);
         this.onParentPackageDeleted.emit(_ppackage[0]);
         this.onPackagesUpdated.emit(this.parentPackages);
@@ -206,30 +215,32 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
 
-   ////////////////////////////////////
+  ////////////////////////////////////
   // Update ONE parent package ///////
   // called from PackagesComponent //
   //////////////////////////////////
   async updateChildrenOf(uid: string): Promise<void> {
     if (!this.tree[0].items) return;
     this.loadingVisible = true;
-    const item = this.tree[0].items.find(p => p.id == uid);
+    const item = this.tree[0].items.find(p => p.id === uid);
     if (!item) return;
     const index = this.tree[0].items.indexOf(item);
-    if (index == -1) return;
+    if (index === -1) return;
     const parentPackage = await firstValueFrom(this.service.getOne(uid));
-    if(!parentPackage.children || parentPackage.children.length == 0) {
+    if (!parentPackage.children || parentPackage.children.length === 0) {
       this.tree[0].items[index].items = [];
       return;
     }
 
     this.tree[0].items[index].items = (await this.service.childrenOfParent(parentPackage.children))
-      .map((c) => {return {
-        id: c.uid,
-        text: c.title,
-        expanded: true,
-        editable: false
-      }})
+      .map((c) => {
+        return {
+          id: c.uid,
+          text: c.title,
+          expanded: true,
+          editable: false
+        };
+      });
     await this.treeView?.instance.getDataSource().load();
     this.loadingVisible = false;
   }
