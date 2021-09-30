@@ -1,38 +1,38 @@
 <section id="packages-section">
-  <app-parent-packages 
+  <app-parent-packages
     (onPackagesUpdated)="onParentPackagesUpdated($event)"
     (onParentPackageDeleted)="onParentPackageDeleted($event)"></app-parent-packages>
 
   <div id="packages">
 
     <div class="packages-title-wrapper">
-  
+
       <h4>Packages</h4>
       <button (click)="initNewPackage()" class="btn btn-outline-primary float-right">
         <i class="fas fa-box"></i>
       </button>
     </div>
-  
-  
+
+
     <div class="list-container">
       <dx-list #list [dataSource]="packages" [height]="650" [searchEnabled]="true" searchExpr="title"
         searchMode="contains">
         <div *dxTemplate="let data of 'item'">
-          <div class="row">
-            <div class="col-8">
-              <h6 (click)="selectedPackage = data">{{ data.title }} <sup class="orphan" *ngIf="!data.parentPackageId"> orphan </sup> </h6>
-            </div>
-            <div class="col-4">
-              <i *ngIf="data.active" class="fas fa-check-circle text-success"></i>
-              <i *ngIf="!data.active" class="fas fa-times text-danger"></i>
-            </div>
+
+          <div class="package-item">
+            <h6 class="package-title">{{ data.title }}
+              <sup class="orphan" *ngIf="!data.parentPackageId"> orphan </sup> </h6>
+            <i class="active-flag fas"
+               [ngClass]="{ 'fa-times text-danger': !data.active, 'fa-check-circle text-success': data.active }"
+            ></i>
+            <i class="fas fa-edit open-btn"  (click)="selectedPackage = data"></i>
           </div>
         </div>
       </dx-list>
     </div>
-  
+
   </div>
-  
+
 
 </section>
 
@@ -57,7 +57,7 @@
           </button>
         </div>
         <div class="col-6">
-          <i class="float-right" [ngClass]="{'fas fa-pen-alt text-primary': !selectedPackage.isInEditMode,
+          <i class="float-right" [ngClass]="{'fas fa-pencil-alt text-primary': !selectedPackage.isInEditMode,
              'fas fa-times text-warning': selectedPackage.isInEditMode}" (click)="toggleEditPackage(selectedPackage)"
             style="cursor: pointer;"></i>
         </div>
@@ -71,7 +71,7 @@
         <label>Parent Package (required):</label>
         <select [(ngModel)]="selectedPackage.parentPackageId" class="form-control"
           [disabled]="!selectedPackage.isInEditMode">
-          <option *ngFor="let p of parentPackages" value="{{ p.uid }}">{{ p.title }}</option>
+          <option *ngFor="let p of parentPackages" value="{{ p.uid }}">{{ p.title | uppercase}}</option>
         </select>
       </div>
       <div class="form-group">

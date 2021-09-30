@@ -57,3 +57,21 @@ app-parent-packages {
 .orphan {
   color: red;
 }
+
+.package-item {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+  height: auto;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.open-btn {
+  justify-self: flex-end;
+}
+
+.active-flag {
+
+}

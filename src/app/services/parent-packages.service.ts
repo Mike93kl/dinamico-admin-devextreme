@@ -12,7 +12,7 @@ import {arrayUnion, arrayRemove} from 'firebase/firestore'
 })
 export class ParentPackagesService extends FirebaseService<ParentPackageModel> {
 
-  constructor(fs: AngularFirestore) { 
+  constructor(fs: AngularFirestore) {
     super(fs, PARENT_PACKAGES)
   }
 
