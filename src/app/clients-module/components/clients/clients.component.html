@@ -35,7 +35,7 @@
       <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>
     </div>
     <div *dxTemplate="let row of 'dateCell'">
-      <p>{{  populateDate(row.key.dateOfBirth) }}</p>
+      <p>{{  populateDate(row.key.dateOfBirth) | date }}</p>
     </div>
 
   </dx-data-grid>

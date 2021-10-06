@@ -61,6 +61,7 @@ export class ClientsComponent implements OnInit {
   }
 
   onInserting($event): any {
+
     if (!this.validClientObject($event.data)) {
       $event.cancel = true;
       return;
@@ -72,8 +73,14 @@ export class ClientsComponent implements OnInit {
       rowKey = $event.data.__KEY__;
       delete $event.data.__KEY__;
     }
-    $event.data.allowFreeSubscriptions = false;
-    this.clientService.createNewClient($event.data)
+    this.clientService.createNewClient({
+      fullName: $event.data.fullName,
+      allowFreeSubscriptions: false,
+      email: $event.data.email,
+      dateOfBirth: this.populateDate($event.data.dateOfBirth),
+      active: $event.data.active,
+      phone: $event.data.phone
+    } as ClientModel)
       .then(res => {
         $event.data = res;
         if (rowKey) {
@@ -92,21 +99,15 @@ export class ClientsComponent implements OnInit {
     this.popup.success(`Client ${$event.data.fullName} created`);
   }
 
-  populateDate(object: any): string {
-    let date;
-    if (!object) {
-      return 'n/a';
+  populateDate(object: any): number {
+    if (typeof object === 'number') {
+      return object;
     }
-    if (typeof object === 'string') {
-      date = Date.parse(object);
-      if (isNaN(date)) {
-        return 'n/a';
-      }
+
+    if (object instanceof Date) {
+      return object.getTime();
     }
-    if (object.seconds) {
-      date = new Date(object.seconds * 1000);
-    }
-    return this.datePipe.transform(date, 'dd-MM-yyyy');
+    return 0;
   }
 
   onInitNewRow($event: any): void {
