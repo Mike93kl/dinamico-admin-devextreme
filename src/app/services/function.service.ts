@@ -13,8 +13,9 @@ import {
   ROOT
 } from '../utils/Functions';
 import {Observable} from 'rxjs';
-import {FunctionResponse} from '../models/FunctionResponse';
+import {FunctionResponse} from '../models/fn/FunctionResponse';
 import {ClientModel} from '../models/ClientModel';
+import {CreateClientFnResponse} from "../models/fn/CreateClientFnResponse";
 
 @Injectable({
   providedIn: 'root'
@@ -52,7 +53,7 @@ export class FunctionService {
     return this.fn.httpsCallable(NULLIFY_CLAIMS)({email});
   }
 
-  createClient(client: ClientModel): Observable<FunctionResponse> {
+  createClient(client: ClientModel): Observable<CreateClientFnResponse> {
     return this.fn.httpsCallable(CREATE_CLIENT)(client);
   }
 

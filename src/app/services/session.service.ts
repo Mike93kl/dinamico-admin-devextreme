@@ -6,7 +6,7 @@ import {Observable, of} from 'rxjs';
 import {ClientModel} from '../models/ClientModel';
 import {CLIENT_SESSIONS, CLIENTS, SESSIONS} from '../utils/Collections';
 import {FunctionService} from './function.service';
-import {FunctionResponse} from '../models/FunctionResponse';
+import {FunctionResponse} from '../models/fn/FunctionResponse';
 
 @Injectable({
   providedIn: 'root'

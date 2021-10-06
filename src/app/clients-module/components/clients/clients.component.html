@@ -5,6 +5,7 @@
     [dataSource]="clients"
     [columns]="['fullName', 'phone', 'active', 'notes']"
     [showBorders]="true"
+    (onInitNewRow)="onInitNewRow($event)"
     (onRowInserting)="onInserting($event)"
     (onRowInserted)="onInserted($event)">
     <dxo-editing
@@ -24,16 +25,12 @@
 
     <dxi-column dataField="fullName"  cellTemplate="openClientCell" ></dxi-column>
     <dxi-column dataField="phone"  dataType="string" ></dxi-column>
-    <dxi-column dataField="active"  cellTemplate="activeCell" ></dxi-column>
+    <dxi-column dataField="active"  dataType="boolean" ></dxi-column>
     <dxi-column dataField="dateOfBirth"  dataType="date" cellTemplate="dateCell" [hidingPriority]="2"></dxi-column>
     <dxi-column dataField="email"  dataType="string" [hidingPriority]="3"></dxi-column>
     <dxi-column dataField="notes"  dataType="string" [hidingPriority]="1"></dxi-column>
 
 
-    <div *dxTemplate="let row of 'activeCell'">
-      <i *ngIf="row.key.active" class="fas fa-check-circle text-success"></i>
-      <i *ngIf="!row.key.active" class="fas fa-window-close text-danger"></i>
-    </div>
     <div *dxTemplate="let row of 'openClientCell'">
       <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>
     </div>

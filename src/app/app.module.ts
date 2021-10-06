@@ -50,10 +50,10 @@ import { AngularFireStorageModule } from '@angular/fire/compat/storage';
     NewsFeedModule
   ],
   providers: [
-    { provide: USE_AUTH_EMULATOR, useValue: environment.useEmulators ? ['http://localhost:9001'] : undefined },
-    { provide: USE_FIRESTORE_EMULATOR, useValue: environment.useEmulators ? ['localhost', 9003] : undefined },
-    { provide: USE_FUNCTIONS_EMULATOR, useValue: environment.useEmulators ? ['localhost', 9002] : undefined },
-    { provide: USE_STORAGE_EMULATOR, useValue: environment.useEmulators ? ['localhost', 9004] : undefined }
+    { provide: USE_AUTH_EMULATOR, useValue: environment.useEmulators ? ['http://localhost:5001'] : undefined },
+    { provide: USE_FIRESTORE_EMULATOR, useValue: environment.useEmulators ? ['localhost', 5003] : undefined },
+    { provide: USE_FUNCTIONS_EMULATOR, useValue: environment.useEmulators ? ['localhost', 5002] : undefined },
+    { provide: USE_STORAGE_EMULATOR, useValue: environment.useEmulators ? ['localhost', 5004] : undefined }
   ],
   bootstrap: [AppComponent]
 })

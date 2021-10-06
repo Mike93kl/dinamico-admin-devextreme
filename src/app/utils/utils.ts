@@ -1,4 +1,4 @@
-import {FunctionResponse} from '../models/FunctionResponse';
+import {FunctionResponse} from '../models/fn/FunctionResponse';
 import {MSG_UNEXPECTED_ERROR} from './ui_messages';
 
 export function handleFunctionResponseWithPromise(promise: any, response: FunctionResponse): any {

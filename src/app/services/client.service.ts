@@ -1,17 +1,15 @@
 import {Injectable} from '@angular/core';
 import {FirebaseService} from './FirebaseService';
 import {ClientModel} from '../models/ClientModel';
-import {Observable} from 'rxjs';
+import {firstValueFrom, Observable} from 'rxjs';
 import {AngularFirestore} from '@angular/fire/compat/firestore';
 import {FunctionService} from './function.service';
-import {CLIENT_PACKAGES, CLIENT_SESSIONS, CLIENTS, PACKAGES, SESSION_TYPES, SESSIONS} from '../utils/Collections';
-import {FunctionResponse} from '../models/FunctionResponse';
+import {CLIENT_PACKAGES, CLIENT_SESSIONS, CLIENTS} from '../utils/Collections';
+import {FunctionResponse} from '../models/fn/FunctionResponse';
 import {ClientSessionModel} from '../models/ClientSessionModel';
-import {map} from 'rxjs/operators';
-import {SessionTypeModel} from '../models/SessionTypeModel';
 import {ClientPackageModel} from '../models/ClientPackageModel';
-import {PackageModel} from '../models/PackageModel';
-import {SessionModel} from '../models/SessionModel';
+import {CreateClientFnResponse} from '../models/fn/CreateClientFnResponse';
+import {handle_fn, newFnError} from '../models/fn/FnResponseHandler';
 
 @Injectable({
   providedIn: 'root'
@@ -22,8 +20,13 @@ export class ClientService extends FirebaseService<ClientModel> {
     super(fs, CLIENTS);
   }
 
-  createNewClient(client: ClientModel): Observable<FunctionResponse> {
-    return this.fn.createClient(client);
+  createNewClient(client: ClientModel): Promise<ClientModel> {
+    return firstValueFrom(this.fn.createClient(client))
+      .then((res) => {
+        return handle_fn<ClientModel>(res);
+      }).catch(e => {
+        throw newFnError(e);
+      });
   }
 
   cancelSession(clientSessionId: string, clientId: string): Observable<FunctionResponse> {
