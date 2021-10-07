@@ -11,17 +11,17 @@ function instanceOfFnError(o: any): boolean {
 
 function unexpected_fn_error(): FnError {
   return {
-    message: 'An unexpected error occured',
+    message: 'An unexpected error occurred',
     code: null
   };
 }
 
-export function newFnError(e: any): FnError {
+export function error(e: any): FnError {
   if (instanceOfFnError(e)) { return e; }
   return unexpected_fn_error();
 }
 
-export function handle_fn<T>(res: FnResponse<T>): T {
+export function handle<T>(res: FnResponse<T>): T {
   if (res.success) {
     return res.data;
   }

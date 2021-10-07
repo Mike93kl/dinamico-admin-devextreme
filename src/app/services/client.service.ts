@@ -9,7 +9,7 @@ import {FunctionResponse} from '../models/fn/FunctionResponse';
 import {ClientSessionModel} from '../models/ClientSessionModel';
 import {ClientPackageModel} from '../models/ClientPackageModel';
 import {CreateClientFnResponse} from '../models/fn/CreateClientFnResponse';
-import {handle_fn, newFnError} from '../models/fn/FnResponseHandler';
+import * as fn_handler from '../models/fn/FnResponseHandler';
 
 @Injectable({
   providedIn: 'root'
@@ -23,9 +23,9 @@ export class ClientService extends FirebaseService<ClientModel> {
   createNewClient(client: ClientModel): Promise<ClientModel> {
     return firstValueFrom(this.fn.createClient(client))
       .then((res) => {
-        return handle_fn<ClientModel>(res);
+        return fn_handler.handle<ClientModel>(res);
       }).catch(e => {
-        throw newFnError(e);
+        throw fn_handler.error(e);
       });
   }
 

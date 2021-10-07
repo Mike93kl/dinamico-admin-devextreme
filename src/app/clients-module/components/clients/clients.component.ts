@@ -1,7 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ClientService} from '../../../services/client.service';
 import {ClientModel} from '../../../models/ClientModel';
-import DevExpress from 'devextreme';
 import {PopupService} from '../../../services/popup.service';
 import {DatePipe} from '@angular/common';
 import {DxDataGridComponent} from 'devextreme-angular';
