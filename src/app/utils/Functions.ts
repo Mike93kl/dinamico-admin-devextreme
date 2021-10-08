@@ -14,3 +14,6 @@ export const ALTER_MAX_USAGES        = 'alter_package_el_session_type_max_usages
 export const BOOK_SESSION = 'book_session';
 export const CUSTOM_PACKAGE_FOR_CLIENT = 'custom_package_for_client';
 export const GET_CLIENTS_OF_SESSION = 'get_clients_of_session';
+
+// V1
+export const GET_ALL_PACKAGES_V1 = 'get_all_packages_v1';

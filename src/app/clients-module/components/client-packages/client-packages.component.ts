@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ClientService} from '../../../services/client.service';
 import {ClientPackageModel} from '../../../models/ClientPackageModel';
 import {ClientModel} from '../../../models/ClientModel';
@@ -12,6 +12,7 @@ import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {confirm} from 'devextreme/ui/dialog';
 import {ClientPackagesService} from '../../../services/client-packages.service';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
+import {GetPackagesFnResponseData} from "../../../models/fn/GetPackagesFnResponse";
 
 @Component({
   selector: 'app-client-packages',
@@ -19,6 +20,9 @@ import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSess
   styleUrls: ['./client-packages.component.css']
 })
 export class ClientPackagesComponent implements OnInit, OnDestroy {
+
+
+  allPackages: GetPackagesFnResponseData[];
 
   customPackage: ClientPackageModel;
   @Input() client: ClientModel;

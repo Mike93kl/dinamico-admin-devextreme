@@ -1,9 +1,12 @@
-import {Component, OnDestroy, OnInit, Input, Output, EventEmitter} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {SessionTypeService} from '../../services/session-type.service';
 import {SessionTypeModel} from '../../models/SessionTypeModel';
 import {Subscription} from 'rxjs';
 import {PopupService} from '../../services/popup.service';
-import {MSG_STC_ERROR_CREATING_SESSION_TYPE} from '../../utils/ui_messages';
+import {
+  MSG_STC_ERROR_CREATING_SESSION_TYPE,
+  MSG_STC_ERROR_SESSION_TYPE_TITLE_CANNOT_BE_EMPTY
+} from '../../utils/ui_messages';
 
 @Component({
   selector: 'app-session-types-v1',
@@ -42,12 +45,6 @@ export class SessionTypesV1Component implements OnInit, OnDestroy {
   }
 
   unshiftSessionType(): void {
-    if (this.sessionTypes.length === 0) {
-      return;
-    }
-    if (!this.sessionTypes[0].uid || this.sessionTypes[0].uid === '') {
-      return;
-    }
     this.sessionTypes.unshift({
       title: '',
       uid: null,
@@ -65,6 +62,15 @@ export class SessionTypesV1Component implements OnInit, OnDestroy {
   }
 
   addOrUpdate(s: SessionTypeModel): void {
+    if (!s.title) {
+      this.popup.error(MSG_STC_ERROR_SESSION_TYPE_TITLE_CANNOT_BE_EMPTY);
+      return;
+    }
+    s.title = s.title.trim();
+    if (s.title === '') {
+      this.popup.error(MSG_STC_ERROR_SESSION_TYPE_TITLE_CANNOT_BE_EMPTY);
+      return;
+    }
     if (s.hasOwnProperty('locked')) {
       delete s.locked;
     }

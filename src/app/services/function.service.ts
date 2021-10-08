@@ -3,7 +3,7 @@ import {AngularFireFunctions} from '@angular/fire/compat/functions';
 import {
   ALTER_MAX_USAGES, BOOK_SESSION, CANCEL_CLIENT_SESSION,
   CLIENTS_ACTIVE_PACKAGES,
-  CREATE_CLIENT, GET_CLIENTS_OF_SESSION,
+  CREATE_CLIENT, GET_ALL_PACKAGES_V1, GET_CLIENTS_OF_SESSION,
   GET_USER_CLAIMS,
   GRANT_ADMIN,
   GRANT_MANAGER,
@@ -12,10 +12,13 @@ import {
   REVOKE_MANAGER,
   ROOT
 } from '../utils/Functions';
-import {Observable} from 'rxjs';
+import {firstValueFrom, Observable} from 'rxjs';
 import {FunctionResponse} from '../models/fn/FunctionResponse';
 import {ClientModel} from '../models/ClientModel';
-import {CreateClientFnResponse} from "../models/fn/CreateClientFnResponse";
+import {CreateClientFnResponse} from '../models/fn/CreateClientFnResponse';
+import {GetPackagesFnResponse, GetPackagesFnResponseData} from '../models/fn/GetPackagesFnResponse';
+import * as fn_handler from '../models/fn/FnResponseHandler';
+import {FnResponse} from "../models/fn/FnResponse_v1";
 
 @Injectable({
   providedIn: 'root'
@@ -92,5 +95,18 @@ export class FunctionService {
 
   getClientsOfSession(sessionId: string): Observable<FunctionResponse> {
     return this.fn.httpsCallable(GET_CLIENTS_OF_SESSION)({sessionId});
+  }
+
+  getAllPackagesMapped(): Promise<GetPackagesFnResponseData[]> {
+    const fn = this.fn.httpsCallable(GET_ALL_PACKAGES_V1);
+    return this.handle_fn_response(fn({}));
+  }
+
+
+  private handle_fn_response<R, T extends FnResponse<R>>(fn: Observable<T>): Promise<R> {
+    return firstValueFrom(fn).then((res) => fn_handler.handle<R>(res))
+      .catch(e => {
+        throw fn_handler.error(e);
+      });
   }
 }

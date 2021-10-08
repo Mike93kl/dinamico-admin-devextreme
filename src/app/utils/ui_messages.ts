@@ -8,6 +8,7 @@ export const MSG_UNEXPECTED_ERROR_REFRESH_PAGE = MSG_UNEXPECTED_ERROR + ' Try to
  *  SHARED SESSION TYPES COMPONENT
  */
 export const MSG_STC_ERROR_CREATING_SESSION_TYPE = 'Error creating session type. Please try again later';
+export const MSG_STC_ERROR_SESSION_TYPE_TITLE_CANNOT_BE_EMPTY = 'Session type title cannot be empty';
 
 
 /**
