@@ -15,7 +15,7 @@ export interface ClientPackageModelV1 extends Model {
   isCustom?: boolean;
   paid: boolean;
   payments?: PaymentModel[];
-
+  expired: boolean;
   // for UI
   collapsed?: boolean;
 }
