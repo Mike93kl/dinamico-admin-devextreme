@@ -1,21 +1,21 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {SessionTypeService} from '../../services/session-type.service';
 import {SessionTypeModel} from '../../models/SessionTypeModel';
 import {Subscription} from 'rxjs';
-import {PopupService} from "../../services/popup.service";
-import {MSG_STC_ERROR_CREATING_SESSION_TYPE} from "../../utils/ui_messages";
+import {PopupService} from '../../services/popup.service';
+import {MSG_STC_ERROR_CREATING_SESSION_TYPE} from '../../utils/ui_messages';
+import {SessionTypeV1Service} from '../../services/sessiontypes-v1.service';
 
 @Component({
-  selector: 'app-session-types',
-  templateUrl: './session-types.component.html',
-  styleUrls: ['./session-types.component.css']
+  selector: 'app-abc',
+  templateUrl: './abc.component.html',
+  styleUrls: ['./abc.component.css']
 })
-export class SessionTypesComponent implements OnInit, OnDestroy {
+export class AbcComponent implements OnInit, OnDestroy {
   showPopup = false;
   sessionTypes: SessionTypeModel[] = [];
   sub: Subscription | undefined;
 
-  constructor(private service: SessionTypeService, private popup: PopupService) {
+  constructor(private service: SessionTypeV1Service, private popup: PopupService) {
   }
 
   ngOnInit(): void {
@@ -68,7 +68,6 @@ export class SessionTypesComponent implements OnInit, OnDestroy {
       delete s.isNew;
     }
     this.service.createOrUpdate(s)
-      .then()
       .catch(e => {
         console.log(e);
         this.popup.error(MSG_STC_ERROR_CREATING_SESSION_TYPE);

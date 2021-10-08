@@ -1,0 +1,31 @@
+<a *ngIf="showDumbbellIcon" (click)="showPopup = true" class="float-right text-primary mx-2" data-toggle="tooltip"
+   data-placement="top" title="View Session Types">
+  <i class="fas fa-dumbbell" style="font-size: 2em; cursor: pointer"></i>
+</a>
+
+
+<dx-popup width="400" height="400" [closeOnOutsideClick]="false" [(visible)]="showPopup"
+title="Session Types">
+
+  <p *ngIf="sessionTypes === null" class="text-danger">Error loading session types. Try refreshing the page.</p>
+
+  <div class="session-types" *ngIf="sessionTypes !== null">
+
+    <i class="fas fa-plus text-primary new-session-btn" (click)="unshiftSessionType()"></i>
+    <small>Double click to update item</small>
+
+    <div class="scrollable">
+
+      <div class="session-type"  *ngFor="let s of sessionTypes" >
+        <input (dblclick)="doubleClicked(s)" [readonly]="s.locked" type="text" value="{{s.title}}" [(ngModel)]="s.title"
+        [ngClass]="{'locked': s.locked}">
+        <button *ngIf="s.isNew || !s.locked" class="btn btn-outline-primary" (click)="addOrUpdate(s)">
+          {{ s.isNew ? 'save' : 'update' }}
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</dx-popup>

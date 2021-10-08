@@ -16,10 +16,7 @@
        title="Create new Session Day">
       <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>
     </a>
-    <a (click)="sessionTypePopupVisible = true" class="float-right text-primary mx-2" data-toggle="tooltip"
-       data-placement="top" title="View Session Types">
-      <i class="fas fa-dumbbell" style="font-size: 2em; cursor: pointer"></i>
-    </a>
+    <app-session-types-v1 [showDumbbellIcon]="true"></app-session-types-v1>
     <a routerLink="/attendance" class="float-right text-primary mx-2"
        data-toggle="tooltip"
        data-placement="top" title="Attendance"
@@ -86,18 +83,6 @@
     </dx-scheduler>
   </div>
 </div>
-
-
-<dx-popup
-  [width]="400"
-  [height]="350"
-  [showTitle]="true"
-  title="Session Types"
-  [dragEnabled]="false"
-  [closeOnOutsideClick]="true"
-  [(visible)]="sessionTypePopupVisible">
-  <app-session-types></app-session-types>
-</dx-popup>
 
 <!--Subscribed clients popup-->
 

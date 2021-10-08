@@ -3,15 +3,15 @@ import {CommonModule} from '@angular/common';
 import {DxDataGridModule, DxDrawerModule, DxFormModule, DxListModule, DxSchedulerModule, DxToolbarModule} from 'devextreme-angular';
 import {SideNavComponent} from './side-nav/side-nav.component';
 import {AppRoutingModule} from '../app-routing.module';
-import { SessionTypesComponent } from './session-types/session-types.component';
+import { SessionTypesV1Component } from './session-types/session-types-v1.component';
 import {DxPopupModule, DxScrollViewModule} from 'devextreme-angular';
-import {FormsModule} from "@angular/forms";
+import {FormsModule} from '@angular/forms';
 
 // @ts-ignore
 @NgModule({
   declarations: [
     SideNavComponent,
-    SessionTypesComponent,
+    SessionTypesV1Component,
   ],
   imports: [
     CommonModule,
@@ -27,7 +27,7 @@ import {FormsModule} from "@angular/forms";
   ],
   exports: [
     SideNavComponent,
-    SessionTypesComponent
+    SessionTypesV1Component
   ],
   providers: []
 })

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {SessionTypeService} from '../../../services/session-type.service';
 import {Subscription} from 'rxjs';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
@@ -11,6 +11,7 @@ import {ClientService} from '../../../services/client.service';
 import {take} from 'rxjs/operators';
 import {confirm} from 'devextreme/ui/dialog';
 import {Router} from '@angular/router';
+import {SessionTypesV1Component} from '../../../shared/session-types/session-types-v1.component';
 
 declare var $: any;
 
@@ -20,6 +21,7 @@ declare var $: any;
   styleUrls: ['./appointments.component.css']
 })
 export class AppointmentsComponent implements OnInit, OnDestroy {
+  @ViewChild(SessionTypesV1Component) sessionTypeComponent: SessionTypesV1Component | undefined;
   currentDate;
   sessionTypes: SessionTypeModel[];
   sessions: SessionModel[];

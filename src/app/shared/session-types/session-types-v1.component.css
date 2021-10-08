@@ -1,0 +1,43 @@
+.session-types {
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+i {
+  cursor: pointer;
+}
+
+.new-session-btn {
+  justify-self: flex-end;
+}
+
+input {
+  border: 1px solid #ccc;
+  border-radius: 15px;
+  background: none;
+  width: 100%;
+  height: auto;
+  padding: 8px;
+}
+
+.session-type {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.scrollable {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 200px;
+  overflow-y: scroll;
+}
+
+.locked {
+  background: #9e9e9e;
+}
