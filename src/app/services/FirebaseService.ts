@@ -25,11 +25,15 @@ export class FirebaseService<T extends Model> {
     return this.fs.collection<T>(this.collection, ref => query ? this.applyQuery(ref) : ref).valueChanges();
   }
 
+  getAllOrderedByTs(): Observable<T[]> {
+    return this.fs.collection<T>(this.collection, ref => ref.orderBy('createdAt_ts')).valueChanges();
+  }
+
   getOne(uid: string): Observable<T> {
     return this.fs.collection<T>(this.collection).doc(uid).valueChanges();
   }
 
-  async set(objects: {uid: string; [key: string]: any}[], merge: boolean): Promise<boolean> {
+  async set(objects: { uid: string; [key: string]: any }[], merge: boolean): Promise<boolean> {
     for (const object of objects) {
       await this.fs.collection(this.collection).doc(object.uid).set(object, {merge});
     }
@@ -38,7 +42,9 @@ export class FirebaseService<T extends Model> {
 
   async update(objects: T[], merge?: boolean): Promise<boolean> {
     for (const object of objects) {
-      await this.fs.collection(this.collection).doc(object.uid).update(object);
+      await this.fs.collection(this.collection).doc(object.uid).update({
+        ...object, lastUpdated_ts: new Date().getTime()
+      });
     }
     return true;
   }
@@ -61,10 +67,11 @@ export class FirebaseService<T extends Model> {
     const saved = [];
     for (const object of objects) {
       const uid = this.fs.collection(this.collection).doc().ref.id;
+      const createAt = new Date().getTime();
       await this.fs.collection(this.collection).doc(uid).set({
-        ...object, uid
+        ...object, uid, createdAt_ts: createAt
       });
-      saved.push({...object, uid});
+      saved.push({...object, uid, createdAt_ts: createAt});
     }
     return saved;
   }

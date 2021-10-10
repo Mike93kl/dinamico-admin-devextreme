@@ -13,8 +13,10 @@ import {confirm} from 'devextreme/ui/dialog';
 import {ClientPackagesService} from '../../../services/client-packages.service';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
 import {GetPackagesFnResponseData} from '../../../models/fn/GetPackagesFnResponse';
-import {SessionTypesV1Component} from "../../../shared/session-types/session-types-v1.component";
-import {ClientPackageModelV1} from "../../../models/ClientPackageModelV1";
+import {SessionTypesV1Component} from '../../../shared/session-types/session-types-v1.component';
+import {ClientPackageModelV1} from '../../../models/ClientPackageModelV1';
+import {FnError} from '../../../models/fn/FnResponseHandler';
+import {EligibleSessionTypeModel} from '../../../models/EligibleSessionTypeModel';
 
 @Component({
   selector: 'app-client-packages',
@@ -31,7 +33,8 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
   sessionTypeSubBehavior: BehaviorSubject<SessionTypeModel[]> = new BehaviorSubject<SessionTypeModel[]>(this.sessionTypes);
 
   // important variables
-  allPackagesMapped: GetPackagesFnResponseData[] | undefined;
+  showNewPackagePopup = false;
+  allPackagesMapped: GetPackagesFnResponseData[] = [];
   clientPackages: ClientPackageModelV1[] = [];
 
 
@@ -52,7 +55,10 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Get all packages mapped
-    this.packageService.getAllPackages().then(data => this.allPackagesMapped = data);
+    this.packageService.getAllPackages().then(data => this.allPackagesMapped = data)
+      .catch((e: FnError) => {
+        this.allPackagesMapped = undefined;
+      });
 
     // listen for session types
     this.sessionTypeSub = this.sessionTypeSubBehavior.subscribe(sessionTypes => {
@@ -90,13 +96,21 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
     this.clientPackagesSub = this.packageService.getPackagesOfClient(this.client.uid, showOnlyValid, limit).subscribe({
       next: (clientPackages) => {
         this.clientPackages = clientPackages;
-        console.log('cl', clientPackages)
+        console.log('cl', clientPackages);
       },
       error: err => {
         console.log(err);
         this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
       }
     });
+  }
+
+  populateSessionTypeUsage(est: EligibleSessionTypeModel): string {
+    if (!this.sessionTypes || this.sessionTypes.length === 0) {
+      return 'loading ...';
+    }
+    const st = this.sessionTypes.find(s => s.uid === est.sessionTypeId);
+    return (st?.title || 'N/A') + ' - <strong> ' + est.maxUsages + '</strong> usages';
   }
 
 

@@ -18,6 +18,7 @@ import {SharedModule} from '../shared/shared.module';
 import {FormsModule} from '@angular/forms';
 import { ClientSessionsComponent } from './components/client-sessions/client-sessions.component';
 import { ClientPackagesComponent } from './components/client-packages/client-packages.component';
+import {ScrollingModule} from "@angular/cdk/scrolling";
 
 // @ts-ignore
 @NgModule({
@@ -40,6 +41,7 @@ import { ClientPackagesComponent } from './components/client-packages/client-pac
     FormsModule,
     DxLoadPanelModule,
     DxListModule,
+    ScrollingModule
   ],
   exports: [],
   providers: [

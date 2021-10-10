@@ -3,9 +3,9 @@
 
 <h5> Purchased Packages </h5>
 
-<div class="action-btns">
+<div class="action-btns my-2">
   <div class="col-4">
-    <button class="btn btn-outline-primary float-right">
+    <button (click)="showNewPackagePopup = true" class="btn btn-outline-primary float-right">
       <i class="fas fa-box"></i> New Client Package
     </button>
   </div>
@@ -94,6 +94,48 @@
   </div>
 
 </dx-data-grid>
+
+<dx-popup title="Select a new package for client"
+          class="all-packages-popup"
+          [closeOnOutsideClick]="false"
+          [(visible)]="showNewPackagePopup">
+
+  <div class="all-packages-wrapper">
+
+    <div class="all-packages-item" *ngFor="let p of allPackagesMapped">
+      <h4>{{p.parent.title | uppercase}}</h4>
+
+      <div class="all-packages-children" *ngIf="p.children.length > 0">
+
+        <div class="all-packages-child" *ngFor="let c of p.children">
+          <div class="all-packages-child-details">
+            <h5>{{c.title | uppercase}}</h5>
+
+            <div class="all-packages-est">
+              <p>Eligible Session Types: </p>
+              <ul>
+                <li *ngFor="let est of c.eligibleSessionTypes" [innerHtml]="populateSessionTypeUsage(est)"></li>
+              </ul>
+            </div>
+          </div>
+          <div class="all-packages-child-action-buttons">
+            <button class="btn btn-outline-primary form-control">
+              SELECT
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="no-packages" *ngIf="p.children.length === 0">
+        <div class="text-warning">No packages</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</dx-popup>
 
 <!--<h5 class="text-center">Purchased Packages</h5>-->
 <!--<hr>-->

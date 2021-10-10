@@ -27,7 +27,7 @@ export class PackagesService extends FirebaseService<PackageModel> {
       if (showOnlyValid) {
         q = ref.where('expired', '==', false);
       }
-      return q.limit(limit);
+      return q.limit(limit).orderBy('createAt_ts', 'asc');
     }).valueChanges();
   }
 }

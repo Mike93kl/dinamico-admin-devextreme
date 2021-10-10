@@ -17,7 +17,7 @@ interface TreeItem {
   id: string | null;
   text: string;
   expanded?: boolean;
-  items?: TreeItem[]
+  items?: TreeItem[];
   act?: boolean;
   editable: boolean;
 }
@@ -41,7 +41,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
     expanded: true,
     items: [],
     editable: false
-  }]
+  }];
   updateTreeItem: TreeItem | undefined;
   updateTreeItemCopy: {
     uid: string;
@@ -72,10 +72,10 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   // Methods
 
 
-  createPackage(title: string) {
+  createPackage(title: string): void {
     title = title.trim();
-    if (title == '') {
-      this.popup.error(MSG_PPC_EMPTY_TITLE_NOT_ALLOWED)
+    if (title === '') {
+      this.popup.error(MSG_PPC_EMPTY_TITLE_NOT_ALLOWED);
       return;
     }
     this.loadingVisible = true;
@@ -91,26 +91,30 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
         text: pkg[0].title,
         editable: true,
         expanded: false
-      })
+      });
       await this.treeView?.instance.getDataSource().load();
       this.loadingVisible = false;
     }).catch(e => {
       this.loadingVisible = false;
       console.log(e);
       this.popup.error(MSG_UNEXPECTED_ERROR);
-    })
+    });
   }
 
 
   private getAllParentPackages(): void {
-    this.service.getAll().pipe(take(1)).subscribe(packages => {
-      this.parentPackages = packages;
-      this.onPackagesUpdated.emit(this.parentPackages);
-      this.setUpTree(packages);
-    }, error => {
-      console.log(error);
-      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
-    });
+    this.service.getAllOrderedByTs().pipe(take(1))
+      .subscribe({
+        next: packages => {
+          this.parentPackages = packages;
+          this.onPackagesUpdated.emit(this.parentPackages);
+          this.setUpTree(packages);
+        },
+        error: error => {
+          console.log(error);
+          this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+        }
+      });
   }
 
   private async setUpTree(packages: ParentPackageModel[]): Promise<void> {
@@ -144,7 +148,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   // UPDATE PARENT PACKAGE FLOW //
   ////////////////////////////////
 
-  openUpdatePopup(p: TreeItem, index: number) {
+  openUpdatePopup(p: TreeItem, index: number): void {
     this.updateTreeItemCopy = {
       uid: p.id,
       title: p.text,
