@@ -54,6 +54,8 @@
   <dxi-column dataField="payments" [width]="500" [minWidth]="500" caption="Payments"
               cellTemplate="paymentsTemplate"></dxi-column>
   <dxi-column dataField="paid" caption="Paid" [width]="50" [minWidth]="50" [allowResizing]="false"></dxi-column>
+  <dxi-column dataField="_package.price" caption="Pkg.Price" [width]="70" [minWidth]="70" [allowResizing]="false"
+              cellTemplate="pkgPriceTemplate" [hidingPriority]="5"></dxi-column>
   <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="4" caption="Status" cellTemplate="expiredCell"></dxi-column>
   <dxi-column dataField="expiryDate" [allowResizing]="false" [hidingPriority]="3" caption="Expires at" cellTemplate="expiryCell"></dxi-column>
   <dxi-column dataField="purchasedDate_ts" [allowResizing]="false" caption="Purchased At"
@@ -64,13 +66,18 @@
               dataType="boolean" [hidingPriority]="0"></dxi-column>
 
 
-  <div *dxTemplate="let row of 'sessionTypesTemplate'">
+  <div *dxTemplate="let row of 'sessionTypesTemplate'" style="padding-top: 40px;">
     <dx-data-grid
       id="subContainer"
       [dataSource]="row.data.eligibleSessionTypes"
+      (onRowUpdating)="onEstMaxUsagesUpdating($event, row.data)"
       [showBorders]="true">
-      <dxi-column dataField="sessionType.title" caption="Session" cellTemplate="sessionTitleTemplate"></dxi-column>
-      <dxi-column dataField="timesUsed" caption="Used"></dxi-column>
+      <dxo-editing
+        mode="row"
+        [allowUpdating]="true">
+      </dxo-editing>
+      <dxi-column dataField="sessionType.title" caption="Session" [allowEditing]="false" cellTemplate="sessionTitleTemplate"></dxi-column>
+      <dxi-column dataField="timesUsed" [allowEditing]="false" caption="Used"></dxi-column>
       <dxi-column dataField="maxUsages" caption="Max" cellTemplate="maxUsagesTemplate"></dxi-column>
 
       <div *dxTemplate="let elRow of 'maxUsagesTemplate'" class="max-usages-wrapper">
@@ -108,16 +115,22 @@
 
   <div *dxTemplate="let row of 'paymentsTemplate'" class="payments">
     <dx-data-grid
+      #paymentDataGrid
       id="subContainer2"
-      (onInitNewRow)="onPaymentsInitNewRow($event)"
-      (onRowInserting)="onPaymentInserting($event)"
-      (onRowRemoving)="onPaymentDeleting($event)"
+      (onRowInserting)="onPaymentInserting($event, row.data)"
+      (onRowRemoving)="onPaymentDeleting($event, row.data)"
+      (onRowRemoved)="onPaymentDeleted($event, row)"
+      (onRowInserted)="onPaymentAdded($event, row)"
       [dataSource]="row.data.payments"
       [showBorders]="true">
       <dxo-editing
         mode="row"
         [allowAdding]="true"
         [allowDeleting]="true">
+        <dxo-texts
+          deleteRow="x"
+          confirmDeleteMessage="">
+        </dxo-texts>
       </dxo-editing>
       <dxi-column dataField="payment" caption="$$" cellTemplate="paymentTemplate"></dxi-column>
       <dxi-column dataField="datePaid_ts" [allowEditing]="false" caption="Date" cellTemplate="paymentDateTemplate"></dxi-column>
@@ -131,6 +144,10 @@
       </div>
 
     </dx-data-grid>
+  </div>
+
+  <div *dxTemplate="let row of 'pkgPriceTemplate'">
+    <p> {{row.data._package.price | currency:"EUR" }} </p>
   </div>
 
 </dx-data-grid>

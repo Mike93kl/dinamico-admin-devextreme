@@ -17,3 +17,6 @@ export const GET_CLIENTS_OF_SESSION = 'get_clients_of_session';
 
 // V1
 export const GET_ALL_PACKAGES_V1 = 'get_all_packages_v1';
+export const ADD_CLIENT_PACKAGE_PAYMENT = 'add_client_package_payment';
+export const REMOVE_CLIENT_PACKAGE_PAYMENT = 'remove_client_package_payment';
+export const UPDATE_EST_MAX_USAGES = 'update_est_max_usages';

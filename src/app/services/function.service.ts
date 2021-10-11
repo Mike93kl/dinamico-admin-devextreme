@@ -1,16 +1,17 @@
 import {Injectable} from '@angular/core';
 import {AngularFireFunctions} from '@angular/fire/compat/functions';
 import {
+  ADD_CLIENT_PACKAGE_PAYMENT,
   ALTER_MAX_USAGES, BOOK_SESSION, CANCEL_CLIENT_SESSION,
   CLIENTS_ACTIVE_PACKAGES,
   CREATE_CLIENT, GET_ALL_PACKAGES_V1, GET_CLIENTS_OF_SESSION,
   GET_USER_CLAIMS,
   GRANT_ADMIN,
   GRANT_MANAGER,
-  NULLIFY_CLAIMS,
+  NULLIFY_CLAIMS, REMOVE_CLIENT_PACKAGE_PAYMENT,
   REVOKE_ADMIN,
   REVOKE_MANAGER,
-  ROOT
+  ROOT, UPDATE_EST_MAX_USAGES
 } from '../utils/Functions';
 import {firstValueFrom, Observable} from 'rxjs';
 import {FunctionResponse} from '../models/fn/FunctionResponse';
@@ -19,6 +20,9 @@ import {CreateClientFnResponse} from '../models/fn/CreateClientFnResponse';
 import {GetPackagesFnResponse, GetPackagesFnResponseData} from '../models/fn/GetPackagesFnResponse';
 import * as fn_handler from '../models/fn/FnResponseHandler';
 import {FnResponse} from "../models/fn/FnResponse_v1";
+import {AddClientPackagePaymentFnResponse} from "../models/fn/AddClientPackagePaymentFnResponse";
+import {PaymentModel} from "../models/PaymentModel";
+import {ClientEligibleSessionTypeModel} from "../models/ClientEligibleSessionTypeModel";
 
 @Injectable({
   providedIn: 'root'
@@ -102,6 +106,35 @@ export class FunctionService {
     return this.handle_fn_response(fn({}));
   }
 
+  addClientPackagePayment(
+    clientId: string,
+    clientPackageId: string,
+    payment: number,
+    datePaid: number,
+  ): Promise<PaymentModel> {
+    return this.handle_fn_response(
+      this.fn.httpsCallable(ADD_CLIENT_PACKAGE_PAYMENT)({
+        clientId, clientPackageId, payment, datePaid_ts: datePaid
+      })
+    );
+  }
+
+  removeClientPackagePayment(clientId: string,
+                             clientPackageId: string, uniqueKey: string): Promise<boolean> {
+    return this.handle_fn_response(
+      this.fn.httpsCallable(REMOVE_CLIENT_PACKAGE_PAYMENT)({
+        clientId, clientPackageId, uniqueKey
+      })
+    );
+  }
+
+  updateEstMaxUsages(clientId: string, clientPackageId: string, eligibleSessionTypeId: string, maxUsages: number): Promise<ClientEligibleSessionTypeModel> {
+    return this.handle_fn_response(
+      this.fn.httpsCallable(UPDATE_EST_MAX_USAGES)({
+        clientId, clientPackageId, eligibleSessionTypeId, maxUsages
+      })
+    );
+  }
 
   private handle_fn_response<R, T extends FnResponse<R>>(fn: Observable<T>): Promise<R> {
     return firstValueFrom(fn).then((res) => fn_handler.handle<R>(res))

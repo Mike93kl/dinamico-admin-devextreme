@@ -7,6 +7,8 @@ import {GetPackagesFnResponseData} from '../models/fn/GetPackagesFnResponse';
 import {Observable} from 'rxjs';
 import {ClientPackageModelV1} from '../models/ClientPackageModelV1';
 import {CLIENT_PACKAGES} from '../utils/Collections';
+import {PaymentModel} from "../models/PaymentModel";
+import {ClientEligibleSessionTypeModel} from "../models/ClientEligibleSessionTypeModel";
 
 @Injectable({
   providedIn: 'root'
@@ -28,5 +30,17 @@ export class PackagesService extends FirebaseService<PackageModel> {
         .where('expired', '==', !showOnlyValid)
         .limit(limit).orderBy('createdAt_ts', 'desc');
     }).valueChanges();
+  }
+
+  addPaymentToClientPackage(clientId: string, clientPackageId: string, payment: number): Promise<PaymentModel> {
+    return this.fn.addClientPackagePayment(clientId, clientPackageId, payment, new Date().getTime());
+  }
+
+  removePaymentFromClientPackage(clientId: string, clientPackageId: string, uniqueKey: string): Promise<boolean> {
+    return this.fn.removeClientPackagePayment(clientId, clientPackageId, uniqueKey);
+  }
+
+  updateEstMaxUsages(clientId: string, clientPackageId: string, eligibleSessionTypeId: string, maxUsages: number): Promise<ClientEligibleSessionTypeModel> {
+    return this.fn.updateEstMaxUsages(clientId, clientPackageId, eligibleSessionTypeId, maxUsages);
   }
 }

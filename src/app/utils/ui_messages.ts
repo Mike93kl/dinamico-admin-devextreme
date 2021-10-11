@@ -46,5 +46,11 @@ export const MSG_EMAIL_INVALID_FORMAT = 'Email has an invalid format.';
 
 export const MSG_CC_CONFIRM_ADD_CLIENT_PACKAGE = (packageTitle: string, clientName: string) => {
   return `You are about to add package: "${packageTitle}" to ${clientName}'s packages. Proceed?`;
-}
+};
 
+export const MSG_CC_PACKAGE_PAYMENT_NO_ZERO_ALLOWED = 'Payment cannot be less or equal to 0.';
+export const MSG_CC_CONFIRM_CLIENT_PACKAGE_PAYMENT_REMOVAL = (payment: number) => {
+  return `Remove ${payment} from payments list. Proceed?`;
+};
+export const MSG_CC_ONLY_NUMBERS_ALLOWED = 'Please enter a valid number.';
+export const MSG_CC_EST_MAX_USAGES_ERROR = 'Max usages cannot be a negative number';
