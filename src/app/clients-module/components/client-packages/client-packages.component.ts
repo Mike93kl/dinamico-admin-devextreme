@@ -8,7 +8,11 @@ import {PopupService} from '../../../services/popup.service';
 import {PackagesService} from '../../../services/packages.service';
 import {PackageModel} from '../../../models/PackageModel';
 import {take} from 'rxjs/operators';
-import {MSG_UNEXPECTED_ERROR, MSG_UNEXPECTED_ERROR_REFRESH_PAGE} from '../../../utils/ui_messages';
+import {
+  MSG_CC_CONFIRM_ADD_CLIENT_PACKAGE,
+  MSG_UNEXPECTED_ERROR,
+  MSG_UNEXPECTED_ERROR_REFRESH_PAGE
+} from '../../../utils/ui_messages';
 import {confirm} from 'devextreme/ui/dialog';
 import {ClientPackagesService} from '../../../services/client-packages.service';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
@@ -17,6 +21,10 @@ import {SessionTypesV1Component} from '../../../shared/session-types/session-typ
 import {ClientPackageModelV1} from '../../../models/ClientPackageModelV1';
 import {FnError} from '../../../models/fn/FnResponseHandler';
 import {EligibleSessionTypeModel} from '../../../models/EligibleSessionTypeModel';
+import {CLIENT_PACKAGES} from '../../../utils/Collections';
+import {DxDataGridComponent} from "devextreme-angular";
+
+declare var $: any;
 
 @Component({
   selector: 'app-client-packages',
@@ -27,12 +35,17 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
   // inputs
   @Input() client: ClientModel;
 
+  @ViewChild(DxDataGridComponent) dxDataGrid: DxDataGridComponent | undefined;
+
   // Session type related
   @ViewChild(SessionTypesV1Component) sessionTypeComponent: SessionTypesV1Component | undefined;
   sessionTypes: SessionTypeModel[] = [];
   sessionTypeSubBehavior: BehaviorSubject<SessionTypeModel[]> = new BehaviorSubject<SessionTypeModel[]>(this.sessionTypes);
 
   // important variables
+  limit = 100;
+  validPackagesOnly = true;
+  loadingVisible = false;
   showNewPackagePopup = false;
   allPackagesMapped: GetPackagesFnResponseData[] = [];
   clientPackages: ClientPackageModelV1[] = [];
@@ -65,7 +78,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
       this.sessionTypes = sessionTypes;
     });
 
-    this.getClientsPackages(false, 100);
+    this.getClientsPackages(this.validPackagesOnly, 100);
   }
 
   ngOnDestroy(): void {
@@ -91,19 +104,25 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
     if (typeof limit === 'string') {
       limit = parseInt(limit, 10);
     }
+    this.loadingVisible = true;
     this.clientPackagesSub?.unsubscribe();
     // listen for client packages
     this.clientPackagesSub = this.packageService.getPackagesOfClient(this.client.uid, showOnlyValid, limit).subscribe({
       next: (clientPackages) => {
         this.clientPackages = clientPackages;
         console.log('cl', clientPackages);
+        this.dxDataGrid?.instance.getDataSource().load();
+        this.loadingVisible = false;
       },
       error: err => {
         console.log(err);
+        this.loadingVisible = false;
         this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
       }
     });
   }
+
+  // UI methods
 
   populateSessionTypeUsage(est: EligibleSessionTypeModel): string {
     if (!this.sessionTypes || this.sessionTypes.length === 0) {
@@ -112,6 +131,82 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
     const st = this.sessionTypes.find(s => s.uid === est.sessionTypeId);
     return (st?.title || 'N/A') + ' - <strong> ' + est.maxUsages + '</strong> usages';
   }
+
+  populateSessionTypeTitle(est: ClientEligibleSessionTypeModel): string {
+    if (!this.sessionTypes || this.sessionTypes.length === 0) {
+      return 'loading ...';
+    }
+
+    const st = this.sessionTypes.find(s => s.uid === est.sessionTypeId);
+    return st ? st.title : 'N/A';
+  }
+
+  addClientPackage(c: PackageModel): void {
+    this.popup.confirm(MSG_CC_CONFIRM_ADD_CLIENT_PACKAGE(c.title, this.client.fullName), async confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      const canExpireByDate = c.canExpire;
+      const eligibleSessionTypeIds = c.eligibleSessionTypes.map(e => e.sessionTypeId);
+      const eligibleSessionTypes: ClientEligibleSessionTypeModel[] = c.eligibleSessionTypes.map(e => {
+        return {...e, timesUsed: 0};
+      });
+      let expiryDate: number = null;
+      if (canExpireByDate && c.daysToExpire > 0) {
+        expiryDate = new Date().getTime() + ((1000 * 60 * 60 * 24) * c.daysToExpire);
+      }
+
+      const clientPackage: ClientPackageModelV1 = {
+        _package: c,
+        clientId: this.client.uid,
+        purchasedDate_ts: new Date().getTime(),
+        expiryDate_ts: expiryDate,
+        eligibleSessionTypeIds,
+        eligibleSessionTypes,
+        dateLastUsed_ts: null,
+        canExpireByDate,
+        isCustom: false,
+        paid: false,
+        payments: [],
+        expired: false
+      };
+      this.loadingVisible = true;
+      this.packageService.createForOtherCollection(CLIENT_PACKAGES, clientPackage)
+        .then(() => this.loadingVisible = false)
+        .catch(e => {
+          console.log(e);
+          this.popup.error(MSG_UNEXPECTED_ERROR);
+        });
+    });
+  }
+
+  onToggleOnlyValidPackages(value: boolean): void {
+    this.validPackagesOnly = value;
+    this.getClientsPackages(this.validPackagesOnly, this.limit);
+  }
+
+  onPackagesLimitChanged(): void {
+    this.getClientsPackages(this.validPackagesOnly, this.limit);
+  }
+
+  ///////////////////////////////////////////////
+  ////////// Payments methods //////////////////
+  /////////////////////////////////////////////
+
+  onPaymentsInitNewRow($e): void {
+    console.log('payment nr: ', $e);
+  }
+
+  onPaymentInserting($e): void {
+    console.log('payments inserting', $e);
+  }
+
+  onPaymentDeleting($e): void {
+    console.log('payments deleting', $e);
+  }
+
+  /////// End of Payment methods ///////////////
 
 
   // ngOnInit(): void {
@@ -346,5 +441,6 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
   //       this.popup.error(MSG_UNEXPECTED_ERROR);
   //     });
   // }
+
 }
 

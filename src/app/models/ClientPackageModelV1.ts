@@ -16,14 +16,4 @@ export interface ClientPackageModelV1 extends Model {
   paid: boolean;
   payments?: PaymentModel[];
   expired: boolean;
-  // for UI
-  collapsed?: boolean;
-}
-
-export function trimClientPackage(p: ClientPackageModelV1): ClientPackageModelV1 {
-  if (p.hasOwnProperty('collapsed')) {
-    delete p.collapsed;
-  }
-  p.isCustom = !p._package;
-  return p;
 }

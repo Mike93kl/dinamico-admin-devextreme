@@ -63,3 +63,7 @@
   display: grid;
   place-items: center;
 }
+
+.checkbox {
+  margin: .4rem;
+}

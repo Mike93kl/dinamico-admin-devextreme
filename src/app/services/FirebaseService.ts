@@ -75,4 +75,13 @@ export class FirebaseService<T extends Model> {
     }
     return saved;
   }
+
+  async createForOtherCollection<R>(collection: string, object: R): Promise<R> {
+    const uid = this.fs.collection(collection).doc().ref.id;
+    const createdAt = new Date().getTime();
+    await this.fs.collection(collection).doc(uid).set({
+      ...object, uid, createdAt_ts: createdAt
+    })
+    return {...object, uid, createdAt_ts: createdAt};
+  }
 }

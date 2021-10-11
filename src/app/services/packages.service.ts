@@ -23,11 +23,10 @@ export class PackagesService extends FirebaseService<PackageModel> {
 
   getPackagesOfClient(clientId: string, showOnlyValid: boolean, limit: number): Observable<ClientPackageModelV1[]> {
     return this.fs.collection<ClientPackageModelV1>(CLIENT_PACKAGES, ref => {
-      let q = ref.where('clientId', '==', clientId);
-      if (showOnlyValid) {
-        q = ref.where('expired', '==', false);
-      }
-      return q.limit(limit).orderBy('createAt_ts', 'asc');
+      console.log('valid: ', showOnlyValid)
+      return ref.where('clientId', '==', clientId)
+        .where('expired', '==', !showOnlyValid)
+        .limit(limit).orderBy('createdAt_ts', 'desc');
     }).valueChanges();
   }
 }

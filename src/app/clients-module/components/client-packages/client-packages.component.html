@@ -11,19 +11,26 @@
   </div>
   <div>
     <label class="my-1">Number of results:</label>
-    <select #limit class="form-control" (change)="getClientsPackages(false, limit.value)">
+    <select [(ngModel)]="limit" class="form-control" (change)="onPackagesLimitChanged()">
       <option value="100">100</option>
       <option value="200">200</option>
       <option value="400">300</option>
       <option value="100">400</option>
     </select>
   </div>
+
+  <div>
+    <input type="checkbox" checked id="validOnly" name="validOnly" class="checkbox" #validOnly (click)="onToggleOnlyValidPackages(validOnly.checked)">
+    <label for="validOnly">Show valid packages</label>
+  </div>
+
 </div>
 
 <dx-data-grid
   id="clientPackagesGrid"
   allowColumnResizing="true"
   [dataSource]="clientPackages"
+  [showRowLines]="true"
   [showBorders]="true">
   <dxo-editing
     mode="popup"
@@ -41,32 +48,37 @@
     placeholder="Search title...."></dxo-search-panel>
 
 
-  <dxi-column dataField="_package.title" caption="Pkg. Title" dataType="text"></dxi-column>
-  <dxi-column dataField="eligibleSessionTypes" caption="E.S.T" cellTemplate="sessionTypesTemplate"></dxi-column>
-  <dxi-column dataField="expired" caption="Status" cellTemplate="expiredCell"></dxi-column>
-  <dxi-column dataField="expiryDate" caption="Expires at" cellTemplate="expiryCell"></dxi-column>
-  <dxi-column dataField="purchasedDate_ts" caption="Purchased At"
-              cellTemplate="purchasedCell"></dxi-column>
-  <dxi-column dataField="dateLastUsed_ts" caption="Last Used"
-              cellTemplate="lastUsedCell"></dxi-column>
-  <dxi-column dataField="isCustom" caption="Custom Pkg."
-              dataType="boolean"></dxi-column>
-  <dxi-column dataField="paid" caption="Paid"
-              dataType="boolean"></dxi-column>
-  <dxi-column dataField="payments" caption="Payments"
+  <dxi-column dataField="_package.title" [width]="100" [minWidth]="100" [allowResizing]="false" caption="Pkg. Title" dataType="text"></dxi-column>
+  <dxi-column dataField="eligibleSessionTypes" [width]="500" [minWidth]="500" caption="E.S.T"
+              cellTemplate="sessionTypesTemplate"></dxi-column>
+  <dxi-column dataField="payments" [width]="500" [minWidth]="500" caption="Payments"
               cellTemplate="paymentsTemplate"></dxi-column>
+  <dxi-column dataField="paid" caption="Paid" [width]="50" [minWidth]="50" [allowResizing]="false"></dxi-column>
+  <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="4" caption="Status" cellTemplate="expiredCell"></dxi-column>
+  <dxi-column dataField="expiryDate" [allowResizing]="false" [hidingPriority]="3" caption="Expires at" cellTemplate="expiryCell"></dxi-column>
+  <dxi-column dataField="purchasedDate_ts" [allowResizing]="false" caption="Purchased At"
+              cellTemplate="purchasedCell"  [hidingPriority]="2"></dxi-column>
+  <dxi-column dataField="dateLastUsed_ts" [allowResizing]="false" caption="Last Used"
+              cellTemplate="lastUsedCell" [hidingPriority]="1"></dxi-column>
+  <dxi-column dataField="isCustom" [allowResizing]="false" caption="Custom Pkg." cellTemplate="isCustomTemplate"
+              dataType="boolean" [hidingPriority]="0"></dxi-column>
 
-  <div *dxTemplate="let row of 'sessionTypes'">
+
+  <div *dxTemplate="let row of 'sessionTypesTemplate'">
     <dx-data-grid
       id="subContainer"
       [dataSource]="row.data.eligibleSessionTypes"
       [showBorders]="true">
-      <dxi-column dataField="sessionType.title" caption="Session"></dxi-column>
+      <dxi-column dataField="sessionType.title" caption="Session" cellTemplate="sessionTitleTemplate"></dxi-column>
       <dxi-column dataField="timesUsed" caption="Used"></dxi-column>
       <dxi-column dataField="maxUsages" caption="Max" cellTemplate="maxUsagesTemplate"></dxi-column>
 
       <div *dxTemplate="let elRow of 'maxUsagesTemplate'" class="max-usages-wrapper">
         <p style="cursor: pointer"> {{ elRow.data.maxUsages }} </p>
+      </div>
+
+      <div *dxTemplate="let elRow of 'sessionTitleTemplate'" class="max-usages-wrapper">
+        <p style="cursor: pointer"> {{ populateSessionTypeTitle(elRow.data) }} </p>
       </div>
 
     </dx-data-grid>
@@ -77,8 +89,9 @@
     <p *ngIf="!row.data.expired" style="color: green">Valid</p>
   </div>
 
-  <div *dxTemplate="let row of 'expiryDateCell'">
+  <div *dxTemplate="let row of 'expiryCell'">
     <p *ngIf="row.data.canExpireByDate"> {{row.data.expiryDate_ts | date}} </p>
+    <p *ngIf="!row.data.canExpireByDate"> N/A</p>
   </div>
 
   <div *dxTemplate="let row of 'purchasedCell'">
@@ -86,11 +99,38 @@
   </div>
 
   <div *dxTemplate="let row of 'lastUsedCell'">
-    <p> {{row.data.purchasedDate_ts | date}} </p>
+    <p> {{row.data.dateLastUsed_ts | date}} </p>
   </div>
 
-  <div *dxTemplate="let row of 'paymentsTemplate'">
-    <!--    TODO -->
+  <div *dxTemplate="let row of 'isCustomTemplate'">
+    <p [ngClass]="{'text-warning' : row.data.isCustom}"> {{row.data.isCustom ? 'Yes' : 'No' }} </p>
+  </div>
+
+  <div *dxTemplate="let row of 'paymentsTemplate'" class="payments">
+    <dx-data-grid
+      id="subContainer2"
+      (onInitNewRow)="onPaymentsInitNewRow($event)"
+      (onRowInserting)="onPaymentInserting($event)"
+      (onRowRemoving)="onPaymentDeleting($event)"
+      [dataSource]="row.data.payments"
+      [showBorders]="true">
+      <dxo-editing
+        mode="row"
+        [allowAdding]="true"
+        [allowDeleting]="true">
+      </dxo-editing>
+      <dxi-column dataField="payment" caption="$$" cellTemplate="paymentTemplate"></dxi-column>
+      <dxi-column dataField="datePaid_ts" [allowEditing]="false" caption="Date" cellTemplate="paymentDateTemplate"></dxi-column>
+
+      <div *dxTemplate="let r of 'paymentTemplate'">
+        <p> {{r.data.payment | currency:"EUR" }} </p>
+      </div>
+
+      <div *dxTemplate="let r of 'paymentDateTemplate'">
+        <p> {{r.data.datePaid_ts | date:"short" }} </p>
+      </div>
+
+    </dx-data-grid>
   </div>
 
 </dx-data-grid>
@@ -119,7 +159,7 @@
             </div>
           </div>
           <div class="all-packages-child-action-buttons">
-            <button class="btn btn-outline-primary form-control">
+            <button class="btn btn-outline-primary form-control" (click)="addClientPackage(c)">
               SELECT
             </button>
           </div>
@@ -428,16 +468,13 @@
 <!--  </dx-scroll-view>-->
 <!--</dx-popup>-->
 
-<!--&lt;!&ndash;Loader&ndash;&gt;-->
-<!--<dx-load-panel-->
-<!--  #loadPanel-->
-<!--  shadingColor="rgba(0,0,0,0.4)"-->
-<!--  [position]="{ of: '#scheduler' }"-->
-<!--  [(visible)]="loadingVisible"-->
-<!--  [showIndicator]="true"-->
-<!--  [showPane]="true"-->
-<!--  [shading]="true"-->
-<!--  [closeOnOutsideClick]="false">-->
-<!--</dx-load-panel>-->
-
-<!--<app-session-types-v1 [showDumbbellIcon]="false"></app-session-types-v1>-->
+<!--Loader-->
+<dx-load-panel
+  shadingColor="rgba(0,0,0,0.4)"
+  [position]="{ of: '#clientPackagesGrid' }"
+  [(visible)]="loadingVisible"
+  [showIndicator]="true"
+  [showPane]="true"
+  [shading]="true"
+  [closeOnOutsideClick]="false">
+</dx-load-panel>

@@ -38,3 +38,13 @@ export const MSG_CLIENT_NAME_REQUIRED = 'Client name is required and must be gre
 export const MSG_PHONE_NUMBER_REQUIRED = 'Phone number is required and must contain only numbers';
 export const MSG_EMAIL_REQUIRED = 'Email is a required field';
 export const MSG_EMAIL_INVALID_FORMAT = 'Email has an invalid format.';
+
+
+/**
+ * CLIENT COMPONENT
+ */
+
+export const MSG_CC_CONFIRM_ADD_CLIENT_PACKAGE = (packageTitle: string, clientName: string) => {
+  return `You are about to add package: "${packageTitle}" to ${clientName}'s packages. Proceed?`;
+}
+
