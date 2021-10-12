@@ -1,7 +1,8 @@
 <section id="packages-section">
   <app-parent-packages
     (onPackagesUpdated)="onParentPackagesUpdated($event)"
-    (onParentPackageDeleted)="onParentPackageDeleted($event)"></app-parent-packages>
+    (onParentPackageDeleted)="onParentPackageDeleted($event)"
+    (onItemSelected)="onPackageSelectedFromParent($event)"></app-parent-packages>
 
   <div id="packages">
 
@@ -15,7 +16,7 @@
 
 
     <div class="list-container">
-      <dx-list [dataSource]="packages" [height]="650" [searchEnabled]="true" searchExpr="title"
+      <dx-list [dataSource]="packages" [height]="650" [searchEnabled]="true" searchExpr="title" selectionMode="single"
                searchMode="contains">
         <div *dxTemplate="let data of 'item'; let i = index;">
 

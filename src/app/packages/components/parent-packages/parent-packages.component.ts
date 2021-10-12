@@ -20,6 +20,7 @@ interface TreeItem {
   items?: TreeItem[];
   act?: boolean;
   editable: boolean;
+  isParent: boolean;
 }
 
 @Component({
@@ -33,6 +34,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
   // outputs -> parent packages to the PackagesComponent
   @Output() onPackagesUpdated: EventEmitter<ParentPackageModel[]> = new EventEmitter<ParentPackageModel[]>();
   @Output() onParentPackageDeleted: EventEmitter<ParentPackageModel> = new EventEmitter<ParentPackageModel>();
+  @Output() onItemSelected: EventEmitter<string> = new EventEmitter<string>();
 
   parentPackages: ParentPackageModel[];
   tree: TreeItem[] = [{
@@ -40,7 +42,8 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
     text: 'root',
     expanded: true,
     items: [],
-    editable: false
+    editable: false,
+    isParent: true
   }];
   updateTreeItem: TreeItem | undefined;
   updateTreeItemCopy: {
@@ -90,7 +93,8 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
         id: pkg[0].uid,
         text: pkg[0].title,
         editable: true,
-        expanded: false
+        expanded: false,
+        isParent: true
       });
       await this.treeView?.instance.getDataSource().load();
       this.loadingVisible = false;
@@ -124,8 +128,9 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
         expanded: false,
         text: p.title,
         editable: true,
-        items: []
-      }
+        items: [],
+        isParent: true
+      };
 
       if (p.children && p.children.length > 0) {
         pPackage.items = (await this.service.childrenOfParent(p.uid))
@@ -134,9 +139,10 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
               id: c.uid,
               text: c.title,
               act: c.active,
-              editable: false
-            }
-          })
+              editable: false,
+              isParent: false,
+            };
+          });
       }
       this.tree[0].items.push(pPackage);
     }
@@ -242,10 +248,18 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
           id: c.uid,
           text: c.title,
           expanded: true,
-          editable: false
+          editable: false,
+          isParent: false,
         };
       });
     await this.treeView?.instance.getDataSource().load();
     this.loadingVisible = false;
+  }
+
+  onItemClicked(p: TreeItem): void {
+    if (!p.isParent) {
+      this.onItemSelected.emit(p.id);
+    }
+
   }
 }

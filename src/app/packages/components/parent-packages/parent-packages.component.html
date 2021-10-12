@@ -19,7 +19,7 @@
                 itemTemplate="itemTemplate">
                 <div *dxTemplate="let p of 'itemTemplate'; let i = index;">
                     <div class="parent-package-details">
-                        <p class="p-item" [ngClass]="{ 'text-red': p.act === false, 'p-item-parent': p.editable }">
+                        <p (click)="onItemClicked(p)" class="p-item" [ngClass]="{ 'text-red': p.act === false, 'p-item-parent': p.editable }">
                             {{p.text}}</p>
                         <i *ngIf="p.editable" class="p-update-pencil" (click)="openUpdatePopup(p, i)"
                             class="fas fa-pencil-alt"></i>

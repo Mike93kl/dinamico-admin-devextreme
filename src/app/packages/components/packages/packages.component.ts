@@ -80,7 +80,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     // session-types
     this.sessionTypes = await firstValueFrom(this.sessionTypeService.getAll());
     // packages
-    this.packages = await firstValueFrom(this.service.getAll());
+    this.packages = await firstValueFrom(this.service.getAllOrderedByTs());
     this.loadingVisible = false;
   }
 
@@ -130,7 +130,7 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.loadingVisible = true;
     selectedPackage.isInEditMode = false;
-    selectedPackage.canExpire = selectedPackage.daysToExpire !== 0;
+    selectedPackage.canExpire = selectedPackage.daysToExpire > 0;
     selectedPackage.description = this.createAutomatedDescription(selectedPackage);
     try {
       const pkg = Object.assign({}, selectedPackage);
@@ -157,8 +157,8 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
           this.popup.error(MSG_FAILED_TO_UPDATE_PARENT_PACKAGE);
           return;
         }
-        await this.parentPackagesComponent.updateChildrenOf(pkg.parentPackageId);
       }
+      await this.parentPackagesComponent.updateChildrenOf(pkg.parentPackageId);
       selectedPackage.isInEditMode = false;
       this.loadingVisible = false;
 
@@ -268,4 +268,11 @@ export class PackagesComponent implements OnInit, OnDestroy, AfterViewInit {
     return str;
   }
 
+  onPackageSelectedFromParent($event: string): void {
+    const index = this.packages?.findIndex(p => p.uid === $event);
+    if (index !== -1) {
+      this.dxList?.instance.selectItem(index);
+      this.dxList?.instance.scrollToItem(index);
+    }
+  }
 }
