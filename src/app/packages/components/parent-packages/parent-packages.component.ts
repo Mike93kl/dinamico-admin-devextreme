@@ -128,7 +128,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
       }
 
       if (p.children && p.children.length > 0) {
-        pPackage.items = (await this.service.childrenOfParent(p.children))
+        pPackage.items = (await this.service.childrenOfParent(p.uid))
           .map((c) => {
             return {
               id: c.uid,
@@ -236,7 +236,7 @@ export class ParentPackagesComponent implements OnInit, OnDestroy, AfterViewInit
       return;
     }
 
-    this.tree[0].items[index].items = (await this.service.childrenOfParent(parentPackage.children))
+    this.tree[0].items[index].items = (await this.service.childrenOfParent(parentPackage.uid))
       .map((c) => {
         return {
           id: c.uid,

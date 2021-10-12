@@ -10,17 +10,18 @@
 }
 
 .all-packages-popup {
-  height: 80vh;
+  height: 100vh;
   width: 80vw;
 }
 
 .all-packages-wrapper {
-  height: 70vh;
-  width: 70vw;
+  height: 90%;
+  width: 76vw;
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding: 14px;
 }
 
 .all-packages-children {
@@ -30,7 +31,7 @@
   display: flex;
   gap: 14px;
   background-color: white;
-  width: 65vw;
+  width: 72vw;
   overflow-x: auto;
   padding: 12px;
 }
@@ -38,7 +39,7 @@
 .all-packages-child {
   background-color: white;
   border: 3px solid #bebebe;
-  height: 500px;
+  height: 380px;
   flex: 0 0 250px;
   justify-content: center;
   align-items: center;
@@ -52,13 +53,13 @@
 
 .all-packages-child-details {
   width: 100%;
-  height: 380px;
+  height: 280px;
 }
 
 .all-packages-child-action-buttons {
   padding: 20px;
   width: 100%;
-  height: 120px;
+  height: 100px;
   border-top: 1px solid #ccc;
   display: grid;
   place-items: center;

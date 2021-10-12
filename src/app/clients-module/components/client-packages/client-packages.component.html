@@ -9,6 +9,7 @@
       <i class="fas fa-box"></i> New Client Package
     </button>
   </div>
+
   <div>
     <label class="my-1">Number of results:</label>
     <select [(ngModel)]="limit" class="form-control" (change)="onPackagesLimitChanged()">
@@ -66,7 +67,7 @@
               dataType="boolean" [hidingPriority]="0"></dxi-column>
 
 
-  <div *dxTemplate="let row of 'sessionTypesTemplate'" style="padding-top: 40px;">
+  <div *dxTemplate="let row of 'sessionTypesTemplate'" style="padding-top: 44px;">
     <dx-data-grid
       id="subContainer"
       [dataSource]="row.data.eligibleSessionTypes"
@@ -123,6 +124,12 @@
       (onRowInserted)="onPaymentAdded($event, row)"
       [dataSource]="row.data.payments"
       [showBorders]="true">
+      <dxo-summary>
+        <dxi-total-item
+          column="payment"
+          summaryType="sum">
+        </dxi-total-item>
+      </dxo-summary>
       <dxo-editing
         mode="row"
         [allowAdding]="true"
@@ -156,7 +163,9 @@
           class="all-packages-popup"
           [closeOnOutsideClick]="false"
           [(visible)]="showNewPackagePopup">
-
+  <button class="btn btn-outline-primary my-3" (click)="initCustomPackage()">
+    <i class="fas fa-box"></i> New Custom Package
+  </button>
   <div class="all-packages-wrapper">
 
     <div class="all-packages-item" *ngFor="let p of allPackagesMapped">
@@ -167,7 +176,7 @@
         <div class="all-packages-child" *ngFor="let c of p.children">
           <div class="all-packages-child-details">
             <h5>{{c.title | uppercase}}</h5>
-
+            <p>Price: {{c.price | currency:"EUR"}}</p>
             <div class="all-packages-est">
               <p>Eligible Session Types: </p>
               <ul>
@@ -176,7 +185,7 @@
             </div>
           </div>
           <div class="all-packages-child-action-buttons">
-            <button class="btn btn-outline-primary form-control" (click)="addClientPackage(c)">
+            <button class="btn btn-outline-primary form-control" (click)="addClientPackage(c, false)">
               SELECT
             </button>
           </div>
@@ -194,296 +203,66 @@
 
 </dx-popup>
 
-<!--<h5 class="text-center">Purchased Packages</h5>-->
-<!--<hr>-->
-<!--<div class="row">-->
-<!--  <div class="col-4">-->
-<!--    <div class="form-group">-->
-<!--      <label for="l">Number of results:</label>-->
-<!--      <select id="l" class="form-control" (change)="fetchPackages()"-->
-<!--              [disabled]="!clientPackages || clientPackages?.length === 0">-->
-<!--        <option [ngValue]="100">100</option>-->
-<!--        <option [ngValue]="200">200</option>-->
-<!--        <option [ngValue]="400">400</option>-->
-<!--        <option [ngValue]="500">500</option>-->
-<!--      </select>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--  <div class="col-8">-->
-<!--    <button (click)="showPackagesForNewPopup = true;" class="btn btn-outline-primary float-right">-->
-<!--      <i class="fas fa-box"></i> New Client Package-->
-<!--    </button>-->
-<!--  </div>-->
-<!--</div>-->
-<!--<dx-data-grid-->
-<!--  id="gridContainer"-->
-<!--  allowColumnResizing="true"-->
-<!--  [dataSource]="clientPackages"-->
-<!--  [showBorders]="true">-->
-<!--  <dxo-editing-->
-<!--    mode="popup"-->
-<!--    [allowAdding]="false">-->
-<!--  </dxo-editing>-->
-<!--  <dxo-paging [pageSize]="10"></dxo-paging>-->
-<!--  <dxo-pager-->
-<!--    [showPageSizeSelector]="true"-->
-<!--    [allowedPageSizes]="[10, 20, 40]"-->
-<!--    [showInfo]="true">-->
-<!--  </dxo-pager>-->
-<!--  <dxo-search-panel-->
-<!--    [visible]="true"-->
-<!--    [width]="240"-->
-<!--    placeholder="Search title...."></dxo-search-panel>-->
-
-<!--  <dxi-column dataField="_package.title" caption="Pkg. Title" cellTemplate="pkgTitleTemplate"> </dxi-column>-->
-<!--  <dxi-column dataField="pricePaidStr" caption="Price.Paid" cellTemplate="pricePaidCell"></dxi-column>-->
-<!--  <dxi-column dataField="eligibleSessionTypes" caption="E.S.T" cellTemplate="sessionTypes"></dxi-column>-->
-<!--  <dxi-column dataField="expired" caption="Status" cellTemplate="expiredCell" [hidingPriority]="4"></dxi-column>-->
-<!--  <dxi-column dataField="dateLastUsed" caption="Last Used" [hidingPriority]="1"-->
-<!--              cellTemplate="formatDateCell"></dxi-column>-->
-<!--  <dxi-column dataField="expiryDate" caption="Expires at" [hidingPriority]="2" cellTemplate="expiryCell"></dxi-column>-->
-<!--  <dxi-column dataField="purchaseDate" caption="Purchased At" [hidingPriority]="3"-->
-<!--              cellTemplate="purchasedCell"></dxi-column>-->
 
 
-<!--  <div *dxTemplate="let row of 'pkgTitleTemplate'">-->
-<!--    <strong *ngIf="row.data._package && row.data._package.title">{{ row.data._package.title }}</strong>-->
-<!--    <strong *ngIf="!row.data._package">{{ row.data.title }}</strong>-->
-<!--  </div>-->
+<dx-popup *ngIf="customPackage" width="700" height="650" [showTitle]="true" title="Create Custom Package"
+          [closeOnOutsideClick]="false" [(visible)]="showCustomPackagePopup">
 
-<!--  <div *dxTemplate="let row of 'purchasedCell'">-->
-<!--    {{ row.data.purchaseDate.seconds * 1000 | date }}-->
-<!--  </div>-->
+  <button class="btn btn-outline-primary my-2" (click)="addCustomPackage()">
+    SAVE
+  </button>
 
-<!--  <div *dxTemplate="let row of 'expiryCell'">-->
-<!--    <p *ngIf="row.data.canExpireByDate"> {{ row.data.expiryDate.seconds * 1000 | date }}</p>-->
-<!--    <p *ngIf="!row.data.canExpireByDate"> N/A </p>-->
-<!--  </div>-->
+  <dx-scroll-view width="100%" height="100%">
 
-<!--  <div *dxTemplate="let row of 'pricePaidCell'">-->
-<!--    {{ row.data.pricePaid | currency:"EUR" }}-->
-<!--  </div>-->
+    <div class="form-group">
+      <label>Title: </label>
+      <input type="text" [(ngModel)]="customPackage.title" class="form-control my-1">
+    </div>
 
-<!--  <div *dxTemplate="let row of 'expiredCell'">-->
-<!--    <p *ngIf="row.data.expired" style="color: red">Expired</p>-->
-<!--    <p *ngIf="!row.data.expired" style="color: green">Valid</p>-->
-<!--  </div>-->
+    <div class="form-group">
+      <label>Days to Expire After Purchase: </label>
+      <input type="number" min="0" [(ngModel)]="customPackage.daysToExpire" class="form-control my-1">
+    </div>
 
-<!--  <div *dxTemplate="let row of 'sessionTypes'">-->
-<!--    <dx-data-grid-->
-<!--      id="subContainer"-->
-<!--      [dataSource]="row.data.eligibleSessionTypes"-->
-<!--      [showBorders]="true">-->
-<!--      <dxi-column dataField="sessionType.title" caption="Session"></dxi-column>-->
-<!--      <dxi-column dataField="timesUsed" caption="Used"></dxi-column>-->
-<!--      <dxi-column dataField="maxUsages" caption="Max" cellTemplate="maxUsagesTemplate"></dxi-column>-->
+    <div class="form-group">
+      <label>Price: </label>
+      <input type="number" min="0" [(ngModel)]="customPackage.price" class="form-control my-1">
+    </div>
 
-<!--      <div *dxTemplate="let elRow of 'maxUsagesTemplate'" class="max-usages-wrapper">-->
-<!--        <p style="cursor: pointer" (dblclick)="alterMaxUsages = {-->
-<!--          sessionType: elRow.data.sessionType,-->
-<!--          clientPackage: row.data,-->
-<!--          newMaxUsages: elRow.data.maxUsages,-->
-<!--          oldMaxUsages: elRow.data.maxUsages-->
-<!--        }"> {{ elRow.data.maxUsages }} </p>-->
-<!--      </div>-->
-
-<!--    </dx-data-grid>-->
-<!--  </div>-->
-
-<!--  <div *dxTemplate="let row of 'formatDateCell'">-->
-<!--    <p *ngIf="row.data.dateLastUsed">{{ row.data.dateLastUsed.seconds * 1000 | date }}</p>-->
-<!--    <p *ngIf="!row.data.dateLastUsed"> not used </p>-->
-
-<!--  </div>-->
-
-<!--  <div *dxTemplate="let row of 'activeCell'">-->
-<!--    <i *ngIf="row.key.active" class="fas fa-check-circle text-success"></i>-->
-<!--    <i *ngIf="!row.key.active" class="fas fa-window-close text-danger"></i>-->
-<!--  </div>-->
-<!--  <div *dxTemplate="let row of 'openClientCell'">-->
-<!--    <a routerLink="{{ row.key.uid }}">{{ row.key.fullName }}</a>-->
-<!--  </div>-->
-
-<!--</dx-data-grid>-->
+    <button (click)="customPackage.eligibleSessionTypes.unshift({
+                sessionTypeId: '', maxUsages: 0
+              })" class="btn btn-outline-primary my-2">Add Eligible session type
+    </button>
 
 
-<!--&lt;!&ndash;Alter max usages of package popup&ndash;&gt;-->
-<!--<dx-popup *ngIf="alterMaxUsages.sessionType && alterMaxUsages.clientPackage"-->
-<!--          width="400"-->
-<!--          height="400"-->
-<!--          [closeOnOutsideClick]="false"-->
-<!--          [(visible)]="!!alterMaxUsages.sessionType && !!alterMaxUsages.clientPackage">-->
-<!--  <dx-scroll-view width="100%" height="100%">-->
-<!--    <div class="row">-->
-<!--      <div class="col-12">-->
-<!--        <h6>Updating {{ alterMaxUsages.clientPackage._package ? alterMaxUsages.clientPackage._package.title : alterMaxUsages.clientPackage.title }} package:</h6>-->
-<!--        <br>-->
-<!--        <hr>-->
-<!--        <br>-->
-<!--        <small>Change max usages of <strong>{{ alterMaxUsages.sessionType.title }}</strong> Session</small>-->
-<!--        <hr>-->
-<!--        <div class="form-group">-->
-<!--          <label for="mx">Max Usages</label>-->
-<!--          <input type="number" class="form-control" id="mx" [(ngModel)]="alterMaxUsages.newMaxUsages">-->
-<!--        </div>-->
-<!--        <button (click)="changeMaxUsages(alterMaxUsages)" class="btn btn-outline-primary form-control">-->
-<!--          Change max usages-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </dx-scroll-view>-->
-<!--</dx-popup>-->
+    <div class="row my-2">
+      <div class="col-12">
+        <h6 class="text-left">Eligible Session Types</h6>
+      </div>
+    </div>
 
+    <div class="row" *ngFor="let el of customPackage.eligibleSessionTypes; let i = index">
+      <div class="col-6">
+        <div class="form-group">
+          <label>Session Type</label>
+          <select [(ngModel)]="el.sessionTypeId" class="form-control my-1" >
+            <option *ngFor="let s of sessionTypes" value="{{ s.uid }}">{{ s.title }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-5" >
+        <label>Max Usages</label>
+        <input type="number" [(ngModel)]="el.maxUsages" class="form-control my-1">
+      </div>
+      <div class="col-1">
+        <sup class="text-danger" style="cursor: pointer"
+             (click)="customPackage.eligibleSessionTypes.splice(i, 1)">X</sup>
+      </div>
+    </div>
 
-<!--&lt;!&ndash;new package for client popup&ndash;&gt;-->
-<!--<dx-popup *ngIf="showPackagesForNewPopup"-->
-<!--          width="700"-->
-<!--          height="600"-->
-<!--          [closeOnOutsideClick]="false"-->
-<!--          [(visible)]="showPackagesForNewPopup">-->
-<!--  <dx-scroll-view width="100%" height="100%">-->
-<!--    <div class="row">-->
-<!--      <div class="col-12">-->
-<!--        <button (click)="initCustomPackage()" class="btn btn-outline-primary float-right">-->
-<!--          New Custom package-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </div>-->
+  </dx-scroll-view>
 
-<!--    <hr>-->
-<!--    <small class="text-center">Double click to select package</small>-->
-<!--    <hr>-->
-<!--    <dx-list-->
-<!--      #list-->
-<!--      [dataSource]="packages"-->
-<!--      [height]="550"-->
-<!--      [searchEnabled]="true"-->
-<!--      searchExpr="title"-->
-<!--      searchMode="contains">-->
-<!--      <div *dxTemplate="let data of 'item'">-->
-
-<!--        <div style="cursor: pointer" (click)="data.showToUser = !data.showToUser" (dblclick)="addPackageToClient(data)" class="row">-->
-<!--          <div class="col-12">-->
-<!--            <h5>{{ data.title }}</h5><i *ngIf="data.active" class="fas fa-check-circle text-success"></i>-->
-<!--            <i *ngIf="!data.active" class="fas fa-times text-danger"></i>-->
-
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="row" *ngIf="data.showToUser">-->
-<!--          <div class="col-12">-->
-
-<!--            <div class="form-group">-->
-<!--              <label for="p">Price</label>-->
-<!--              <input type="text" readonly class="form-control" value="{{ data.price }}" id="p">-->
-<!--            </div>-->
-
-<!--            <div class="form-group">-->
-<!--              <label for="dte">Days to expire after purchase</label>-->
-<!--              <input type="text" readonly class="form-control" value="{{ data.daysToExpire }}" id="dte">-->
-<!--            </div>-->
-
-<!--            <div class="row">-->
-<!--              <div class="col-12">-->
-<!--                <h6 class="text-left">Eligible Session Types</h6>-->
-<!--              </div>-->
-<!--            </div>-->
-
-<!--            <div class="row" *ngFor="let el of data.eligibleSessionTypes">-->
-<!--              <div class="col-6">-->
-<!--                <div class="form-group">-->
-<!--                  <label>Session Type</label>-->
-<!--                  <input type="text" readonly value="{{ el.sessionType.title }}" class="form-control">-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-6">-->
-<!--                <div class="form-group">-->
-<!--                  <label>Max Usages</label>-->
-<!--                  <input type="text" readonly value="{{ el.maxUsages }}" class="form-control">-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--      </div>-->
-<!--    </dx-list>-->
-<!--  </dx-scroll-view>-->
-<!--</dx-popup>-->
-
-
-<!--&lt;!&ndash;custom package creation&ndash;&gt;-->
-<!--<dx-popup *ngIf="showCustomPackagePopup"-->
-<!--          width="700"-->
-<!--          height="600"-->
-<!--          [closeOnOutsideClick]="false"-->
-<!--          [(visible)]="showCustomPackagePopup">-->
-<!--  <dx-scroll-view width="100%" height="100%">-->
-<!--    <div class="row">-->
-<!--      <div class="col-12">-->
-<!--        <button (click)="createCustomPackage()" class="btn btn-outline-primary float-right">-->
-<!--          Create-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </div>-->
-
-<!--    <hr>-->
-
-<!--    <div class="row mx-3" >-->
-<!--      <div class="col-8">-->
-<!--        <div class="form-group">-->
-<!--          <label for="tt">Title</label>-->
-<!--          <input type="text" class="form-control" [(ngModel)]="customPackage.title" id="tt">-->
-<!--        </div>-->
-
-<!--        <div class="form-group">-->
-<!--          <label for="rp">Price To Pay</label>-->
-<!--          <input type="text" class="form-control" [(ngModel)]="customPackage.pricePaid" id="rp">-->
-<!--        </div>-->
-
-<!--        <div class="form-group">-->
-<!--          <label for="dtee">Expires in X days (if it does not expire set value to 0)</label>-->
-<!--          <input type="text" class="form-control" [(ngModel)]="customPackage.daysToExpire" id="dtee">-->
-<!--        </div>-->
-
-<!--        <div class="row">-->
-<!--          <div class="col-12">-->
-<!--            <h6 class="text-left">Eligible Session Types</h6>-->
-<!--            <hr>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        <button class="btn btn-outline-primary"-->
-<!--        (click)="customPackage.eligibleSessionTypes.unshift({-->
-<!--          sessionTypeId: '',-->
-<!--          maxUsages: 0,-->
-<!--          timesUsed: 0-->
-<!--        })"-->
-<!--        >Add Eligible session type</button>-->
-
-<!--        <div class="row my-2" *ngFor="let el of customPackage.eligibleSessionTypes; let i = index">-->
-
-<!--          <div class="col-6">-->
-<!--            <label>Session type</label>-->
-<!--            <select class="form-control" [(ngModel)]="el.sessionTypeId">-->
-<!--              <option *ngFor="let t of sessionTypes" value="{{ t.uid }}">{{ t.title }}</option>-->
-<!--            </select>-->
-<!--          </div>-->
-<!--          <div class="col-5">-->
-<!--            <label>Max usages</label>-->
-<!--            <input type="number" [(ngModel)]="el.maxUsages" class="form-control">-->
-<!--          </div>-->
-<!--          <div class="col-1">-->
-<!--            <sup style="color: red; cursor: pointer" (click)="customPackage.eligibleSessionTypes.splice(i, 1)"> X </sup>-->
-<!--          </div>-->
-
-<!--        </div>-->
-
-<!--      </div>-->
-<!--    </div>-->
-
-
-<!--  </dx-scroll-view>-->
-<!--</dx-popup>-->
+</dx-popup>
 
 <!--Loader-->
 <dx-load-panel

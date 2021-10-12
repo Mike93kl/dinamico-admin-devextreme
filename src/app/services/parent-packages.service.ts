@@ -28,9 +28,9 @@ export class ParentPackagesService extends FirebaseService<ParentPackageModel> {
     return super.create(pkgsToCreate);
   }
 
-  async childrenOfParent(children: string[]): Promise<PackageModel[]> {
+  async childrenOfParent(parentId: string): Promise<PackageModel[]> {
     const result = await this.fs.collection(PACKAGES, ref => {
-      return ref.where('uid', 'in', children)
+      return ref.where('parentPackageId', '==', parentId)
         .orderBy('createdAt_ts', 'asc');
     }).get().toPromise();
     const pkgs = [];
