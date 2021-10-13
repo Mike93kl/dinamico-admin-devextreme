@@ -3,6 +3,8 @@ import {CommonModule, DatePipe} from '@angular/common';
 import {AppointmentsComponent} from './components/appointments/appointments.component';
 import {MainComponent} from './components/main/main.component';
 import {SideNavComponent} from '../shared/side-nav/side-nav.component';
+import {DxDataGridModule} from "devextreme-angular";
+
 import {
     DxButtonModule, DxDateBoxModule,
     DxDrawerModule,
@@ -20,8 +22,6 @@ import {FormsModule} from '@angular/forms';
 import { SessionTypesComponent } from './components/session-types/session-types.component';
 import { SessionSubscribersComponent } from './components/session-subscribers/session-subscribers.component';
 import { ScheduleReportComponent } from './components/schedule-report/schedule-report.component';
-import { AttendanceComponent } from './components/attendance/attendance.component';
-
 
 @NgModule({
   declarations: [
@@ -31,7 +31,6 @@ import { AttendanceComponent } from './components/attendance/attendance.componen
     SessionTypesComponent,
     SessionSubscribersComponent,
     ScheduleReportComponent,
-    AttendanceComponent
   ],
     imports: [
         AppointmentsRoutingModule,
@@ -46,7 +45,8 @@ import { AttendanceComponent } from './components/attendance/attendance.componen
         DxProgressBarModule,
         DxScrollViewModule,
         DxLoadPanelModule,
-        DxDateBoxModule
+        DxDateBoxModule,
+        DxDataGridModule
     ],
   exports: [],
   providers: [

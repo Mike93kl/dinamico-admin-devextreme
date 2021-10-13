@@ -25,19 +25,24 @@ export class SessionTypesV1Component implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.sub = this.service.getAll().subscribe(sessionTypes => {
-      this.sessionTypes = sessionTypes.map(s => {
-        return {
-          ...s,
-          locked: true,
-          isNew: false
-        };
+    this.sub = this.service.getAllOrderedByTs()
+      .subscribe({
+        next: sessionTypes => {
+          this.sessionTypes = sessionTypes.map(s => {
+            return {
+              ...s,
+              locked: true,
+              isNew: false
+            };
+          });
+          this.onSessionTypesFetched.emit(sessionTypes);
+        },
+        error: err => {
+          console.log(err);
+          this.sessionTypes = null;
+        }
+
       });
-      this.onSessionTypesFetched.emit(sessionTypes);
-    }, error => {
-      console.log(error);
-      this.sessionTypes = null;
-    });
   }
 
   ngOnDestroy(): void {
@@ -87,6 +92,10 @@ export class SessionTypesV1Component implements OnInit, OnDestroy {
 
   public show(): void {
     this.showPopup = true;
+  }
+
+  public showIcon(): void {
+    this.showDumbbellIcon = true;
   }
 }
 

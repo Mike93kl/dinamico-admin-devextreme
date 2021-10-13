@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild, AfterViewInit} from '@angular/core';
 import {SessionModel} from '../../../models/SessionModel';
 import {SessionTypeService} from '../../../services/session-type.service';
 import {Subscription} from 'rxjs';
@@ -8,13 +8,27 @@ import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {Router} from '@angular/router';
 import {SessionService} from '../../../services/session.service';
 import {DatePipe} from '@angular/common';
+import {DxDataGridComponent, DxDateBoxComponent} from 'devextreme-angular';
+import {SessionModelV1} from "../../../models/SessionModelV1";
+import {SessionTypesV1Component} from "../../../shared/session-types/session-types-v1.component";
 
 @Component({
   selector: 'app-new-appointment',
   templateUrl: './new-appointment.component.html',
   styleUrls: ['./new-appointment.component.css']
 })
-export class NewAppointmentComponent implements OnInit, OnDestroy {
+export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  @ViewChild(DxDataGridComponent) dxDataGrid: DxDataGridComponent | undefined;
+  @ViewChild(SessionTypesV1Component) sessionTypeComponent: SessionTypesV1Component | undefined;
+
+
+  @ViewChild('date') dxDateBox: DxDateBoxComponent | undefined;
+
+  loadingVisible = false;
+  dateSelected: Date;
+  sessionsV1: SessionModelV1[] = [];
+
 
   date: Date;
   sessions: SessionModel[] = [];
@@ -35,12 +49,116 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
               private datePipe: DatePipe) {
   }
 
+
+  onNewRowInit(e: any): void {
+    if (!this.dateSelected) {
+      this.popup.error('Please select a date first.', () => {
+        e.component.cancelEditData();
+      });
+      return;
+    }
+    e.data.startDate_ts = this.dateSelected;
+  }
+
+  onRowInserting($event: any) {
+
+  }
+
+  onEditorPreparing(e: any): void {
+    console.log(e);
+    if (e.parentType === 'dataRow' && e.dataField === 'startDate_ts') {
+      e.editorOptions.onFocusOut = (ev) => {
+        const start = e.component.cellValue(e.row.rowIndex, 'startDate_ts');
+        const end = new Date(start.getTime() + (1000 * 60 * 60));
+        e.component.cellValue(e.row.rowIndex, 'endDate_ts', end);
+      };
+    }
+
+    if (e.parentType === 'dataRow' && e.dataField === 'spots') {
+      e.editorOptions.onFocusOut = (ev) => {
+        this.dxDataGrid?.instance.saveEditData();
+        this.dxDataGrid?.instance.addRow();
+        const newCell = this.dxDataGrid?.instance.getCellElement(0, 0);
+        this.dxDataGrid?.instance.focus(newCell);
+      };
+    }
+  }
+
+  onToolbarPreparing(e: any): void {
+    e.toolbarOptions.items.unshift({
+      location: 'before',
+      template: 'totalSessionsCount'
+    }, {
+      location: 'before',
+      widget: 'dxButton',
+      options: {
+        icon: 'save',
+        text: 'create',
+        onClick: () => {
+          console.log('btn clicked');
+        }
+      }
+    }, {
+      location: 'before',
+      widget: 'dxButton',
+      options: {
+        icon: 'refresh',
+        text: 'clear',
+        onClick: () => {
+          this.sessionsV1 = [];
+          this.dxDataGrid?.instance.getDataSource().reload();
+        }
+      }
+    });
+  }
+
+
   ngOnInit(): void {
     this.sessionTypeSub = this.sessionTypeService.getAll().subscribe(types => {
       this.sessionTypes = types;
     }, error => this.popup.error('Could not get session types.', () => {
       this.router.navigate(['/appointments']);
     }));
+
+
+  }
+
+  ngAfterViewInit(): void {
+    // this.dxDateBox.min = Date.now() + (1000 * 60 * 60 * 24);
+    this.dxDateBox.disabledDates = [
+      new Date(),
+      new Date(Date.now() + (1000 * 60 * 60 * 24))
+    ];
+  }
+
+
+  test(): void {
+    // console.log(this.dxDateBox.value);
+    // const d = new Date(this.dxDateBox.value);
+    // console.log(d.toLocaleString('el-GR'));
+    //
+    // console.log('time',this.dxTimeBox.value)
+    //
+    // console.log('time_t', this.time_t);
+    //
+    // const timeDate = new Date(this.time_t.getTime());
+    //
+    // d.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
+    //
+    // console.log('final', d);
+    // console.log(d.toLocaleString('el-GR'));
+    this.dxDataGrid.instance.getDataSource().load().then(data => {
+      console.log(data);
+    })
+
+  }
+
+  onDateSelected($event: any): void {
+    this.dateSelected = $event;
+    console.log(this.dateSelected)
+    this.sessionTypeComponent?.showIcon();
+    this.sessionsV1 = [];
+    this.dxDataGrid?.instance.getDataSource().reload();
   }
 
   ngOnDestroy(): void {
@@ -159,6 +277,7 @@ export class NewAppointmentComponent implements OnInit, OnDestroy {
   formatProgressBarValue(v): string {
     return `Creating, Please wait: ${(v * 100).toFixed(2)}% done`;
   }
+
 
 }
 

@@ -1,152 +1,220 @@
 <a routerLink="../"><i style="font-size: 1.5em" class="fas fa-arrow-left text-lg-left"></i></a>
-<h4 class="text-center">Create session Day</h4>
+<h4 class="text-center my-3">Create session Day</h4>
 
-<dx-progress-bar *ngIf="creating"
-                 #progressBar
-                 id="progress-bar-status"
-                 width="90%"
-                 [class.complete]="progressBar.value == maxSessionsValue"
-                 [min]="0"
-                 [max]="maxSessionsValue"
-                 [statusFormat]="formatProgressBarValue"
-                 [value]="sessionsCreatedValue">
-</dx-progress-bar>
-
-<button (click)="create()" class="btn btn-outline-primary float-right" *ngIf="date && sessions && sessions.length > 0">
-  <i class="far fa-save"></i> Save
-</button>
-<hr>
-<div>
-
-  <div class="form-group">
-    <label>Date:</label>
-    <input type="date" [(ngModel)]="date" class="form-control" name="date" [disabled]="creating">
-  </div>
-
-  <div class="form-group" *ngIf="sessions.length > 0">
-    <label>Repeat This pattern for: (Number of days)</label>
-    <input type="number" min="0" max="14" [(ngModel)]="repeatNo" value="0" [disabled]="creating" class="form-control">
-  </div>
-
-  <div class="form-check my-2" *ngIf="repeatNo > 0">
-    <input class="form-check-input" type="checkbox" value="" id="sat" [disabled]="creating" [(ngModel)]="includeSat">
-    <label class="form-check-label" for="sat">
-      Include Saturdays
-    </label>
-  </div>
-
-  <div class="form-check my-2" *ngIf="repeatNo > 0">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="includeSan" id="san" [disabled]="creating">
-    <label class="form-check-label" for="san">
-      Include Sundays
-    </label>
-  </div>
-
-  <div *ngIf="date">
-
-    <button (click)="pushNewSession()" class="form-control btn btn-outline-primary" [disabled]="creating">
-      <i class="fas fa-plus-circle"></i> Add session
-    </button>
+<section id="new-appointment-section">
+  <dx-date-box class="my-3"
+    #date
+    (valueChange)="onDateSelected($event)"
+    type="date">
+  </dx-date-box>
+  <br>
+  <app-session-types-v1 [showDumbbellIcon]="false" class="my-2"></app-session-types-v1>
+  <br>
+  <dx-data-grid
+    class="mt-2"
+    id="gridContainer"
+    allowColumnResizing="true"
+    [dataSource]="sessionsV1"
+    (onToolbarPreparing)="onToolbarPreparing($event)"
+    (onEditorPreparing)="onEditorPreparing($event)"
+    (onInitNewRow)="onNewRowInit($event)"
+    (onRowInserting)="onRowInserting($event)"
+    [showRowLines]="true"
+    [showBorders]="true">
+    <dxo-editing
+      mode="row"
+      [allowAdding]="true"
+      [allowDeleting]="true">
+    </dxo-editing>
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [showPageSizeSelector]="true"
+      [allowedPageSizes]="[10, 20, 40]"
+      [showInfo]="true">
+    </dxo-pager>
 
 
-    <div *ngIf="newSession">
-      <hr>
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label>Start Hour</label>
-          <select [(ngModel)]="newSession.startTime.hour" class="form-control" name="asd">
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-          </select>
-        </div>
-        <div class="form-group col-md-6">
-          <label>Start Minutes</label>
-          <select [(ngModel)]="newSession.startTime.minutes" class="form-control" name="asd">
-            <option value="00">00</option>
-            <option value="15">15</option>
-            <option value="30">30</option>
-            <option value="45">45</option>
-          </select>
-        </div>
+    <dxi-column dataField="sessionType.uid" caption="Session-Type">
+      <dxo-lookup
+        [dataSource]="sessionTypes"
+        valueExpr="uid"
+        displayExpr="title">
+      </dxo-lookup>
+
+    </dxi-column>
+
+    <dxi-column dataField="startDate_ts" caption="Start time" sortOrder="asc"
+                dataType="date" format="shortTime" [editorOptions]="{type: 'time'}"></dxi-column>
+    <dxi-column dataField="endDate_ts" sortOrder="asc" caption="End time" format="shortTime" [editorOptions]="{type: 'time'}"
+                dataType="date"></dxi-column>
+    <dxi-column dataField="spots" caption="Open Spots" dataType="number"></dxi-column>
+
+    <div *dxTemplate="let data of 'totalSessionsCount'">
+      <div class="informer">
+        <h2 class="count">{{sessionsV1.length}}</h2>
+        <span class="name">Total</span>
       </div>
-
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label>End Hour</label>
-          <select [(ngModel)]="newSession.endTime.hour" class="form-control" name="asd">
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-          </select>
-        </div>
-        <div class="form-group col-md-6">
-          <label>End Minutes</label>
-          <select [(ngModel)]="newSession.endTime.minutes" class="form-control" name="asd">
-            <option value="00">00</option>
-            <option value="15">15</option>
-            <option value="30">30</option>
-            <option value="45">45</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Session Type</label>
-        <select [(ngModel)]="newSession.sessionTypeId" class="form-control">
-          <option *ngFor="let t of sessionTypes" value="{{ t.uid }}">{{ t.title }}</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Spots</label>
-        <input type="number" min="1" [(ngModel)]="newSession.spots" class="form-control">
-      </div>
-
-      <button class="btn btn-success" [disabled]="creating" (click)="push()">add</button>
-      <hr>
-
     </div>
 
-    <div class="my-3"></div>
+  </dx-data-grid>
 
-    <div class="session-details mt-1 text-center" *ngFor="let s of sessions; let i = index">
 
-      <h5>{{ getSessionTypeTitle(s.sessionTypeId) }}: {{ s.startTime.hour }}:{{ s.startTime.minutes }} -
-        {{ s.endTime.hour }}:{{ s.endTime.minutes }} - {{ s.spots }} Spots Available
-        <sup style="color: red; font-weight: bolder; font-size: 0.7em; cursor: pointer;" (click)="sessions.splice(i, 1)" >X</sup>
-      </h5>
+</section>
 
-    </div>
 
-  </div>
+<!--Loader-->
+<dx-load-panel #loadPanel shadingColor="rgba(0,0,0,0.4)" [position]="{ of: '#new-appointment-section' }"
+               [(visible)]="loadingVisible"
+               [showIndicator]="true" [showPane]="true" [shading]="true" [closeOnOutsideClick]="false">
+</dx-load-panel>
 
-</div>
+
+<!--<dx-progress-bar *ngIf="creating"-->
+<!--                 #progressBar-->
+<!--                 id="progress-bar-status"-->
+<!--                 width="90%"-->
+<!--                 [class.complete]="progressBar.value == maxSessionsValue"-->
+<!--                 [min]="0"-->
+<!--                 [max]="maxSessionsValue"-->
+<!--                 [statusFormat]="formatProgressBarValue"-->
+<!--                 [value]="sessionsCreatedValue">-->
+<!--</dx-progress-bar>-->
+
+<!--<button (click)="create()" class="btn btn-outline-primary float-right" *ngIf="date && sessions && sessions.length > 0">-->
+<!--  <i class="far fa-save"></i> Save-->
+<!--</button>-->
+<!--<hr>-->
+<!--<div>-->
+
+<!--  <div class="form-group">-->
+<!--    <label>Date:</label>-->
+<!--    <input type="date" [(ngModel)]="date" class="form-control" name="date" [disabled]="creating">-->
+<!--  </div>-->
+
+<!--  <div class="form-group" *ngIf="sessions.length > 0">-->
+<!--    <label>Repeat This pattern for: (Number of days)</label>-->
+<!--    <input type="number" min="0" max="14" [(ngModel)]="repeatNo" value="0" [disabled]="creating" class="form-control">-->
+<!--  </div>-->
+
+<!--  <div class="form-check my-2" *ngIf="repeatNo > 0">-->
+<!--    <input class="form-check-input" type="checkbox" value="" id="sat" [disabled]="creating" [(ngModel)]="includeSat">-->
+<!--    <label class="form-check-label" for="sat">-->
+<!--      Include Saturdays-->
+<!--    </label>-->
+<!--  </div>-->
+
+<!--  <div class="form-check my-2" *ngIf="repeatNo > 0">-->
+<!--    <input class="form-check-input" type="checkbox" [(ngModel)]="includeSan" id="san" [disabled]="creating">-->
+<!--    <label class="form-check-label" for="san">-->
+<!--      Include Sundays-->
+<!--    </label>-->
+<!--  </div>-->
+
+<!--  <div *ngIf="date">-->
+
+<!--    <button (click)="pushNewSession()" class="form-control btn btn-outline-primary" [disabled]="creating">-->
+<!--      <i class="fas fa-plus-circle"></i> Add session-->
+<!--    </button>-->
+
+
+<!--    <div *ngIf="newSession">-->
+<!--      <hr>-->
+<!--      <div class="form-row">-->
+<!--        <div class="form-group col-md-6">-->
+<!--          <label>Start Hour</label>-->
+<!--          <select [(ngModel)]="newSession.startTime.hour" class="form-control" name="asd">-->
+<!--            <option value="6">6</option>-->
+<!--            <option value="7">7</option>-->
+<!--            <option value="8">8</option>-->
+<!--            <option value="9">9</option>-->
+<!--            <option value="10">10</option>-->
+<!--            <option value="11">11</option>-->
+<!--            <option value="12">12</option>-->
+<!--            <option value="13">13</option>-->
+<!--            <option value="14">14</option>-->
+<!--            <option value="15">15</option>-->
+<!--            <option value="16">16</option>-->
+<!--            <option value="17">17</option>-->
+<!--            <option value="18">18</option>-->
+<!--            <option value="19">19</option>-->
+<!--            <option value="20">20</option>-->
+<!--            <option value="21">21</option>-->
+<!--            <option value="22">22</option>-->
+<!--          </select>-->
+<!--        </div>-->
+<!--        <div class="form-group col-md-6">-->
+<!--          <label>Start Minutes</label>-->
+<!--          <select [(ngModel)]="newSession.startTime.minutes" class="form-control" name="asd">-->
+<!--            <option value="00">00</option>-->
+<!--            <option value="15">15</option>-->
+<!--            <option value="30">30</option>-->
+<!--            <option value="45">45</option>-->
+<!--          </select>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="form-row">-->
+<!--        <div class="form-group col-md-6">-->
+<!--          <label>End Hour</label>-->
+<!--          <select [(ngModel)]="newSession.endTime.hour" class="form-control" name="asd">-->
+<!--            <option value="6">6</option>-->
+<!--            <option value="7">7</option>-->
+<!--            <option value="8">8</option>-->
+<!--            <option value="9">9</option>-->
+<!--            <option value="10">10</option>-->
+<!--            <option value="11">11</option>-->
+<!--            <option value="12">12</option>-->
+<!--            <option value="13">13</option>-->
+<!--            <option value="14">14</option>-->
+<!--            <option value="15">15</option>-->
+<!--            <option value="16">16</option>-->
+<!--            <option value="17">17</option>-->
+<!--            <option value="18">18</option>-->
+<!--            <option value="19">19</option>-->
+<!--            <option value="20">20</option>-->
+<!--            <option value="21">21</option>-->
+<!--            <option value="22">22</option>-->
+<!--          </select>-->
+<!--        </div>-->
+<!--        <div class="form-group col-md-6">-->
+<!--          <label>End Minutes</label>-->
+<!--          <select [(ngModel)]="newSession.endTime.minutes" class="form-control" name="asd">-->
+<!--            <option value="00">00</option>-->
+<!--            <option value="15">15</option>-->
+<!--            <option value="30">30</option>-->
+<!--            <option value="45">45</option>-->
+<!--          </select>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label>Session Type</label>-->
+<!--        <select [(ngModel)]="newSession.sessionTypeId" class="form-control">-->
+<!--          <option *ngFor="let t of sessionTypes" value="{{ t.uid }}">{{ t.title }}</option>-->
+<!--        </select>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label>Spots</label>-->
+<!--        <input type="number" min="1" [(ngModel)]="newSession.spots" class="form-control">-->
+<!--      </div>-->
+
+<!--      <button class="btn btn-success" [disabled]="creating" (click)="push()">add</button>-->
+<!--      <hr>-->
+
+<!--    </div>-->
+
+<!--    <div class="my-3"></div>-->
+
+<!--    <div class="session-details mt-1 text-center" *ngFor="let s of sessions; let i = index">-->
+
+<!--      <h5>{{ getSessionTypeTitle(s.sessionTypeId) }}: {{ s.startTime.hour }}:{{ s.startTime.minutes }} - -->
+<!--        {{ s.endTime.hour }}:{{ s.endTime.minutes }} - {{ s.spots }} Spots Available-->
+<!--        <sup style="color: red; font-weight: bolder; font-size: 0.7em; cursor: pointer;" (click)="sessions.splice(i, 1)" >X</sup>-->
+<!--      </h5>-->
+
+<!--    </div>-->
+
+<!--  </div>-->
+
+<!--</div>-->
