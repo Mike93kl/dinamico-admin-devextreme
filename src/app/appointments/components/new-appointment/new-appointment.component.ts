@@ -1,16 +1,26 @@
 import {Component, OnDestroy, OnInit, ViewChild, AfterViewInit} from '@angular/core';
-import {SessionModel} from '../../../models/SessionModel';
-import {SessionTypeService} from '../../../services/session-type.service';
-import {Subscription} from 'rxjs';
+import {SessionServiceV1} from '../../../services/session.service-v1';
+import {BehaviorSubject, firstValueFrom, Subscription} from 'rxjs';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {PopupService} from '../../../services/popup.service';
-import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
+import {
+  MSG_NAC_END_DATE_LESS_THAN_START_DATE,
+  MSG_NAC_ENTER_VALID_SESSION_TYPE,
+  MSG_NAC_PLEASE_SELECT_A_DATE, MSG_NAC_SESSIONS_CREATED, MSG_NAC_SPOTS_CANNOT_BE_0_OR_LESS,
+  MSG_NAC_START_END_TIME_REQUIRED, MSG_UNEXPECTED_ERROR
+} from '../../../utils/ui_messages';
 import {Router} from '@angular/router';
 import {SessionService} from '../../../services/session.service';
-import {DatePipe} from '@angular/common';
 import {DxDataGridComponent, DxDateBoxComponent} from 'devextreme-angular';
-import {SessionModelV1} from "../../../models/SessionModelV1";
-import {SessionTypesV1Component} from "../../../shared/session-types/session-types-v1.component";
+import {SessionModelV1} from '../../../models/SessionModelV1';
+import {SessionTypesV1Component} from '../../../shared/session-types/session-types-v1.component';
+
+interface SessionGridItem {
+  sessionTypeId: string;
+  startDate: Date;
+  endDate: Date;
+  spots: number;
+}
 
 @Component({
   selector: 'app-new-appointment',
@@ -27,59 +37,111 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
 
   loadingVisible = false;
   dateSelected: Date;
+  minTimeDate: Date;
+  maxTimeDate: Date;
   sessionsV1: SessionModelV1[] = [];
 
+  gridSessions: SessionGridItem[] = [];
 
-  date: Date;
-  sessions: SessionModel[] = [];
-  sessionTypes: SessionTypeModel[];
-  newSession: SessionModel;
-  repeatNo = 0;
-  includeSat = false;
-  includeSan = false;
-  creating = false;
-  maxSessionsValue = 0;
-  sessionsCreatedValue = 0;
-  // subs
+  sessionTypes: SessionTypeModel[] = [];
   sessionTypeSub: Subscription;
+  sessionTypeBehSubject: BehaviorSubject<SessionTypeModel[]> =
+    new BehaviorSubject<SessionTypeModel[]>(this.sessionTypes);
 
-  constructor(private sessionTypeService: SessionTypeService,
-              private popup: PopupService, private router: Router,
-              private sessionService: SessionService,
-              private datePipe: DatePipe) {
+  existingSessions: SessionModelV1[];
+  existingSessionsSub: Subscription | undefined;
+
+
+  constructor(
+    private popup: PopupService, private router: Router,
+    private sessionService: SessionServiceV1) {
   }
 
 
+  /////////////////////////
+  // Component lifecycle//
+  /////////////////////////
+  ngOnInit(): void {
+    this.loadingVisible = true;
+    this.sessionTypeSub = this.sessionTypeBehSubject.subscribe({
+      next: sessionTypes => {
+        this.sessionTypes = sessionTypes;
+        if (!this.existingSessions) {
+          this.getExistingSessions();
+        } else {
+          this.loadingVisible = false;
+        }
+      },
+      error: err => {
+        console.log(err);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
+        this.router.navigate(['../']);
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    this.sessionTypeSub?.unsubscribe();
+    this.existingSessionsSub?.unsubscribe();
+  }
+
+  //// End of lifecycle //////////////////////
+
   onNewRowInit(e: any): void {
     if (!this.dateSelected) {
-      this.popup.error('Please select a date first.', () => {
+      this.popup.error(MSG_NAC_PLEASE_SELECT_A_DATE, () => {
         e.component.cancelEditData();
       });
       return;
     }
-    e.data.startDate_ts = this.dateSelected;
+    if (this.gridSessions.length > 0) {
+      const endDate = this.gridSessions[this.gridSessions.length - 1].endDate;
+      e.data.startDate = new Date(endDate.getTime() + (1000 * 60 * 60));
+    } else {
+      e.data.startDate = this.dateSelected;
+    }
   }
 
-  onRowInserting($event: any) {
+  onRowInserting(e: any): void {
+    if (!this.sessionTypes.find(s => s.uid === e.data.sessionTypeId)) {
+      e.cancel = true;
+      this.popup.error(MSG_NAC_ENTER_VALID_SESSION_TYPE);
+      return;
+    }
 
+    if (!e.data.startDate || !e.data.endDate) {
+      e.cancel = true;
+      this.popup.error(MSG_NAC_START_END_TIME_REQUIRED);
+      return;
+    }
+
+    if (e.data.endDate.getTime() < e.data.startDate.getTime()) {
+      e.cancel = true;
+      this.popup.error(MSG_NAC_END_DATE_LESS_THAN_START_DATE);
+      return;
+    }
+
+    if (!e.data.spots || e.data.spots <= 0) {
+      e.cancel = true;
+      this.popup.error(MSG_NAC_SPOTS_CANNOT_BE_0_OR_LESS);
+    }
+  }
+
+  onRowInserted(e: any): void {
+    e.component.addRow();
+    const cell = e.component.getCellElement(0, 0);
+    this.dxDataGrid?.instance.focus(cell);
   }
 
   onEditorPreparing(e: any): void {
-    console.log(e);
-    if (e.parentType === 'dataRow' && e.dataField === 'startDate_ts') {
+    if (e.parentType === 'dataRow' && e.dataField === 'startDate') {
       e.editorOptions.onFocusOut = (ev) => {
-        const start = e.component.cellValue(e.row.rowIndex, 'startDate_ts');
+        const start = e.component.cellValue(e.row.rowIndex, 'startDate');
         const end = new Date(start.getTime() + (1000 * 60 * 60));
-        e.component.cellValue(e.row.rowIndex, 'endDate_ts', end);
-      };
-    }
-
-    if (e.parentType === 'dataRow' && e.dataField === 'spots') {
-      e.editorOptions.onFocusOut = (ev) => {
-        this.dxDataGrid?.instance.saveEditData();
-        this.dxDataGrid?.instance.addRow();
-        const newCell = this.dxDataGrid?.instance.getCellElement(0, 0);
-        this.dxDataGrid?.instance.focus(newCell);
+        e.component.cellValue(e.row.rowIndex, 'endDate', end);
       };
     }
   }
@@ -95,7 +157,7 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
         icon: 'save',
         text: 'create',
         onClick: () => {
-          console.log('btn clicked');
+          this.createSession();
         }
       }
     }, {
@@ -105,179 +167,73 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
         icon: 'refresh',
         text: 'clear',
         onClick: () => {
-          this.sessionsV1 = [];
+          this.gridSessions = [];
           this.dxDataGrid?.instance.getDataSource().reload();
         }
       }
     });
   }
 
-
-  ngOnInit(): void {
-    this.sessionTypeSub = this.sessionTypeService.getAll().subscribe(types => {
-      this.sessionTypes = types;
-    }, error => this.popup.error('Could not get session types.', () => {
-      this.router.navigate(['/appointments']);
-    }));
-
-
-  }
-
-  ngAfterViewInit(): void {
-    // this.dxDateBox.min = Date.now() + (1000 * 60 * 60 * 24);
-    this.dxDateBox.disabledDates = [
-      new Date(),
-      new Date(Date.now() + (1000 * 60 * 60 * 24))
-    ];
-  }
-
-
-  test(): void {
-    // console.log(this.dxDateBox.value);
-    // const d = new Date(this.dxDateBox.value);
-    // console.log(d.toLocaleString('el-GR'));
-    //
-    // console.log('time',this.dxTimeBox.value)
-    //
-    // console.log('time_t', this.time_t);
-    //
-    // const timeDate = new Date(this.time_t.getTime());
-    //
-    // d.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
-    //
-    // console.log('final', d);
-    // console.log(d.toLocaleString('el-GR'));
-    this.dxDataGrid.instance.getDataSource().load().then(data => {
-      console.log(data);
-    })
-
-  }
-
   onDateSelected($event: any): void {
     this.dateSelected = $event;
-    console.log(this.dateSelected)
+    console.log(this.dateSelected);
     this.sessionTypeComponent?.showIcon();
     this.sessionsV1 = [];
     this.dxDataGrid?.instance.getDataSource().reload();
+    this.minTimeDate = new Date(this.dateSelected);
+    this.minTimeDate.setHours(6, 0, 0, 0);
+    this.maxTimeDate = new Date(this.dateSelected);
+    this.maxTimeDate.setHours(23, 0, 0, 0);
   }
 
-  ngOnDestroy(): void {
-    try {
-      this.sessionTypeSub.unsubscribe();
-    } catch (e) {
-    }
+
+  onSessionTypesFetched(sessionTypes: SessionTypeModel[]): void {
+    this.sessionTypeBehSubject.next(sessionTypes);
   }
 
-  pushNewSession(): void {
-    const previous = this.sessions.length > 0 ? this.sessions[this.sessions.length - 1] : null;
-    this.newSession = {
-      startDate: null,
-      endDate: null,
-      date: null,
-      dateStr: null,
-      sessionTypeId: previous ? previous.sessionTypeId : this.sessionTypes[0].uid,
-      spots: previous ? previous.spots : 1,
-      startTime: previous ? {
-        hour: (previous.startTime.hourAsInt + 1).toString(),
-        hourAsInt: previous.startTime.hourAsInt + 1,
-        minutesAsInt: previous.startTime.minutesAsInt,
-        minutes: previous.startTime.minutes
-      } : {hour: '7', hourAsInt: 7, minutes: '00', minutesAsInt: 0},
-      endTime: previous ? {
-        hour: (previous.endTime.hourAsInt + 1).toString(),
-        hourAsInt: previous.endTime.hourAsInt + 1,
-        minutesAsInt: previous.endTime.minutesAsInt,
-        minutes: previous.endTime.minutes
-      } : {hour: '8', hourAsInt: 8, minutes: '00', minutesAsInt: 0},
-      subscriptions: [],
-      isFull: false,
-      uid: ''
-    };
-  }
-
-  push(): void {
-    if (this.newSession.spots === 0) {
-      this.popup.info('Available spots cannot be Zero!');
-      return;
-    }
-    this.newSession.sessionType = this.sessionTypes.find(e => e.uid === this.newSession.sessionTypeId);
-    this.sessions.push({...this.newSession});
-    this.newSession = null;
-  }
-
-  private formatDateStr(date: Date): string {
-    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-  }
-
-  async create(): Promise<void> {
-    if (this.repeatNo === 0) {
-      this.repeatNo = 1;
-    }
-    this.maxSessionsValue = this.sessions.length * this.repeatNo;
-    this.creating = true;
-    if (this.repeatNo > 14 || this.repeatNo < 0) {
-      this.popup.error('Repeat days must be between 0 and 14');
-      this.repeatNo = 14;
-      this.creating = false;
-      return;
-    }
-    const creatingSessions = [...this.sessions];
-    const sessionDate = new Date(this.date);
-    sessionDate.setHours(0, 0, 0);
-    for (let i = 0; i < this.repeatNo; i++) {
-      const d = new Date(sessionDate.getTime() + ((1000 * 60 * 60 * 24) * i));
-      if (d.getDay() === 6 && !this.includeSat && this.repeatNo > 1) {
-        continue;
+  private async getExistingSessions(): Promise<void> {
+    this.existingSessionsSub = this.sessionService.getAllSessions(100).subscribe({
+      next: sessions => {
+        this.existingSessions = sessions;
+        this.dxDateBox.disabledDates = this.existingSessions.map(d => new Date(d.startDate_ts));
+        this.loadingVisible = false;
+      },
+      error: err => {
+        console.log(err);
+        this.loadingVisible = false;
+        this.popup.error(MSG_UNEXPECTED_ERROR);
+        this.router.navigate(['../']);
       }
-      if (d.getDay() === 0 && !this.includeSan && this.repeatNo > 1) {
-        continue;
-      }
-      const skipped: number[] = [];
-      let index = 0;
-      for (const session of creatingSessions) {
-        if (session.uid) {
-          delete session.uid;
-        }
-        if (session.sessionType) {
-          delete session.sessionType;
-        }
-        session.date = d;
-        session.dateStr = this.formatDateStr(d);
-        session.startTime.hourAsInt = parseInt(session.startTime.hour, 10);
-        session.startTime.minutesAsInt = parseInt(session.startTime.minutes, 10);
-        session.endTime.hourAsInt = parseInt(session.endTime.hour, 10);
-        session.endTime.minutesAsInt = parseInt(session.endTime.minutes, 10);
-        const startDate = new Date(d);
-        startDate.setHours(session.startTime.hourAsInt, session.startTime.minutesAsInt);
-        const existingSession = await this.sessionService.getByStartDate(startDate);
-        if (existingSession.length > 0) {
-          skipped.push(index);
-          this.popup.info(`${this.datePipe.transform(startDate, 'dd/MM/yyyy hh:mm')} Session already
-           exists. Skipping creating session`);
-        }
-        session.startDate = startDate;
-        const endDate = new Date(d);
-        endDate.setHours(session.endTime.hourAsInt, session.endTime.minutesAsInt);
-        session.endDate = endDate;
-        index++;
-      }
-      for (const j of skipped) {
-        creatingSessions.splice(j, 1);
-      }
-      await this.sessionService.create(creatingSessions);
-      this.sessionsCreatedValue += creatingSessions.length;
-    }
-    this.router.navigate(['/appointments']);
+    });
   }
 
-  getSessionTypeTitle(sessionTypeId: string): string {
-    return this.sessionTypes.find(e => e.uid === sessionTypeId).title;
+  private createSession(): void {
+    this.dxDataGrid?.instance.cancelEditData();
+    this.loadingVisible = true;
+    const sessions: SessionModelV1[] = this.gridSessions.map(gridItem => {
+      return {
+        startDate_str: gridItem.startDate.toLocaleString('el-GR'),
+        spots: gridItem.spots,
+        startDate_ts: gridItem.startDate.getTime(),
+        endDate_ts: gridItem.endDate.getTime(),
+        subscriptions: [],
+        sessionType: this.sessionTypes.find(s => s.uid === gridItem.sessionTypeId),
+        isFull: false
+      };
+    });
+    this.sessionService.create(sessions)
+      .then(() => {
+        this.popup.success(MSG_NAC_SESSIONS_CREATED, () => {
+          this.gridSessions = [];
+          this.dxDataGrid?.instance.getDataSource().reload();
+          if (this.dateSelected) {
+            this.dateSelected = new Date(this.dateSelected.getTime() + (60 * 60 * 1000 * 24));
+          }
+        });
+        this.loadingVisible = false;
+      }).catch(e => {
+      this.popup.error(MSG_UNEXPECTED_ERROR);
+    });
   }
-
-  formatProgressBarValue(v): string {
-    return `Creating, Please wait: ${(v * 100).toFixed(2)}% done`;
-  }
-
-
 }
 

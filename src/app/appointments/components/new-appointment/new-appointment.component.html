@@ -8,17 +8,20 @@
     type="date">
   </dx-date-box>
   <br>
-  <app-session-types-v1 [showDumbbellIcon]="false" class="my-2"></app-session-types-v1>
+  <app-session-types-v1 [showDumbbellIcon]="false"
+                        (onSessionTypesFetched)="onSessionTypesFetched($event)"
+                        class="my-2"></app-session-types-v1>
   <br>
   <dx-data-grid
     class="mt-2"
     id="gridContainer"
     allowColumnResizing="true"
-    [dataSource]="sessionsV1"
+    [dataSource]="gridSessions"
     (onToolbarPreparing)="onToolbarPreparing($event)"
     (onEditorPreparing)="onEditorPreparing($event)"
     (onInitNewRow)="onNewRowInit($event)"
     (onRowInserting)="onRowInserting($event)"
+    (onRowInserted)="onRowInserted($event)"
     [showRowLines]="true"
     [showBorders]="true">
     <dxo-editing
@@ -34,7 +37,7 @@
     </dxo-pager>
 
 
-    <dxi-column dataField="sessionType.uid" caption="Session-Type">
+    <dxi-column dataField="sessionTypeId" caption="Session-Type">
       <dxo-lookup
         [dataSource]="sessionTypes"
         valueExpr="uid"
@@ -43,9 +46,9 @@
 
     </dxi-column>
 
-    <dxi-column dataField="startDate_ts" caption="Start time" sortOrder="asc"
-                dataType="date" format="shortTime" [editorOptions]="{type: 'time'}"></dxi-column>
-    <dxi-column dataField="endDate_ts" sortOrder="asc" caption="End time" format="shortTime" [editorOptions]="{type: 'time'}"
+    <dxi-column dataField="startDate" caption="Start time" sortOrder="asc"
+                dataType="date" format="shortTime" [editorOptions]="{type: 'time', min: minTimeDate, max: maxTimeDate}"></dxi-column>
+    <dxi-column dataField="endDate" sortOrder="asc" caption="End time" format="shortTime" [editorOptions]="{type: 'time', min: minTimeDate, max: maxTimeDate}"
                 dataType="date"></dxi-column>
     <dxi-column dataField="spots" caption="Open Spots" dataType="number"></dxi-column>
 

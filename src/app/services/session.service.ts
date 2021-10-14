@@ -7,6 +7,7 @@ import {ClientModel} from '../models/ClientModel';
 import {CLIENT_SESSIONS, CLIENTS, SESSIONS} from '../utils/Collections';
 import {FunctionService} from './function.service';
 import {FunctionResponse} from '../models/fn/FunctionResponse';
+import {SessionModelV1} from "../models/SessionModelV1";
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,12 @@ export class SessionService extends FirebaseService<SessionModel> {
   getAllSessions(limit: number): Observable<SessionModel[]> {
     return this.fs.collection<SessionModel>(this.collection, ref => {
       return ref.orderBy('date', 'desc').limit(limit);
+    }).valueChanges();
+  }
+
+  getAllSessionsV1(limit: number): Observable<SessionModelV1[]> {
+    return this.fs.collection<SessionModelV1>(this.collection, ref => {
+      return ref.orderBy('startDate_ts', 'desc').limit(limit);
     }).valueChanges();
   }
 

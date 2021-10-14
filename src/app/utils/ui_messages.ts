@@ -54,3 +54,15 @@ export const MSG_CC_CONFIRM_CLIENT_PACKAGE_PAYMENT_REMOVAL = (payment: number) =
 };
 export const MSG_CC_ONLY_NUMBERS_ALLOWED = 'Please enter a valid number.';
 export const MSG_CC_EST_MAX_USAGES_ERROR = 'Max usages cannot be a negative number';
+
+
+/**
+ * NEW APPOINTMENT COMPONENT
+ */
+
+export const MSG_NAC_PLEASE_SELECT_A_DATE = 'Adding sessions without selecting a date first is not permitted.';
+export const MSG_NAC_ENTER_VALID_SESSION_TYPE = 'Please enter a valid Session-Type.';
+export const MSG_NAC_START_END_TIME_REQUIRED = 'Start time and end time are required.';
+export const MSG_NAC_END_DATE_LESS_THAN_START_DATE = 'End time cannot be sooner than the start time.';
+export const MSG_NAC_SPOTS_CANNOT_BE_0_OR_LESS = 'Spots must be greater than zero.';
+export const MSG_NAC_SESSIONS_CREATED = 'Session created successfully';
