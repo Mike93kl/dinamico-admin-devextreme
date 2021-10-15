@@ -19,4 +19,13 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
       return ref.orderBy('startDate_ts', 'desc').limit(limit);
     }).valueChanges();
   }
+
+  getAllSessionsAfterToday(limit: number): Observable<SessionModelV1[]> {
+    const today = new Date();
+    today.setHours(0, 1, 0, 0);
+    return this.fs.collection<SessionModelV1>(this.collection, ref => {
+      return ref.where('startDate_ts', '>', today.getTime())
+        .orderBy('startDate_ts', 'asc').limit(limit);
+    }).valueChanges();
+  }
 }

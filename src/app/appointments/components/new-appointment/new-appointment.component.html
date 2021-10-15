@@ -12,6 +12,39 @@
                         (onSessionTypesFetched)="onSessionTypesFetched($event)"
                         class="my-2"></app-session-types-v1>
   <br>
+
+  <div class="repeat-wrapper" *ngIf="dateSelected !== undefined">
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="repeatCheckbox"
+      [(ngModel)]="repeatPattern">
+      <label class="form-check-label" for="repeatCheckbox">
+        Repeat sessions for a number of days max: (30)
+      </label>
+    </div>
+  </div>
+
+  <div class="repeat-wrapper" *ngIf="repeatPattern">
+    <input #repeat type="number" min="1" max="30" placeholder="Number of days" class="days-no-input"
+    [(ngModel)]="repeatNo" (keyup)="onRepeatNoChanged($event, repeat.value)">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="Saturdays"
+      [(ngModel)]="includeSat">
+      <label class="form-check-label" for="Saturdays">
+        Include Saturdays
+      </label>
+    </div>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="Sundays"
+             [(ngModel)]="includeSun">
+      <label class="form-check-label" for="Sundays">
+        Include Sundays
+      </label>
+    </div>
+
+  </div>
+
   <dx-data-grid
     class="mt-2"
     id="gridContainer"

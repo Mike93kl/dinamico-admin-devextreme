@@ -9,4 +9,6 @@ export interface SessionModelV1 extends Model{
   endDate_ts: number;
   spots: number;
   startDate_str: string;
+  startDateISO: string;
+  endDateISO: string;
 }

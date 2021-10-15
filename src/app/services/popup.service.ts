@@ -69,7 +69,7 @@ export class PopupService {
     const dialog = custom({
       showTitle: false,
       messageHtml: `
-        <div class="container text-center">
+        <div class="container text-center" style="max-height: 500px; overflow-y: auto;">
             <h5 style="color: royalblue"> Info! </h5>
             <hr>
             <p>

@@ -49,3 +49,28 @@
   gap: 12px;
   padding: 12px;
 }
+
+.repeat-wrapper {
+  padding: 14px;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.repeat-no-days {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.days-no-input {
+  background: none;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 5px;
+  width: 150px;
+}
