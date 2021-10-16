@@ -12,8 +12,22 @@ import {take} from 'rxjs/operators';
 import {confirm} from 'devextreme/ui/dialog';
 import {Router} from '@angular/router';
 import {SessionTypesV1Component} from '../../../shared/session-types/session-types-v1.component';
+import {SessionServiceV1} from "../../../services/session.service-v1";
+import {SessionModelV1} from "../../../models/SessionModelV1";
+import {DxSchedulerComponent} from "devextreme-angular";
 
 declare var $: any;
+
+interface CalendarItem {
+  text: string;
+  startDate: Date;
+  endDate: Date;
+  sessionId: string;
+  color: string;
+  subscribers: number;
+  isFull: boolean;
+  index: number;
+}
 
 @Component({
   selector: 'app-appointments',
@@ -21,8 +35,16 @@ declare var $: any;
   styleUrls: ['./appointments.component.css']
 })
 export class AppointmentsComponent implements OnInit, OnDestroy {
+  @ViewChild(DxSchedulerComponent) dxScheduler: DxSchedulerComponent | undefined;
   @ViewChild(SessionTypesV1Component) sessionTypeComponent: SessionTypesV1Component | undefined;
-  currentDate;
+
+  currentDate = new Date();
+  calendarItems: CalendarItem[] = [];
+  showDateRange = false;
+  sessionsV1: SessionModelV1[] = [];
+  selectedSessionV1: SessionModelV1 | undefined;
+  showSelectedSessionPopup = false;
+
   sessionTypes: SessionTypeModel[];
   sessions: SessionModel[];
   loadingVisible = false;
@@ -47,18 +69,34 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
               private popup: PopupService,
               private sessionService: SessionService,
               private clientService: ClientService,
-              private router: Router) {
+              private router: Router,
+              private service: SessionServiceV1) {
   }
 
   ngOnInit(): void {
-    this.currentDate = new Date();
-    this.sessionTypeSub = this.sessionTypeService.getAll().subscribe(sessionTypes => {
-      this.sessionTypes = sessionTypes;
-      this.getAppointments();
-    }, error => {
-      console.log(error);
-      this.popup.error('Could not fetch session types. Please refresh the page');
+
+    this.service.getAllSessionsAfterToday(100).pipe(take(1)).subscribe({
+      next: sessions => {
+        this.sessionsV1 = sessions;
+        this.calendarItems = this.sessionsV1.map((s, index) => {
+          return {
+            text: s.sessionType.title,
+            startDate: new Date(s.startDate_ts),
+            endDate: new Date(s.endDate_ts),
+            sessionId: s.uid,
+            color: s.isFull || s.subscriptions.length >= s.spots
+              ? '#099c15' : (s.startDate_ts < this.currentDate.getTime()
+                ? '#8f8c95'
+                : '#306CC7'),
+            subscribers: s.subscriptions.length,
+            isFull: s.isFull,
+            index
+          };
+        });
+        this.dxScheduler?.instance.repaint();
+      }
     });
+
   }
 
   getAppointments(): void {
@@ -94,200 +132,17 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   onAppointmentFormOpening($event: any): void {
-    const that = this;
-    const form = $event.form;
     console.log($event);
-    form.option('items', [
-      {
-        label: {
-          text: 'Session Type'
-        },
-        editorType: 'dxSelectBox',
-        dataField: 'sessionTypeId',
-        editorOptions: {
-          items: that.sessionTypes,
-          displayExpr: 'title',
-          valueExpr: 'uid',
-          disabled: $event.appointmentData.subscriptions.length > 0
-        }
-      },
-      {
-        label: {
-          text: 'Number of subscriptions'
-        },
-        editorType: 'dxTextBox',
-        editorOptions: {
-          width: '100%',
-          type: 'number',
-          value: $event.appointmentData.subscriptions.length,
-          disabled: true
-        }
-      },
-      {
-        dataField: 'startDate',
-        editorType: 'dxDateBox',
-        editorOptions: {
-          width: '100%',
-          type: 'datetime',
-          disabled: $event.appointmentData.subscriptions.length > 0
-        }
-      },
-      {
-        dataField: 'endDate',
-        editorType: 'dxDateBox',
-        editorOptions: {
-          width: '100%',
-          type: 'datetime',
-          disabled: $event.appointmentData.subscriptions.length > 0
-        }
-      },
-      {
-        dataField: 'spots',
-        editorType: 'dxTextBox',
-        editorOptions: {
-          width: '100%',
-          type: 'number'
-        }
-      },
-      {
-        editorType: 'dxButton',
-        editorOptions: {
-          width: '200%',
-          onClick: () => {
-            this.getSubscribedClients($event.appointmentData);
-          },
-          text: 'View Subscribers',
-          disabled: $event.appointmentData.subscriptions.length === 0
-        }
-      },
-      // {
-      //   editorType: 'dxButton',
-      //   editorOptions: {
-      //     width: '200%',
-      //     onClick: () => {
-      //       alert('asdad');
-      //     },
-      //     text: 'Add client to session',
-      //     disabled: $event.appointmentData.subscriptions.length >= $event.appointmentData.spots
-      //   }
-      // }
-    ]);
+    $event.cancel = true;
+    this.selectedSessionV1 = this.sessionsV1[$event.appointmentData.index];
+    this.showSelectedSessionPopup = true;
   }
 
-  onAppointmentDeleting($event: any): void {
-    if ($event.appointmentData.subscriptions.length > 0) {
-      this.popup.error('Cannot delete session while there are subscribed clients to that session!');
-      $event.cancel = true;
-      return;
-    }
-    const deferred = new $.Deferred();
-    this.sessionService.remove([$event.appointmentData])
-      .then(() => deferred.resolve())
-      .catch(e => {
-        console.log(e);
-        deferred.reject(e);
-        this.popup.error(MSG_UNEXPECTED_ERROR);
-      });
-    $event.cancel = deferred.promise();
-  }
-
-  onAppointmentUpdating($event: any): void {
-    const deferred = new $.Deferred();
-    if ($event.oldData.subscriptions.length > 0) {
-      if ($event.oldData.spots === $event.newData.spots) {
-        this.popup.info('Nothing to update');
-        $event.cancel = true;
-        return;
-      } else if ($event.newData.spots < $event.oldData.subscriptions.length) {
-        this.popup.error('Spots cannot be 0 or less than the number of current subscribers');
-        $event.cancel = true;
-        return;
-      }
-      this.sessionService.updateSpots($event.oldData.uid, $event.newData.spots,
-        $event.newData.subscriptions.length >= $event.newData.spots)
-        .then(done => {
-          if (done) {
-            deferred.resolve();
-          } else {
-            this.popup.error(MSG_UNEXPECTED_ERROR);
-            deferred.reject();
-          }
-        })
-        .catch(error => {
-          console.log(error);
-          this.popup.error(MSG_UNEXPECTED_ERROR);
-          deferred.reject();
-        });
-      $event.cancel = deferred.promise();
-      return;
-    }
-    if ($event.newData.startDate >= $event.newData.endDate) {
-      $event.cancel = true;
-      this.popup.error('End date cannot be less than start date');
-      return;
-    }
-    this.sessionService.update([$event.newData])
-      .then(() => deferred.resolve())
-      .catch(e => {
-        console.log(e);
-        deferred.reject();
-        this.popup.error(MSG_UNEXPECTED_ERROR);
-      });
-    $event.cancel = deferred.promise();
-  }
 
   onAppointmentRendered($event: any): void {
     $event.appointmentElement.style.backgroundColor = $event.appointmentData.color;
   }
 
-  private getSubscribedClients(appointmentData: SessionModel): void {
-    if (appointmentData.subscriptions.length === 0) {
-      this.popup.info('Session has no subscribers');
-      return;
-    }
-    this.selectedSession = null;
-    this.sessionService.getSubscribedClients(appointmentData)
-      .then((clients) => {
-        console.log('s clients: ', clients);
-        this.selectedSession = {
-          session: appointmentData,
-          subscribedClients: clients
-        };
-        this.showSubscribedClientsPopup = true;
-      })
-      .catch(error => {
-        console.log(error);
-        this.popup.error(MSG_UNEXPECTED_ERROR);
-      });
-  }
-
-  async unsubscribeClientFromSession(session: SessionModel, c: ClientModel): Promise<void> {
-    const confirmation = await confirm(`Unsubscribe ${c.fullName} from session?`, '');
-    if (!confirmation) {
-      return;
-    }
-    this.loadingVisible = true;
-    this.clientService.unsubscribeClientFromSession(session.uid, c.uid)
-      .then(result => {
-        this.loadingVisible = false;
-        if (result.success) {
-          this.popup.success(`Client ${c.fullName} unsubscribed from session`);
-          if (this.selectedSession && this.selectedSession.subscribedClients) {
-            const index = this.selectedSession.subscribedClients.indexOf(c);
-            if (index !== -1) {
-              this.selectedSession.subscribedClients.splice(index, 1);
-            }
-          }
-          return;
-        }
-        this.popup.error(result.data && result.data.uiMessage ? result.data.uiMessage : MSG_UNEXPECTED_ERROR);
-      })
-      .catch(error => {
-        this.loadingVisible = false;
-        console.log(error);
-        this.popup.error(MSG_UNEXPECTED_ERROR);
-      });
-  }
 
   showPrintOptions(): void {
     this.printOptions = {
@@ -334,5 +189,9 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         this.loadingVisible = false;
         this.popup.error(MSG_UNEXPECTED_ERROR);
       });
+  }
+
+  fetchByDateRange(start: Date, end: Date): void {
+
   }
 }

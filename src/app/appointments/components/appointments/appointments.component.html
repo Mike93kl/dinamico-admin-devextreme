@@ -1,180 +1,244 @@
-<h4 class="text-center">Session Days Schedule</h4>
-<div class="row">
-  <div class="col-4">
-    <div class="form-group" *ngIf="sessions?.length > 0">
-      <label>Limit Results:</label>
-      <select name="lim" id="lim" class="form-control" [(ngModel)]="limit" (change)="getAppointments()">
-        <option [ngValue]="100">100</option>
-        <option [ngValue]="200">200</option>
-        <option [ngValue]="400">400</option>
-        <option [ngValue]="500">500</option>
-      </select>
-    </div>
-  </div>
-  <div class="col-8">
-    <a routerLink="new" class=" float-right text-primary mx-2" data-toggle="tooltip" data-placement="top"
-       title="Create new Session Day">
-      <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>
-    </a>
-    <app-session-types-v1 [showDumbbellIcon]="true"></app-session-types-v1>
+<h4 class="text-center">Sessions Calendar</h4>
 
-    <a class="float-right text-primary mx-5" (click)="showPrintOptions()">
-      <i class="fas fa-print" style="font-size: 2em; cursor: pointer"></i>
-    </a>
-  </div>
-</div>
-<hr>
-<div class="row mt-3">
-  <div class="col-3">
-    <span class="dot" style="background-color: #099c15"></span> Session is full
-  </div>
-  <div class="col-3">
-    <span class="dot" style="background-color: #8f8c95"></span> Passed Session
-  </div>
-  <div class="col-3">
-    <span class="dot" style="background-color: #306CC7"></span> Upcoming sessions
-  </div>
-  <div class="col-3">
+<div class="top-action-button">
+  <a routerLink="new" class="text-primary mx-2" data-toggle="tooltip" data-placement="top"
+     title="Create new Session Day">
+    <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>
+  </a>
 
-  </div>
-</div>
-<hr>
+  <app-session-types-v1 [showDumbbellIcon]="true"
+                        data-toggle="tooltip" data-placement="top"
+                        title="View or create session types"
+  ></app-session-types-v1>
 
-<div class="row">
-  <div class="col-12">
-    <dx-scheduler
-      timeZone="Europe/Athens"
-      [dataSource]="sessions"
-      [views]='["month", "week", "day", "timelineDay"]'
-      currentView="day"
-      firstDayOfWeek="1"
-      [currentDate]="currentDate"
-      [startDayHour]="6"
-      [endDayHour]="22"
-      [height]="500"
-      appointmentTemplate="appointment-template"
-      (onAppointmentRendered)="onAppointmentRendered($event)"
-      (onAppointmentUpdating)="onAppointmentUpdating($event)"
-      (onAppointmentDeleting)="onAppointmentDeleting($event)"
-      (onAppointmentFormOpening)="onAppointmentFormOpening($event)">
-      <dxo-editing
-        [allowAdding]="false"
-        [allowDeleting]="true"
-        [allowUpdating]="true"
-        [allowResizing]="true"
-        [allowDragging]="false"
-      ></dxo-editing>
-
-      <div *dxTemplate="let model of 'appointment-template'">
-        <div class='session-type-preview'
-        >
-          <div>{{model.appointmentData.text}} Session</div>
-          <div>Subscribers
-            <strong>{{model.appointmentData.subscriptions.length}} / {{ model.appointmentData.spots }}</strong>
-          </div>
-        </div>
-      </div>
-
-    </dx-scheduler>
-  </div>
+  <a class="text-primary mx-5" (click)="showPrintOptions()"
+     data-toggle="tooltip" data-placement="top"
+     title="Print schedule">
+    <i class="fas fa-print" style="font-size: 2em; cursor: pointer"></i>
+  </a>
 </div>
 
-<!--Subscribed clients popup-->
+<div class="calendar-view-options">
 
-<dx-popup *ngIf="selectedSession?.session"
-  [width]="600"
-  [height]="500"
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="calendarViewOptions" id="todayNAfter"
+    [value]="false" [(ngModel)]="showDateRange">
+    <label class="form-check-label" for="todayNAfter">
+      Show today and after
+    </label>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="calendarViewOptions" id="range"
+           [value]="true" [(ngModel)]="showDateRange">
+    <label class="form-check-label" for="range">
+      Date range
+    </label>
+  </div>
+
+</div>
+
+
+<div class="date-range-options" *ngIf="showDateRange">
+
+  <dx-date-box class="my-3"
+               #dateStart
+               type="date">
+  </dx-date-box>
+
+  <dx-date-box class="my-3"
+               #dateEnd
+               type="date">
+  </dx-date-box>
+
+  <dx-button
+    stylingMode="outlined"
+    text="Go"
+    type="normal"
+    [width]="120"
+    (onClick)="fetchByDateRange(dateStart.value, dateEnd.value)">
+  </dx-button>
+
+</div>
+
+<dx-scheduler
+  timeZone="Europe/Athens"
+  [dataSource]="calendarItems"
+  [views]='["month", "week", "day", "timelineDay"]'
+  currentView="day"
+  firstDayOfWeek="1"
+  [currentDate]="currentDate"
+  [startDayHour]="6"
+  [endDayHour]="23"
+  [height]="650"
+
+  (onAppointmentRendered)="onAppointmentRendered($event)"
+  (onAppointmentFormOpening)="onAppointmentFormOpening($event)">
+  <dxo-editing
+    [allowAdding]="false"
+    [allowDeleting]="false"
+    [allowUpdating]="false"
+    [allowResizing]="false"
+    [allowDragging]="false"
+  ></dxo-editing>
+
+<!--  <div *dxTemplate="let model of 'appointment-template'">-->
+<!--    <div class='session-type-preview'-->
+<!--    >-->
+<!--  appointmentTemplate="appointment-template"-->
+<!--      <div>{{model.appointmentData.text}} Session</div>-->
+<!--      <div>Subscribers-->
+<!--        <strong>{{model.appointmentData.subscriptions.length}} / {{ model.appointmentData.spots }}</strong>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+</dx-scheduler>
+
+
+
+<!--<div class="row">-->
+<!--  <div class="col-4">-->
+<!--    <div class="form-group" *ngIf="sessions?.length > 0">-->
+<!--      <label>Limit Results:</label>-->
+<!--      <select name="lim" id="lim" class="form-control" [(ngModel)]="limit" (change)="getAppointments()">-->
+<!--        <option [ngValue]="100">100</option>-->
+<!--        <option [ngValue]="200">200</option>-->
+<!--        <option [ngValue]="400">400</option>-->
+<!--        <option [ngValue]="500">500</option>-->
+<!--      </select>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="col-8">-->
+<!--    <a routerLink="new" class=" float-right text-primary mx-2" data-toggle="tooltip" data-placement="top"-->
+<!--       title="Create new Session Day">-->
+<!--      <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>-->
+<!--    </a>-->
+<!--    <app-session-types-v1 [showDumbbellIcon]="true"></app-session-types-v1>-->
+
+<!--    <a class="float-right text-primary mx-5" (click)="showPrintOptions()">-->
+<!--      <i class="fas fa-print" style="font-size: 2em; cursor: pointer"></i>-->
+<!--    </a>-->
+<!--  </div>-->
+<!--</div>-->
+<!--<hr>-->
+<!--<div class="row mt-3">-->
+<!--  <div class="col-3">-->
+<!--    <span class="dot" style="background-color: #099c15"></span> Session is full-->
+<!--  </div>-->
+<!--  <div class="col-3">-->
+<!--    <span class="dot" style="background-color: #8f8c95"></span> Passed Session-->
+<!--  </div>-->
+<!--  <div class="col-3">-->
+<!--    <span class="dot" style="background-color: #306CC7"></span> Upcoming sessions-->
+<!--  </div>-->
+<!--  <div class="col-3">-->
+
+<!--  </div>-->
+<!--</div>-->
+<!--<hr>-->
+
+<!--<div class="row">-->
+<!--  <div class="col-12">-->
+<!--    <dx-scheduler-->
+<!--      timeZone="Europe/Athens"-->
+<!--      [dataSource]="sessions"-->
+<!--      [views]='["month", "week", "day", "timelineDay"]'-->
+<!--      currentView="day"-->
+<!--      firstDayOfWeek="1"-->
+<!--      [currentDate]="currentDate"-->
+<!--      [startDayHour]="6"-->
+<!--      [endDayHour]="22"-->
+<!--      [height]="500"-->
+<!--      appointmentTemplate="appointment-template"-->
+<!--      (onAppointmentRendered)="onAppointmentRendered($event)"-->
+<!--      (onAppointmentUpdating)="onAppointmentUpdating($event)"-->
+<!--      (onAppointmentDeleting)="onAppointmentDeleting($event)"-->
+<!--      (onAppointmentFormOpening)="onAppointmentFormOpening($event)">-->
+<!--      <dxo-editing-->
+<!--        [allowAdding]="false"-->
+<!--        [allowDeleting]="true"-->
+<!--        [allowUpdating]="true"-->
+<!--        [allowResizing]="true"-->
+<!--        [allowDragging]="false"-->
+<!--      ></dxo-editing>-->
+
+<!--      <div *dxTemplate="let model of 'appointment-template'">-->
+<!--        <div class='session-type-preview'-->
+<!--        >-->
+<!--          <div>{{model.appointmentData.text}} Session</div>-->
+<!--          <div>Subscribers-->
+<!--            <strong>{{model.appointmentData.subscriptions.length}} / {{ model.appointmentData.spots }}</strong>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--    </dx-scheduler>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash;Subscribed clients popup&ndash;&gt;-->
+
+<dx-popup *ngIf="selectedSessionV1"
+  [width]="800"
+  [height]="800"
   [showTitle]="true"
-  title="Subscribed clients"
+  title="{{selectedSessionV1.sessionType.title}} @ {{selectedSessionV1.startDate_ts | date}}"
   [dragEnabled]="false"
   [closeOnOutsideClick]="true"
-  [(visible)]="showSubscribedClientsPopup">
+  [(visible)]="showSelectedSessionPopup">
 
   <dx-scroll-view width="100%" height="100%">
-    <table class="table">
-      <thead>
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">Full Name</th>
-        <th scope="col">Unsubscribe</th>
-        <th scope="col">Open</th>
-      </tr>
-      </thead>
-      <tbody>
 
-      <tr *ngFor="let c of selectedSession.subscribedClients; let i = index">
-        <th scope="row">{{ i + 1 }}</th>
-        <td>{{c.fullName}}</td>
-        <td>
-          <i class="far fa-trash-alt text-danger" style="cursor: pointer" (click)="unsubscribeClientFromSession(selectedSession.session, c)"></i>
-        </td>
-        <td>
-          <a routerLink="/clients/{{ c.uid }}">
-            <i class="fas fa-external-link-alt" style="cursor: pointer"></i>
-          </a>
-        </td>
-      </tr>
 
-      </tbody>
-    </table>
+
   </dx-scroll-view>
 
 
 </dx-popup>
 
-<!-- Print options popup -->
-<dx-popup *ngIf="printOptions"
-  [width]="500"
-  [height]="500"
-  [showTitle]="true"
-  title="Print schedule"
-  [dragEnabled]="true"
-  [closeOnOutsideClick]="true"
-  [(visible)]="showPrintOptionsPopup">
-  <dx-scroll-view>
+<!--&lt;!&ndash; Print options popup &ndash;&gt;-->
+<!--<dx-popup *ngIf="printOptions"-->
+<!--  [width]="500"-->
+<!--  [height]="500"-->
+<!--  [showTitle]="true"-->
+<!--  title="Print schedule"-->
+<!--  [dragEnabled]="true"-->
+<!--  [closeOnOutsideClick]="true"-->
+<!--  [(visible)]="showPrintOptionsPopup">-->
+<!--  <dx-scroll-view>-->
 
-    <div class="container">
-      <h6 class="text-center"> Generate schedule report </h6>
-      <form style="padding: 20px;">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="when" value="{{ true }}" id="todayRadio"
-                 [(ngModel)]="printOptions.today" [value]="true">
-          <label class="form-check-label" for="todayRadio">
-            Today
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio"  name="when" id="otherRadio" [value]="false"
-          [(ngModel)]="printOptions.today" >
-          <label class="form-check-label" for="otherRadio">
-            Other
-          </label>
-        </div>
+<!--    <div class="container">-->
+<!--      <h6 class="text-center"> Generate schedule report </h6>-->
+<!--      <form style="padding: 20px;">-->
+<!--        <div class="form-check">-->
+<!--          <input class="form-check-input" type="radio" name="when" value="{{ true }}" id="todayRadio"-->
+<!--                 [(ngModel)]="printOptions.today" [value]="true">-->
+<!--          <label class="form-check-label" for="todayRadio">-->
+<!--            Today-->
+<!--          </label>-->
+<!--        </div>-->
+<!--        <div class="form-check">-->
+<!--          <input class="form-check-input" type="radio"  name="when" id="otherRadio" [value]="false"-->
+<!--          [(ngModel)]="printOptions.today" >-->
+<!--          <label class="form-check-label" for="otherRadio">-->
+<!--            Other-->
+<!--          </label>-->
+<!--        </div>-->
 
-        <div style="margin: 15px" class="form-group" *ngIf="!printOptions.today">
-          <label for="f">From</label>
-          <input type="date" id="f" name="f" [(ngModel)]="printOptions.printBeginDate" class="form-control">
-        </div>
-        <div style="margin: 15px" class="form-group" *ngIf="!printOptions.today">
-          <label for="t">To</label>
-          <input type="date" id="t" name="t" [(ngModel)]="printOptions.printEndDate" class="form-control">
-        </div>
-      </form>
+<!--        <div style="margin: 15px" class="form-group" *ngIf="!printOptions.today">-->
+<!--          <label for="f">From</label>-->
+<!--          <input type="date" id="f" name="f" [(ngModel)]="printOptions.printBeginDate" class="form-control">-->
+<!--        </div>-->
+<!--        <div style="margin: 15px" class="form-group" *ngIf="!printOptions.today">-->
+<!--          <label for="t">To</label>-->
+<!--          <input type="date" id="t" name="t" [(ngModel)]="printOptions.printEndDate" class="form-control">-->
+<!--        </div>-->
+<!--      </form>-->
 
-      <button class="btn btn-outline-primary form-control" (click)="generateScheduleReport()">Done</button>
+<!--      <button class="btn btn-outline-primary form-control" (click)="generateScheduleReport()">Done</button>-->
 
-    </div>
+<!--    </div>-->
 
-  </dx-scroll-view>
-</dx-popup>
+<!--  </dx-scroll-view>-->
+<!--</dx-popup>-->
 
-<!--Loader-->
-<dx-load-panel
-  #loadPanel
-  shadingColor="rgba(0,0,0,0.4)"
-  [(visible)]="loadingVisible"
-  [showIndicator]="true"
-  [showPane]="true"
-  [shading]="true"
-  [closeOnOutsideClick]="false">
-</dx-load-panel>
