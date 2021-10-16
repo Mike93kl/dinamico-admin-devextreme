@@ -49,9 +49,13 @@
   gap: 12px;
   padding: 12px;
 }
-
 .repeat-wrapper {
   padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.repeat-wrapper-sub {
   display: flex;
   flex-direction: row;
   gap: 15px;

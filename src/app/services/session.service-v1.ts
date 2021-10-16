@@ -28,4 +28,15 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
         .orderBy('startDate_ts', 'asc').limit(limit);
     }).valueChanges();
   }
+
+  getExistingSessionsOf(date: Date): Observable<SessionModelV1[]> {
+    date.setHours(0, 1, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 0);
+    return this.fs.collection<SessionModelV1>(this.collection, ref => {
+      return ref.where('startDate_ts', '>', date.getTime())
+        .where('startDate_ts', '<', endDate.getTime())
+        .orderBy('startDate_ts', 'asc');
+    }).valueChanges();
+  }
 }

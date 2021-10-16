@@ -3,9 +3,9 @@
 
 <section id="new-appointment-section">
   <dx-date-box class="my-3"
-    #date
-    (valueChange)="onDateSelected($event)"
-    type="date">
+               #date
+               (valueChange)="onDateSelected($event)"
+               type="date">
   </dx-date-box>
   <br>
   <app-session-types-v1 [showDumbbellIcon]="false"
@@ -13,34 +13,29 @@
                         class="my-2"></app-session-types-v1>
   <br>
 
-  <div class="repeat-wrapper" *ngIf="dateSelected !== undefined">
 
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="" id="repeatCheckbox"
-      [(ngModel)]="repeatPattern">
-      <label class="form-check-label" for="repeatCheckbox">
-        Repeat sessions for a number of days max: (30)
-      </label>
-    </div>
-  </div>
+  <div class="repeat-wrapper mt-2" *ngIf="dateSelected !== undefined">
+    <p>Repeat sessions for a number of days:</p>
+    <div class="repeat-wrapper-sub" >
 
-  <div class="repeat-wrapper" *ngIf="repeatPattern">
-    <input #repeat type="number" min="1" max="30" placeholder="Number of days" class="days-no-input"
-    [(ngModel)]="repeatNo" (keyup)="onRepeatNoChanged($event, repeat.value)">
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="" id="Saturdays"
-      [(ngModel)]="includeSat">
-      <label class="form-check-label" for="Saturdays">
-        Include Saturdays
-      </label>
-    </div>
+      <input #repeat type="number" min="1" max="30" placeholder="Number of days" class="days-no-input"
+             [(ngModel)]="repeatNo" (keyup)="onRepeatNoChanged($event)">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="Saturdays"
+               [(ngModel)]="includeSat">
+        <label class="form-check-label" for="Saturdays">
+          Include Saturdays
+        </label>
+      </div>
 
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="" id="Sundays"
-             [(ngModel)]="includeSun">
-      <label class="form-check-label" for="Sundays">
-        Include Sundays
-      </label>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="Sundays"
+               [(ngModel)]="includeSun">
+        <label class="form-check-label" for="Sundays">
+          Include Sundays
+        </label>
+      </div>
+
     </div>
 
   </div>
@@ -80,8 +75,10 @@
     </dxi-column>
 
     <dxi-column dataField="startDate" caption="Start time" sortOrder="asc"
-                dataType="date" format="shortTime" [editorOptions]="{type: 'time', min: minTimeDate, max: maxTimeDate}"></dxi-column>
-    <dxi-column dataField="endDate" sortOrder="asc" caption="End time" format="shortTime" [editorOptions]="{type: 'time', min: minTimeDate, max: maxTimeDate}"
+                dataType="date" format="shortTime"
+                [editorOptions]="{type: 'time', min: minTimeDate, max: maxTimeDate }"></dxi-column>
+    <dxi-column dataField="endDate" sortOrder="asc" caption="End time" format="shortTime"
+                [editorOptions]="{type: 'time', min: minTimeDate, max: maxTimeDate }"
                 dataType="date"></dxi-column>
     <dxi-column dataField="spots" caption="Open Spots" dataType="number"></dxi-column>
 

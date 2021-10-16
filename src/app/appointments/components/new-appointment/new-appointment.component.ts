@@ -76,27 +76,22 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
   sessionTypeBehSubject: BehaviorSubject<SessionTypeModel[]> =
     new BehaviorSubject<SessionTypeModel[]>(this.sessionTypes);
 
-  existingSessions: SessionModelV1[];
-  existingSessionsSub: Subscription | undefined;
 
-  repeatPattern = false;
-  repeatNo: number;
+  repeatNo = 1;
   includeSat = false;
   includeSun = false;
 
-  disabledDatesTimestamps: number[];
-
 
   static getSessionDayCreated(d: Date): string {
-    return `<p><small class="text-success">+</small> Session Day ${d.toLocaleDateString()} created.</p>`;
+    return `<p><small class="text-success">+</small> Session Day ${d.toLocaleString()} created.</p>`;
   }
 
   static getSessionDaySkipped(d: Date): string {
-    return `<p><small class="text-warning">-</small> Session Day ${d.toLocaleDateString()} exists, thus it is skipped.</p>`;
+    return `<p><small class="text-warning">-</small> Session Day ${d.toLocaleString()} exists, thus it is skipped.</p>`;
   }
 
   static getSessionDayFailed(d: Date): string {
-    return `<p><small class="text-danger">-</small> Session Day ${d.toLocaleDateString()} failed to be created.</p>`;
+    return `<p><small class="text-danger">-</small> Sessions for ${d.toLocaleDateString()} failed to be created.</p>`;
   }
 
   constructor(
@@ -113,14 +108,11 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
     this.sessionTypeSub = this.sessionTypeBehSubject.subscribe({
       next: sessionTypes => {
         this.sessionTypes = sessionTypes;
-        if (!this.existingSessions) {
-          this.getExistingSessions();
-        } else {
-          this.loadingVisible = false;
-        }
+        this.loadingVisible = false;
       },
       error: err => {
         console.log(err);
+        this.loadingVisible = false;
         this.popup.error(MSG_UNEXPECTED_ERROR, () => {
           this.router.navigateByUrl('/appointments').then();
         });
@@ -137,7 +129,6 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnDestroy(): void {
     this.sessionTypeSub?.unsubscribe();
-    this.existingSessionsSub?.unsubscribe();
   }
 
   //// End of lifecycle //////////////////////
@@ -245,27 +236,6 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
     this.sessionTypeBehSubject.next(sessionTypes);
   }
 
-  private getExistingSessions(): void {
-    firstValueFrom(this.sessionService.getAllSessionsAfterToday(MAX_DAYS_FROM_TODAY))
-      .then((sessions) => {
-        this.existingSessions = sessions;
-        [this.dxDateBox.disabledDates,
-          this.disabledDatesTimestamps] = this.existingSessions.reduce((r, c) => {
-          const d = new Date(c.startDate_ts);
-          stripHoursFromDate(d);
-          r[0].push(d);
-          r[1].push(d.getTime());
-          return r;
-        }, [[], []]);
-        this.loadingVisible = false;
-      }).catch(err => {
-      console.log(err);
-      this.loadingVisible = false;
-      this.popup.error(MSG_UNEXPECTED_ERROR, () => {
-        this.router.navigateByUrl('/appointments').then();
-      });
-    });
-  }
 
   private async createSessions(): Promise<void> {
     if (this.gridSessions.length === 0) {
@@ -276,16 +246,6 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
 
     const initialDate = new Date(this.dateSelected);
 
-    if (!this.repeatPattern) {
-      this.createDaySessions(this.gridSessions)
-        .then(() => this.onSessionsCreated(NewAppointmentComponent.getSessionDayCreated(initialDate)))
-        .catch(this.onSessionsCreationError);
-      return;
-    }
-    if (!this.repeatNo) {
-      this.popup.error(MSG_NAC_REPEAT_NO_GREATER_THAN_0);
-      return;
-    }
     if (this.repeatNo <= 0) {
       this.popup.error(MSG_NAC_REPEAT_NO_GREATER_THAN_0);
       return;
@@ -299,13 +259,17 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
     for (let i = 0; i < this.repeatNo;) {
       const date = addDaysToDate(initialDate, increment++);
       stripHoursFromDate(date);
-      const day = date.getDay();
 
-      if (this.disabledDatesTimestamps.includes(date.getTime())) {
-        finalMsg += NewAppointmentComponent.getSessionDaySkipped(date);
-        i++;
-        continue;
-      }
+      const existingDaySessions = await firstValueFrom(this.sessionService.getExistingSessionsOf(date));
+      const existingTimestamps = existingDaySessions.map(e => e.startDate_ts);
+
+      const gridItems = this.gridSessions.map(g => {
+        g.startDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+        g.endDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+        return g;
+      });
+
+      const day = date.getDay();
 
       if (day === SUNDAY_DAY_INDEX && !this.includeSun) {
         continue;
@@ -313,23 +277,29 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
       if (day === SATURDAY_DAY_INDEX && !this.includeSat) {
         continue;
       }
+
+      for (let g = gridItems.length - 1; g >= 0; g--) {
+        const start = gridItems[g].startDate.getTime();
+        if (existingTimestamps.includes(start)) {
+          finalMsg += NewAppointmentComponent.getSessionDaySkipped(gridItems[g].startDate);
+          gridItems.splice(g, 1);
+        }
+      }
+
       i++;
       try {
-        await this.createDaySessions(this.gridSessions.map(g => {
-          g.startDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-          g.endDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-          return g;
-        }));
-        finalMsg += NewAppointmentComponent.getSessionDayCreated(date);
+        await this.createDaySessions(gridItems);
+        gridItems.forEach(g => {
+          finalMsg += NewAppointmentComponent.getSessionDayCreated(g.startDate);
+        });
       } catch (e) {
         console.log(e);
         finalMsg += NewAppointmentComponent.getSessionDayFailed(date);
       }
 
     }
-
+    this.loadingVisible = false;
     this.onSessionsCreated(finalMsg);
-
   }
 
 
@@ -339,15 +309,8 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
       this.dxDataGrid?.instance.getDataSource().reload();
       this.dateSelected = undefined;
       this.dxDateBox.value = this.dateSelected;
-      this.getExistingSessions();
     });
   }
-
-  private onSessionsCreationError(e: any): void {
-    console.log(e);
-    this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
-  }
-
 
   private async createDaySessions(gridItems: SessionGridItem[]): Promise<void> {
     const sessions: SessionModelV1[] = gridItems.map(gridItem => {
