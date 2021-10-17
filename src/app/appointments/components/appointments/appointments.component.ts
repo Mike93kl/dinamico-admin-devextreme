@@ -15,8 +15,21 @@ import {SessionTypesV1Component} from '../../../shared/session-types/session-typ
 import {SessionServiceV1} from '../../../services/session.service-v1';
 import {SessionModelV1} from '../../../models/SessionModelV1';
 import {DxSchedulerComponent} from 'devextreme-angular';
+import {SessionTypeModel} from '../../../models/SessionTypeModel';
+import {SessionSubscriptionModel} from '../../../models/SessionSubscriptionModel';
 
 declare var $: any;
+
+interface SelectedSession {
+  subscriptions: SessionSubscriptionModel[];
+  isFull: boolean;
+  sessionType: SessionTypeModel;
+  startDate: Date;
+  endDate: Date;
+  spots: number;
+  allowUpdate: boolean;
+  uid: string;
+}
 
 interface CalendarItem {
   text: string;
@@ -24,9 +37,10 @@ interface CalendarItem {
   endDate: Date;
   sessionId: string;
   color: string;
-  subscribers: number;
+  subscriptions: number;
   isFull: boolean;
   index: number;
+  spots: number;
 }
 
 @Component({
@@ -45,6 +59,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   selectedSessionV1: SessionModelV1 | undefined;
   showSelectedSessionPopup = false;
 
+  selectedSession: {
+    session: SelectedSession,
+    calendarItem: CalendarItem;
+  } | undefined;
+
   loadingVisible = false;
   limit = 100;
   sessionTypePopupVisible = false;
@@ -54,6 +73,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
     printBeginDate: any;
     printEndDate: any;
   } = null;
+  sessionTypes: SessionTypeModel[];
 
   constructor(private sessionTypeService: SessionTypeService,
               private popup: PopupService,
@@ -86,7 +106,28 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   onAppointmentFormOpening($event: any): void {
     console.log($event);
     $event.cancel = true;
-    this.selectedSessionV1 = this.sessionsV1[$event.appointmentData.index];
+    const session = this.sessionsV1[$event.appointmentData.index];
+    if (!session) {
+      this.popup.error(MSG_UNEXPECTED_ERROR);
+      return;
+    }
+    this.selectedSession = {
+      session: {
+        uid: session.uid,
+        allowUpdate: session.subscriptions.length === 0,
+        spots: session.spots,
+        isFull: session.isFull,
+        startDate: new Date(session.startDate_ts),
+        endDate: new Date(session.endDate_ts),
+        sessionType: {...session.sessionType},
+        subscriptions: session.subscriptions.map(s => {
+          return {
+            ...s
+          };
+        })
+      },
+      calendarItem: $event.appointmentData
+    };
     this.showSelectedSessionPopup = true;
   }
 
@@ -106,41 +147,6 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   generateScheduleReport(): void {
-    const today = new Date();
-    if (this.printOptions.today) {
-      today.setHours(0, 1, 0);
-      this.printOptions.printBeginDate = new Date(today);
-      today.setHours(23, 59, 0);
-      this.printOptions.printEndDate = new Date(today);
-    } else {
-      const begin = new Date(Date.parse(this.printOptions.printBeginDate));
-      const end = new Date(Date.parse(this.printOptions.printEndDate));
-      begin.setHours(0, 1, 0);
-      end.setHours(23, 59, 0);
-      this.printOptions.printBeginDate = begin;
-      this.printOptions.printEndDate = end;
-    }
-    this.loadingVisible = true;
-    this.sessionService.fetchSessionsInRangeWithClients(this.printOptions.printBeginDate as Date, this.printOptions.printEndDate as Date)
-      .then(result => {
-        this.loadingVisible = false;
-        if (result.length === 0) {
-          this.popup.info('Nothing to show for selected dates');
-          return;
-        }
-        this.router.navigateByUrl('/schedule-report', {
-          state: {
-            data: {
-              result, start: this.printOptions.printBeginDate.getTime(), end: this.printOptions.printEndDate.getTime()
-            }
-          }
-        });
-      })
-      .catch(error => {
-        console.log(error);
-        this.loadingVisible = false;
-        this.popup.error(MSG_UNEXPECTED_ERROR);
-      });
   }
 
   fetchByDateRange(start: Date, end: Date): void {
@@ -183,9 +189,10 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
           ? '#099c15' : (s.startDate_ts < this.currentDate.getTime()
             ? '#8f8c95'
             : '#306CC7'),
-        subscribers: s.subscriptions.length,
+        subscriptions: s.subscriptions.length,
         isFull: s.isFull,
-        index
+        index,
+        spots: s.spots
       };
     });
     this.dxScheduler?.instance.repaint();
@@ -198,4 +205,13 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
     this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
   }
 
+  onSessionTypesFetched($event: SessionTypeModel[]): void {
+    this.sessionTypes = $event;
+  }
+
+  onRemoveClientFromSession(c: SessionSubscriptionModel): void {
+  }
+
+  onSessionUpdate(): void {
+  }
 }
