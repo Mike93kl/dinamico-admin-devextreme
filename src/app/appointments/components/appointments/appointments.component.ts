@@ -1,20 +1,20 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {SessionTypeService} from '../../../services/session-type.service';
-import {Subscription} from 'rxjs';
-import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {PopupService} from '../../../services/popup.service';
 import {SessionService} from '../../../services/session.service';
-import {SessionModel} from '../../../models/SessionModel';
-import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
-import {ClientModel} from '../../../models/ClientModel';
+import {
+  MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER,
+  MSG_AC_START_N_END_DATE_REQUIRED,
+  MSG_UNEXPECTED_ERROR,
+  MSG_UNEXPECTED_ERROR_REFRESH_PAGE
+} from '../../../utils/ui_messages';
 import {ClientService} from '../../../services/client.service';
 import {take} from 'rxjs/operators';
-import {confirm} from 'devextreme/ui/dialog';
 import {Router} from '@angular/router';
 import {SessionTypesV1Component} from '../../../shared/session-types/session-types-v1.component';
-import {SessionServiceV1} from "../../../services/session.service-v1";
-import {SessionModelV1} from "../../../models/SessionModelV1";
-import {DxSchedulerComponent} from "devextreme-angular";
+import {SessionServiceV1} from '../../../services/session.service-v1';
+import {SessionModelV1} from '../../../models/SessionModelV1';
+import {DxSchedulerComponent} from 'devextreme-angular';
 
 declare var $: any;
 
@@ -45,25 +45,15 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   selectedSessionV1: SessionModelV1 | undefined;
   showSelectedSessionPopup = false;
 
-  sessionTypes: SessionTypeModel[];
-  sessions: SessionModel[];
   loadingVisible = false;
   limit = 100;
   sessionTypePopupVisible = false;
-  showSubscribedClientsPopup = false;
   showPrintOptionsPopup = false;
-  selectedSession: {
-    session: SessionModel;
-    subscribedClients: ClientModel[]
-  } | null = null;
   printOptions: {
     today: boolean;
     printBeginDate: any;
     printEndDate: any;
   } = null;
-  // subscribers
-  sessionTypeSub: Subscription;
-  sessionsSub: Subscription;
 
   constructor(private sessionTypeService: SessionTypeService,
               private popup: PopupService,
@@ -74,61 +64,23 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-
-    this.service.getAllSessionsAfterToday(100).pipe(take(1)).subscribe({
-      next: sessions => {
-        this.sessionsV1 = sessions;
-        this.calendarItems = this.sessionsV1.map((s, index) => {
-          return {
-            text: s.sessionType.title,
-            startDate: new Date(s.startDate_ts),
-            endDate: new Date(s.endDate_ts),
-            sessionId: s.uid,
-            color: s.isFull || s.subscriptions.length >= s.spots
-              ? '#099c15' : (s.startDate_ts < this.currentDate.getTime()
-                ? '#8f8c95'
-                : '#306CC7'),
-            subscribers: s.subscriptions.length,
-            isFull: s.isFull,
-            index
-          };
-        });
-        this.dxScheduler?.instance.repaint();
-      }
-    });
-
+    this.getSessionsAfterToday();
   }
 
-  getAppointments(): void {
-    this.sessionsSub = this.sessionService.getAllSessions(this.limit).subscribe(sessions => {
-      this.sessions = sessions.map(s => {
-        s.sessionType = this.sessionTypes.find(e => e.uid === s.sessionTypeId);
-        s.text = s.sessionType.title;
-        s.startDate = new Date(s.startDate.seconds * 1000);
-        s.endDate = new Date(s.endDate.seconds * 1000);
-        s.allowDeleting = s.subscriptions.length > 0 || this.currentDate > s.startDate;
-        if (this.currentDate > s.startDate) {
-          s.disabled = true;
-          s.color = '#8f8c95';
-        } else if (s.isFull || s.subscriptions.length >= s.spots) {
-          s.color = '#099c15';
-        } else {
-          s.color = '#306CC7';
-        }
-        return s;
-      });
-    }, error => {
-      console.log(error);
-      this.popup.error('Could not fetch sessions. Please refresh the page');
+  getSessionsAfterToday(): void {
+    this.loadingVisible = true;
+    this.service.getAllSessionsAfterToday(this.limit).pipe(take(1)).subscribe({
+      next: sessions => {
+        this.onSessionsFetched(sessions);
+      },
+      error: err => {
+        this.onSessionsFetchedError(err);
+      }
     });
   }
 
   ngOnDestroy(): void {
-    try {
-      this.sessionTypeSub.unsubscribe();
-      this.sessionsSub.unsubscribe();
-    } catch (e) {
-    }
+
   }
 
   onAppointmentFormOpening($event: any): void {
@@ -192,6 +144,58 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   }
 
   fetchByDateRange(start: Date, end: Date): void {
-
+    if (!start || !end) {
+      this.popup.error(MSG_AC_START_N_END_DATE_REQUIRED);
+      return;
+    }
+    if (start.getTime() > end.getTime()) {
+      this.popup.error(MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER);
+      return;
+    }
+    start.setHours(0, 1, 0, 0);
+    end.setHours(23, 59, 59);
+    this.loadingVisible = true;
+    this.service.getByDateRange(start, end).pipe(take(1))
+      .subscribe({
+        next: sessions => {
+          this.onSessionsFetched(sessions);
+        },
+        error: err => {
+          this.onSessionsFetchedError(err);
+        }
+      });
   }
+
+  onLimitResultsChanged($event: any): void {
+    this.limit = $event;
+    this.getSessionsAfterToday();
+  }
+
+  onSessionsFetched(sessions: SessionModelV1[]): void {
+    this.sessionsV1 = sessions;
+    this.calendarItems = this.sessionsV1.map((s, index) => {
+      return {
+        text: s.sessionType.title,
+        startDate: new Date(s.startDate_ts),
+        endDate: new Date(s.endDate_ts),
+        sessionId: s.uid,
+        color: s.isFull || s.subscriptions.length >= s.spots
+          ? '#099c15' : (s.startDate_ts < this.currentDate.getTime()
+            ? '#8f8c95'
+            : '#306CC7'),
+        subscribers: s.subscriptions.length,
+        isFull: s.isFull,
+        index
+      };
+    });
+    this.dxScheduler?.instance.repaint();
+    this.loadingVisible = false;
+  }
+
+  onSessionsFetchedError(e: any): void {
+    console.log(e);
+    this.loadingVisible = false;
+    this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+  }
+
 }

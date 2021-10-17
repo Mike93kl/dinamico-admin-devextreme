@@ -22,7 +22,7 @@
 
   <div class="form-check">
     <input class="form-check-input" type="radio" name="calendarViewOptions" id="todayNAfter"
-    [value]="false" [(ngModel)]="showDateRange">
+    [value]="false" [(ngModel)]="showDateRange" (click)="getSessionsAfterToday()">
     <label class="form-check-label" for="todayNAfter">
       Show today and after
     </label>
@@ -37,6 +37,17 @@
 
 </div>
 
+
+<div class="dx-fieldset" *ngIf="!showDateRange">
+  <div class="dx-field">
+    <div class="dx-field-label">Showing {{limit}} Results</div>
+    <div class="dx-field-value">
+      <dx-select-box (valueChange)="onLimitResultsChanged($event)"
+                     [value]="limit"
+                     [items]="[100, 200, 400, 500]"></dx-select-box>
+    </div>
+  </div>
+</div>
 
 <div class="date-range-options" *ngIf="showDateRange">
 
@@ -61,6 +72,7 @@
 </div>
 
 <dx-scheduler
+  id="scheduler"
   timeZone="Europe/Athens"
   [dataSource]="calendarItems"
   [views]='["month", "week", "day", "timelineDay"]'
@@ -182,7 +194,7 @@
   [width]="800"
   [height]="800"
   [showTitle]="true"
-  title="{{selectedSessionV1.sessionType.title}} @ {{selectedSessionV1.startDate_ts | date}}"
+  title="{{selectedSessionV1.sessionType.title}} @ {{selectedSessionV1.startDate_ts | date:'short'}}"
   [dragEnabled]="false"
   [closeOnOutsideClick]="true"
   [(visible)]="showSelectedSessionPopup">
@@ -241,4 +253,9 @@
 
 <!--  </dx-scroll-view>-->
 <!--</dx-popup>-->
+<!--Loader-->
+<dx-load-panel #loadPanel shadingColor="rgba(0,0,0,0.4)" [position]="{ of: '#scheduler' }"
+               [(visible)]="loadingVisible"
+               [showIndicator]="true" [showPane]="true" [shading]="true" [closeOnOutsideClick]="false">
+</dx-load-panel>
 

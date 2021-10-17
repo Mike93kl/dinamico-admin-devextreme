@@ -39,4 +39,12 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
         .orderBy('startDate_ts', 'asc');
     }).valueChanges();
   }
+
+  getByDateRange(start: Date, end: Date): Observable<SessionModelV1[]> {
+    return this.fs.collection<SessionModelV1>(this.collection, ref => {
+      return ref.where('startDate_ts', '>', start.getTime())
+        .where('startDate_ts', '<', end.getTime())
+        .orderBy('startDate_ts', 'asc');
+    }).valueChanges();
+  }
 }

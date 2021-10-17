@@ -68,4 +68,10 @@ export const MSG_NAC_SPOTS_CANNOT_BE_0_OR_LESS = 'Spots must be greater than zer
 export const MSG_NAC_REPEAT_NO_GREATER_THAN_0 = 'Repeat number must be greater than 0';
 export const MSG_NAC_REPEAT_NO_LIMIT = (limit: number) => {
   return `Repeat number cannot be greater than ${limit}.`;
-}
+};
+
+/**
+ * APPOINTMENTS COMPONENT
+ */
+export const MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER = 'End date must be equal or greater than start date';
+export const MSG_AC_START_N_END_DATE_REQUIRED = 'Both start and end date are required fields';
