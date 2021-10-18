@@ -1,23 +1,16 @@
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ClientSessionModel} from '../../../models/ClientSessionModel';
-import {confirm} from 'devextreme/ui/dialog';
-import {take} from 'rxjs/operators';
-import {MSG_UNEXPECTED_ERROR} from '../../../utils/ui_messages';
 import {ClientService} from '../../../services/client.service';
 import {PopupService} from '../../../services/popup.service';
-import {DatePipe} from '@angular/common';
-import {SessionService} from '../../../services/session.service';
-import {SessionModel} from '../../../models/SessionModel';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
-import {ClientPackageModel} from '../../../models/ClientPackageModel';
 import {ClientModel} from '../../../models/ClientModel';
 import {firstValueFrom, Subscription} from 'rxjs';
-import {ClientSessionModelV1} from "../../../models/ClientSessionModelV1";
-import {SessionServiceV1} from "../../../services/session.service-v1";
-import {DxSchedulerComponent} from "devextreme-angular";
-import {SessionModelV1} from "../../../models/SessionModelV1";
-import {PackagesService} from "../../../services/packages.service";
-import {ClientPackageModelV1} from "../../../models/ClientPackageModelV1";
+import {ClientSessionModelV1, SessionStatus} from '../../../models/ClientSessionModelV1';
+import {SessionServiceV1} from '../../../services/session.service-v1';
+import {DxDataGridComponent, DxSchedulerComponent} from 'devextreme-angular';
+import {SessionModelV1} from '../../../models/SessionModelV1';
+import {PackagesService} from '../../../services/packages.service';
+import {ClientPackageModelV1} from '../../../models/ClientPackageModelV1';
+import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
 
 declare var $: any;
 
@@ -31,6 +24,7 @@ interface CalendarItem {
   isFull: boolean;
   index: number;
   spots: number;
+  sessionTypeId: string;
   clientSession?: ClientSessionModelV1;
 }
 
@@ -41,8 +35,8 @@ interface CalendarItem {
 })
 export class ClientSessionsComponent implements OnInit, OnDestroy {
   @ViewChild(DxSchedulerComponent) dxScheduler: DxSchedulerComponent | undefined;
+  @ViewChild('filteredClientPackagesGrid') dxFilteredPackagesGrid: DxDataGridComponent | undefined;
   @Input() client: ClientModel;
-  @Input() sessionTypes: SessionTypeModel[];
 
   currentDate = new Date();
   loadingVisible = false;
@@ -52,7 +46,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   clientSessionsLimit = 100;
   showDateRangeOfClientSessions = false;
 
-  sessionStatus: 'attended' | 'cancelled' | 'upcoming' | 'all' = 'upcoming';
+  sessionStatus: SessionStatus | 'all' = 'upcoming';
 
   calendarItems: CalendarItem[] = [];
 
@@ -60,6 +54,12 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   clientSessions: ClientSessionModelV1[] = [];
 
   packages: ClientPackageModelV1[] = [];
+
+  filteredPackages: ClientPackageModelV1[];
+  showFilteredPackagesPopup = false;
+  packagesSub: Subscription | undefined;
+
+  sessionTypes: SessionTypeModel[];
 
   constructor(private clientService: ClientService,
               private popup: PopupService,
@@ -74,24 +74,25 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           .then(() => this.mapClientSessionsToSessions());
       });
 
-    this.packagesService.getPackagesOfClient(this.client.uid, true, -1)
-      .pipe(take(1)).subscribe({
-      next: packages => {
-        this.packages = packages;
-      },
-      error: err => {
-        console.log(err);
-        this.packages = undefined;
-      }
-    });
+    this.packagesSub = this.packagesService.getPackagesOfClient(this.client.uid, true, -1)
+      .subscribe({
+        next: packages => {
+          this.packages = packages;
+        },
+        error: err => {
+          console.log(err);
+          this.packages = undefined;
+        }
+      });
   }
 
   ngOnDestroy(): void {
+    this.packagesSub?.unsubscribe();
   }
 
 
-  onSessionTypesFetched($event: SessionTypeModel[]) {
-
+  onSessionTypesFetched($event: SessionTypeModel[]): void {
+    this.sessionTypes = $event;
   }
 
   async getAllSessionsAfterToday(): Promise<void> {
@@ -106,27 +107,34 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     );
   }
 
-  onLimitResultsChanged($event: any, sessions: 'all' | 'client-sessions') {
-
+  onLimitResultsChanged($event: any, sessions: 'all' | 'client-sessions'): void {
   }
 
-  fetchAllSessionsByDateRange(value: Date, value2: Date) {
-
+  fetchAllSessionsByDateRange(start: Date, end: Date): void {
   }
 
-  async fetchClientSessionsByDateRange(value: Date, value2: Date) {
+  async fetchClientSessionsByDateRange(start: Date, end: Date): Promise<void> {
   }
 
-  onAppointmentRendered($event: any) {
-
+  onAppointmentRendered($event: any): void {
   }
 
-  onAppointmentFormOpening($event: any) {
-
+  onAppointmentFormOpening($event: any): void {
+    $event.cancel = true;
+    const data = $event.appointmentData as CalendarItem;
+    this.filteredPackages = this.packages.filter(p => {
+      const ests = p.eligibleSessionTypes.filter(e => e.sessionTypeId === data.sessionTypeId);
+      for (const est of ests) {
+        if (est.timesUsed < est.maxUsages) {
+          return true;
+        }
+      }
+      return false;
+    });
+    this.showFilteredPackagesPopup = true;
   }
 
-  onSessionStatusChanged($event: any) {
-
+  onSessionStatusChanged($event: any): void {
   }
 
   private mapClientSessionsToSessions(): void {
@@ -146,6 +154,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         index,
         subscriptions: s.subscriptions.length,
         spots: s.spots,
+        sessionTypeId: s.sessionType.uid,
         color: this.getCellColor(s, mapped[s.uid])
       };
     });
@@ -185,4 +194,26 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     return 'blueviolet';
   }
 
+  populateSessionTypeTitle(est: ClientEligibleSessionTypeModel): string {
+    if (!this.sessionTypes || this.sessionTypes.length === 0) {
+      return 'loading ...';
+    }
+
+    const st = this.sessionTypes.find(s => s.uid === est.sessionTypeId);
+    return st ? st.title : 'N/A';
+  }
+
+  onFilteredPackagesToolbarPreparing(e: any): void {
+    e.toolbarOptions.items.unshift({
+      location: 'before',
+      widget: 'dxButton',
+      options: {
+        type: 'outlined',
+        text: 'SELECT',
+        onClick: () => {
+          console.log(this.dxFilteredPackagesGrid.instance.getSelectedRowsData())
+        }
+      }
+    });
+  }
 }

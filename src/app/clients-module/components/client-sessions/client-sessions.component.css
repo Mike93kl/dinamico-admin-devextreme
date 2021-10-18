@@ -87,3 +87,7 @@
   border: 1px solid #8f8c95;
   padding: 15px;
 }
+
+.vertical-align {
+  vertical-align: middle!important;
+}

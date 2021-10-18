@@ -277,7 +277,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
         return;
       }
       this.packageService.removePaymentFromClientPackage(this.client.uid, clientPackage.uid, $e.data.uniqueKey)
-        .then((removed) => {
+        .then(() => {
           this.loadingVisible = false;
           deferred.resolve();
         }).catch((e: FnError) => {
@@ -310,7 +310,6 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
   ///// ELIGIBLE SESSION TYPES - MAX USAGE UPDATE//
   ////////////////////////////////////////////////
   onEstMaxUsagesUpdating($event: any, data): void {
-    console.log($event)
     if (+$event.newData.maxUsages < 0) {
       this.popup.error(MSG_CC_EST_MAX_USAGES_ERROR);
       $event.cancel = true;
