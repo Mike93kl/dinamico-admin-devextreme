@@ -11,6 +11,12 @@ import {SessionModelV1} from '../../../models/SessionModelV1';
 import {PackagesService} from '../../../services/packages.service';
 import {ClientPackageModelV1} from '../../../models/ClientPackageModelV1';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
+import {
+  MSG_CSC_CONFIRM_SESSION_BOOK,
+  MSG_CSC_PLEASE_SELECT_A_CLIENT_PACKAGE_TO_SUB_TO_SESSION,
+  MSG_UNEXPECTED_ERROR_REFRESH_PAGE
+} from "../../../utils/ui_messages";
+import {FnError} from "../../../models/fn/FnResponseHandler";
 
 declare var $: any;
 
@@ -26,6 +32,7 @@ interface CalendarItem {
   spots: number;
   sessionTypeId: string;
   clientSession?: ClientSessionModelV1;
+  originalSession: SessionModelV1;
 }
 
 @Component({
@@ -60,6 +67,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   packagesSub: Subscription | undefined;
 
   sessionTypes: SessionTypeModel[];
+
+  selectedCalendarItem: CalendarItem;
 
   constructor(private clientService: ClientService,
               private popup: PopupService,
@@ -96,15 +105,33 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   }
 
   async getAllSessionsAfterToday(): Promise<void> {
-    this.allSessions = await firstValueFrom(
-      this.service.getAllSessionsAfterToday(this.allSessionLimit)
-    );
+    this.loadingVisible = true;
+    try {
+      this.allSessions = await firstValueFrom(
+        this.service.getAllSessionsAfterToday(this.allSessionLimit)
+      );
+      this.loadingVisible = false;
+    } catch (e) {
+      console.log(e);
+      this.loadingVisible = false;
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+    }
+    this.loadingVisible = false;
   }
 
   async getClientSessionsAfterToday(): Promise<void> {
-    this.clientSessions = await firstValueFrom(
-      this.service.getSessionsOfClient(this.client.uid, this.sessionStatus, this.clientSessionsLimit)
-    );
+    this.loadingVisible = true;
+    try {
+      this.clientSessions = await firstValueFrom(
+        this.service.getSessionsOfClient(this.client.uid, this.sessionStatus, this.clientSessionsLimit)
+      );
+      this.loadingVisible = false;
+    } catch (e) {
+      console.log(e);
+      this.loadingVisible = false;
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+    }
+
   }
 
   onLimitResultsChanged($event: any, sessions: 'all' | 'client-sessions'): void {
@@ -114,9 +141,6 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   }
 
   async fetchClientSessionsByDateRange(start: Date, end: Date): Promise<void> {
-  }
-
-  onAppointmentRendered($event: any): void {
   }
 
   onAppointmentFormOpening($event: any): void {
@@ -132,6 +156,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       return false;
     });
     this.showFilteredPackagesPopup = true;
+    this.selectedCalendarItem = data;
   }
 
   onSessionStatusChanged($event: any): void {
@@ -155,7 +180,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         subscriptions: s.subscriptions.length,
         spots: s.spots,
         sessionTypeId: s.sessionType.uid,
-        color: this.getCellColor(s, mapped[s.uid])
+        color: this.getCellColor(s, mapped[s.uid]),
+        originalSession: s
       };
     });
     this.dxScheduler?.instance.repaint();
@@ -194,6 +220,10 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     return 'blueviolet';
   }
 
+  onAppointmentRendered($event: any): void {
+    $event.appointmentElement.style.backgroundColor = $event.appointmentData.color;
+  }
+
   populateSessionTypeTitle(est: ClientEligibleSessionTypeModel): string {
     if (!this.sessionTypes || this.sessionTypes.length === 0) {
       return 'loading ...';
@@ -211,9 +241,46 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         type: 'outlined',
         text: 'SELECT',
         onClick: () => {
-          console.log(this.dxFilteredPackagesGrid.instance.getSelectedRowsData())
+          this.subscribeClientToSession().then().catch();
         }
       }
     });
   }
+
+  private async subscribeClientToSession(): Promise<void> {
+    if (!this.selectedCalendarItem) {
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+      return;
+    }
+    let selectedRow: any = this.dxFilteredPackagesGrid?.instance.getSelectedRowsData();
+    if (!selectedRow || selectedRow.length === 0) {
+      this.popup.error(MSG_CSC_PLEASE_SELECT_A_CLIENT_PACKAGE_TO_SUB_TO_SESSION);
+      return;
+    }
+    selectedRow = selectedRow[0]; // as ClientPackageModelV1;
+    this.popup.confirm(MSG_CSC_CONFIRM_SESSION_BOOK(this.client.fullName, selectedRow._package.title,
+        new Date(this.selectedCalendarItem.originalSession.startDate_ts), this.selectedCalendarItem.originalSession.sessionType.title)
+      , (confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        this.loadingVisible = true;
+        this.service.bookSessionForClient(this.client.uid, selectedRow.uid, this.selectedCalendarItem.sessionId)
+          .then(({clientSession, sessionSubscription}) => {
+            this.clientSessions.push(clientSession);
+            this.selectedCalendarItem.originalSession.subscriptions.push(sessionSubscription);
+            const length = this.selectedCalendarItem.originalSession.subscriptions.length;
+            this.selectedCalendarItem.originalSession.isFull = length >= this.selectedCalendarItem.originalSession.spots;
+            this.selectedCalendarItem = undefined;
+            this.mapClientSessionsToSessions();
+          }).catch((e: FnError) => {
+          this.popup.error(e.message);
+        }).finally(() => {
+          this.loadingVisible = false;
+          this.showFilteredPackagesPopup = false;
+          this.filteredPackages = [];
+        });
+      });
+  }
+
 }

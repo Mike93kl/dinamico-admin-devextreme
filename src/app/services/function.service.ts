@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AngularFireFunctions} from '@angular/fire/compat/functions';
 import {
   ADD_CLIENT_PACKAGE_PAYMENT,
-  ALTER_MAX_USAGES, BOOK_SESSION, CANCEL_CLIENT_SESSION,
+  ALTER_MAX_USAGES, BOOK_SESSION, BOOK_SESSION_FOR_CLIENT, CANCEL_CLIENT_SESSION,
   CLIENTS_ACTIVE_PACKAGES,
   CREATE_CLIENT, GET_ALL_PACKAGES_V1, GET_CLIENTS_OF_SESSION,
   GET_USER_CLAIMS,
@@ -23,6 +23,8 @@ import {FnResponse} from "../models/fn/FnResponse_v1";
 import {AddClientPackagePaymentFnResponse} from "../models/fn/AddClientPackagePaymentFnResponse";
 import {PaymentModel} from "../models/PaymentModel";
 import {ClientEligibleSessionTypeModel} from "../models/ClientEligibleSessionTypeModel";
+import {ClientSessionModelV1} from "../models/ClientSessionModelV1";
+import {SessionSubscriptionModel} from "../models/SessionSubscriptionModel";
 
 @Injectable({
   providedIn: 'root'
@@ -81,15 +83,6 @@ export class FunctionService {
     });
   }
 
-  bookSessionForClient(
-    sessionId: string,
-    clientPackageId: string
-  ):
-    Observable<FunctionResponse> {
-    return this.fn.httpsCallable(BOOK_SESSION)({
-      sessionId, clientPackageId
-    });
-  }
 
   cancelSession(clientSessionId: string, clientId: string): Observable<FunctionResponse> {
     return this.fn.httpsCallable(CANCEL_CLIENT_SESSION)({
@@ -132,6 +125,17 @@ export class FunctionService {
     return this.handle_fn_response(
       this.fn.httpsCallable(UPDATE_EST_MAX_USAGES)({
         clientId, clientPackageId, eligibleSessionTypeId, maxUsages
+      })
+    );
+  }
+
+  bookSessionForClient(clientId: string, clientPackageId: string, sessionId: string): Promise<{
+    clientSession: ClientSessionModelV1;
+    sessionSubscription: SessionSubscriptionModel
+  }> {
+    return this.handle_fn_response(
+      this.fn.httpsCallable(BOOK_SESSION_FOR_CLIENT)({
+        clientId, clientPackageId, sessionId
       })
     );
   }

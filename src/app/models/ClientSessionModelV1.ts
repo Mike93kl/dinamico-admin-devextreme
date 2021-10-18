@@ -6,7 +6,7 @@ export type SessionStatus = 'attended' | 'cancelled' | 'upcoming';
 export interface ClientSessionModelV1 extends Model {
   clientId: string;
   sessionId: string;
-  usedPackageId;
+  usedPackageId: string;
   status: SessionStatus;
   startDate_ts: number;
   endDate_ts: number;

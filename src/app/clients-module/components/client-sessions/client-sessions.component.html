@@ -71,8 +71,6 @@
 </div>
 
 
-
-
 <div class="sessions-view-option-wrapper">
   <h6>Client Sessions: </h6>
   <div class="calendar-view-options">
@@ -146,8 +144,6 @@
 </div>
 
 
-
-
 <div class="dot-group">
   <div class="dot-info">
     <div class="dot passed"></div>
@@ -205,6 +201,8 @@
   <div *dxTemplate="let model of 'appointment-template'">
     <div class="session-preview">
       <p>{{model.appointmentData.text}}</p>
+      <p><strong>{{model.appointmentData.subscriptions}}</strong> / <small>{{model.appointmentData.spots}}</small>
+        Subscribers</p>
     </div>
     <!--    <div class='session-type-preview'-->
     <!--    >-->
@@ -221,12 +219,13 @@
 
 <!-- Client packages popup -->
 
-<dx-popup title="{{ packages && filteredPackages && filteredPackages.length > 0  ? 'Select which package to use' : 'No packages found'}}"
-          class="all-packages-popup"
-          height="600"
-          width="800"
-          [closeOnOutsideClick]="false"
-          [(visible)]="showFilteredPackagesPopup">
+<dx-popup
+  title="{{ packages && filteredPackages && filteredPackages.length > 0  ? 'Select which package to use' : 'No packages found'}}"
+  class="all-packages-popup"
+  [height]="650"
+  [width]="1000"
+  [closeOnOutsideClick]="false"
+  [(visible)]="showFilteredPackagesPopup">
 
   <p class="text-danger" *ngIf="!packages"> Error fetching client packages, please refresh the page. </p>
   <p *ngIf="packages && filteredPackages && filteredPackages.length === 0">
@@ -234,55 +233,55 @@
     Please add a new package to this client, that contains an eligible session type
     matching this session's session type
   </p>
+  <dx-scroll-view width="100%" height="100%">
+    <dx-data-grid *ngIf="packages && filteredPackages && filteredPackages.length > 0"
+                  #filteredClientPackagesGrid
+                  id="filteredClientPackagesGrid"
+                  allowColumnResizing="true"
+                  (onToolbarPreparing)="onFilteredPackagesToolbarPreparing($event)"
+                  [dataSource]="filteredPackages"
+                  [showRowLines]="true"
+                  [showBorders]="true">
+      <dxo-selection mode="single"></dxo-selection>
+      <dxo-paging [pageSize]="3"></dxo-paging>
+      <dxo-pager
+        [showPageSizeSelector]="true"
+        [showInfo]="true">
+      </dxo-pager>
+      <dxo-search-panel
+        [visible]="true"
+        [width]="240"
+        placeholder="Search title...."></dxo-search-panel>
 
-  <dx-data-grid *ngIf="packages && filteredPackages && filteredPackages.length > 0"
-    #filteredClientPackagesGrid
-    id="filteredClientPackagesGrid"
-    allowColumnResizing="true"
-    (onToolbarPreparing)="onFilteredPackagesToolbarPreparing($event)"
-    [dataSource]="filteredPackages"
-    [showRowLines]="true"
-    [showBorders]="true">
-    <dxo-selection mode="single"></dxo-selection>
-    <dxo-paging [pageSize]="10"></dxo-paging>
-    <dxo-pager
-      [showPageSizeSelector]="true"
-      [allowedPageSizes]="[10, 20, 40]"
-      [showInfo]="true">
-    </dxo-pager>
-    <dxo-search-panel
-      [visible]="true"
-      [width]="240"
-      placeholder="Search title...."></dxo-search-panel>
+      <dxi-column dataField="_package.title" [allowResizing]="false" caption="Pkg. Title" dataType="text"></dxi-column>
+      <dxi-column dataField="eligibleSessionTypes" caption="E.S.T"
+                  cellTemplate="sessionTypesTemplate"></dxi-column>
 
-    <dxi-column dataField="_package.title"  [allowResizing]="false" caption="Pkg. Title" dataType="text"></dxi-column>
-    <dxi-column dataField="eligibleSessionTypes" caption="E.S.T"
-                cellTemplate="sessionTypesTemplate"></dxi-column>
+      <div *dxTemplate="let row of 'sessionTypesTemplate'">
+        <dx-data-grid
+          id="subContainer"
+          [dataSource]="row.data.eligibleSessionTypes"
+          [showBorders]="true">
 
-    <div *dxTemplate="let row of 'sessionTypesTemplate'" >
-      <dx-data-grid
-        id="subContainer"
-        [dataSource]="row.data.eligibleSessionTypes"
-        [showBorders]="true">
+          <dxi-column dataField="sessionType.title" caption="Session" [allowEditing]="false"
+                      cellTemplate="sessionTitleTemplate"></dxi-column>
+          <dxi-column dataField="timesUsed" [allowEditing]="false" caption="Used"></dxi-column>
+          <dxi-column dataField="maxUsages" caption="Max" cellTemplate="maxUsagesTemplate"></dxi-column>
 
-        <dxi-column dataField="sessionType.title" caption="Session" [allowEditing]="false" cellTemplate="sessionTitleTemplate"></dxi-column>
-        <dxi-column dataField="timesUsed" [allowEditing]="false" caption="Used"></dxi-column>
-        <dxi-column dataField="maxUsages" caption="Max" cellTemplate="maxUsagesTemplate"></dxi-column>
+          <div *dxTemplate="let elRow of 'maxUsagesTemplate'" class="max-usages-wrapper">
+            <p style="cursor: pointer"> {{ elRow.data.maxUsages }} </p>
+          </div>
 
-        <div *dxTemplate="let elRow of 'maxUsagesTemplate'" class="max-usages-wrapper">
-          <p style="cursor: pointer"> {{ elRow.data.maxUsages }} </p>
-        </div>
+          <div *dxTemplate="let elRow of 'sessionTitleTemplate'" class="max-usages-wrapper">
+            <p style="cursor: pointer"> {{ populateSessionTypeTitle(elRow.data) }} </p>
+          </div>
 
-        <div *dxTemplate="let elRow of 'sessionTitleTemplate'" class="max-usages-wrapper">
-          <p style="cursor: pointer"> {{ populateSessionTypeTitle(elRow.data) }} </p>
-        </div>
-
-      </dx-data-grid>
-    </div>
+        </dx-data-grid>
+      </div>
 
 
-  </dx-data-grid>
-
+    </dx-data-grid>
+  </dx-scroll-view>
 
 </dx-popup>
 

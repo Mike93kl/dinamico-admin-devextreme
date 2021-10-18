@@ -6,6 +6,7 @@ import {FunctionService} from './function.service';
 import {SessionModelV1} from '../models/SessionModelV1';
 import {ClientSessionModelV1, SessionStatus} from "../models/ClientSessionModelV1";
 import {CLIENT_SESSIONS} from "../utils/Collections";
+import {SessionSubscriptionModel} from "../models/SessionSubscriptionModel";
 
 @Injectable({
   providedIn: 'root'
@@ -74,5 +75,12 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
       }
       return q;
     }).valueChanges();
+  }
+
+  bookSessionForClient(clientId: string, clientPackageId: string, sessionId: string): Promise<{
+    clientSession: ClientSessionModelV1;
+    sessionSubscription: SessionSubscriptionModel
+  }> {
+    return this.fn.bookSessionForClient(clientId, clientPackageId, sessionId);
   }
 }

@@ -45,9 +45,6 @@ export class ClientService extends FirebaseService<ClientModel> {
     return this.fn.fetchClientsActivePackages(clientId, true, sessionTypeId);
   }
 
-  bookSession(sessionId: string, packageId: string): Observable<FunctionResponse> {
-    return this.fn.bookSessionForClient(sessionId, packageId);
-  }
 
   getClientPackages(uid: string, limit: number): Observable<ClientPackageModel[]> {
     return this.fs.collection<ClientPackageModel>(CLIENT_PACKAGES, ref => {

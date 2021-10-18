@@ -75,3 +75,13 @@ export const MSG_NAC_REPEAT_NO_LIMIT = (limit: number) => {
  */
 export const MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER = 'End date must be equal or greater than start date';
 export const MSG_AC_START_N_END_DATE_REQUIRED = 'Both start and end date are required fields';
+
+/**
+ * CLIENT SESSIONS COMPONENT
+ */
+export const MSG_CSC_PLEASE_SELECT_A_CLIENT_PACKAGE_TO_SUB_TO_SESSION = 'Please select a client package that can be used to subscribe client '
+  + 'to session';
+export function MSG_CSC_CONFIRM_SESSION_BOOK(clientName: string, packageName: string, sessionDate: Date, sessionTypeTitle: string): string {
+  return `You are about to book ${sessionTypeTitle} session @ ${sessionDate.toLocaleString('el-GR')} for "${clientName}", using
+   ${packageName}. Proceed?`;
+}
