@@ -85,6 +85,7 @@
     <div class="dot full"></div>
     <div>Full session</div>
   </div>
+
 </div>
 
 <dx-scheduler
@@ -214,7 +215,7 @@
           [width]="800"
           [height]="600"
           [showTitle]="true"
-          title="{{selectedSession.session.sessionType.title}} @ {{selectedSession.session.startDate_ts | date:'short'}} - {{selectedSession.session.endDate_ts | date:'shortTime'}}"
+          title="{{selectedSession.session.sessionType.title}} @ {{selectedSession.session.startDate | date:'short'}} - {{selectedSession.session.endDate | date:'shortTime'}}"
           [dragEnabled]="false"
           [closeOnOutsideClick]="true"
           [(visible)]="showSelectedSessionPopup">
@@ -329,7 +330,7 @@
 
 
 <!--Loader-->
-<dx-load-panel #loadPanel shadingColor="rgba(0,0,0,0.4)" [position]="{ of: '#scheduler' }"
+<dx-load-panel shadingColor="rgba(0,0,0,0.4)" [position]="{ of: '#scheduler' }"
                [(visible)]="loadingVisible"
                [showIndicator]="true" [showPane]="true" [shading]="true" [closeOnOutsideClick]="false">
 </dx-load-panel>

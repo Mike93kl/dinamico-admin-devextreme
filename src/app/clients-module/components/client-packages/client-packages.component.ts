@@ -23,7 +23,7 @@ import {FnError} from '../../../models/fn/FnResponseHandler';
 import {EligibleSessionTypeModel} from '../../../models/EligibleSessionTypeModel';
 import {CLIENT_PACKAGES} from '../../../utils/Collections';
 import {DxDataGridComponent} from 'devextreme-angular';
-
+import * as uuid from 'uuid';
 declare var $: any;
 
 @Component({
@@ -145,8 +145,8 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
 
       const canExpireByDate = c.canExpire;
       const eligibleSessionTypeIds = c.eligibleSessionTypes.map(e => e.sessionTypeId);
-      const eligibleSessionTypes: ClientEligibleSessionTypeModel[] = c.eligibleSessionTypes.map(e => {
-        return {...e, timesUsed: 0};
+      const eligibleSessionTypes: ClientEligibleSessionTypeModel[] = c.eligibleSessionTypes.map((e) => {
+        return {...e, timesUsed: 0, uniqueKey: uuid.v4()};
       });
       let expiryDate: number = null;
       if (canExpireByDate && c.daysToExpire > 0) {

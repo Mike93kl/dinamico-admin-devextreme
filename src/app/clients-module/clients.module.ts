@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
 import {ClientsComponent} from './components/clients/clients.component';
 import {ClientsRoutingModule} from './clients-routing.module';
+import {DxButtonModule, DxDateBoxModule, DxSelectBoxModule} from "devextreme-angular";
 import {
   DxDataGridModule,
   DxDrawerModule,
@@ -41,7 +42,10 @@ import {ScrollingModule} from "@angular/cdk/scrolling";
     FormsModule,
     DxLoadPanelModule,
     DxListModule,
-    ScrollingModule
+    ScrollingModule,
+    DxSelectBoxModule,
+    DxButtonModule,
+    DxDateBoxModule
   ],
   exports: [],
   providers: [

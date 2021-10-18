@@ -4,6 +4,8 @@ import {FirebaseService} from './FirebaseService';
 import {Observable} from 'rxjs';
 import {FunctionService} from './function.service';
 import {SessionModelV1} from '../models/SessionModelV1';
+import {ClientSessionModelV1, SessionStatus} from "../models/ClientSessionModelV1";
+import {CLIENT_SESSIONS} from "../utils/Collections";
 
 @Injectable({
   providedIn: 'root'
@@ -45,6 +47,32 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
       return ref.where('startDate_ts', '>', start.getTime())
         .where('startDate_ts', '<', end.getTime())
         .orderBy('startDate_ts', 'asc');
+    }).valueChanges();
+  }
+
+  getSessionsOfClient(uid: string, status: SessionStatus | 'all',
+                      limit = -1, from?: Date, to?: Date): Observable<ClientSessionModelV1[]> {
+    if (from) {
+      from.setHours(0, 1, 0, 0);
+    }
+    if (to) {
+      to.setHours(23, 59, 59, 0);
+    }
+    return this.fs.collection<ClientSessionModelV1>(CLIENT_SESSIONS, ref => {
+      let q = ref.orderBy('startDate_ts', 'asc');
+      if (from && to) {
+        q = q.where('startDate_ts', '>', from.getTime())
+          .where('startDate_ts', '<', to.getTime());
+      } else {
+        q = q.where('startDate_ts', '>', new Date().getTime());
+      }
+      if (status !== 'all') {
+        q = q.where('status', '==', status);
+      }
+      if (limit !== -1) {
+        q = q.limit(limit);
+      }
+      return q;
     }).valueChanges();
   }
 }

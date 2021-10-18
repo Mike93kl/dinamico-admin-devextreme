@@ -1,200 +1,225 @@
-<h5 class="text-center">Scheduled Sessions</h5>
+<h5 class="text-center">Sessions</h5>
 <hr>
 
-<div class="row">
-  <div class="col-4">
-    <div class="form-group">
-      <label for="l">Number of results:</label>
-      <select id="l" class="form-control" (change)="fetchAllSessions()" [disabled]="!clientSessions || clientSessions?.length === 0">
-        <option [ngValue]="100">100</option>
-        <option [ngValue]="200">200</option>
-        <option [ngValue]="400">400</option>
-        <option [ngValue]="500">500</option>
-      </select>
+<div class="top-action-button">
+  <a routerLink="/appointments/new" class="text-primary mx-2" data-toggle="tooltip" data-placement="top"
+     title="Create new Session Day">
+    <i class="far fa-calendar-plus" style="font-size: 2em; cursor: pointer"></i>
+  </a>
+
+  <app-session-types-v1 [showDumbbellIcon]="true"
+                        data-toggle="tooltip" data-placement="top"
+                        title="View or create session types"
+                        (onSessionTypesFetched)="onSessionTypesFetched($event)"
+  ></app-session-types-v1>
+</div>
+
+<div class="sessions-view-option-wrapper">
+  <h6>All Sessions: </h6>
+  <div class="calendar-view-options">
+
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="calendarViewOptions" id="todayNAfter"
+             [value]="false" [(ngModel)]="showDateRangeOfAllSessions" (click)="getAllSessionsAfterToday()">
+      <label class="form-check-label" for="todayNAfter">
+        Show today and after
+      </label>
     </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="calendarViewOptions" id="range"
+             [value]="true" [(ngModel)]="showDateRangeOfAllSessions">
+      <label class="form-check-label" for="range">
+        Date range
+      </label>
+    </div>
+
+  </div>
+
+
+  <div class="dx-fieldset" *ngIf="!showDateRangeOfAllSessions">
+    <div class="dx-field">
+      <div class="dx-field-label">All sessions - showing <strong>{{allSessionLimit}}</strong> Results</div>
+      <div class="dx-field-value">
+        <dx-select-box (valueChange)="onLimitResultsChanged($event, 'all')"
+                       [value]="allSessionLimit"
+                       [items]="[100, 200, 400, 500]"></dx-select-box>
+      </div>
+    </div>
+  </div>
+
+  <div class="date-range-options" *ngIf="showDateRangeOfAllSessions">
+
+    <dx-date-box class="my-3"
+                 #dateStart
+                 type="date">
+    </dx-date-box>
+
+    <dx-date-box class="my-3"
+                 #dateEnd
+                 type="date">
+    </dx-date-box>
+
+    <dx-button
+      stylingMode="outlined"
+      text="Go"
+      type="normal"
+      [width]="120"
+      (onClick)="fetchAllSessionsByDateRange(dateStart.value, dateEnd.value)">
+    </dx-button>
+
   </div>
 </div>
 
 
-<div class="row mt-3">
-  <div class="col-3">
-    <span class="dot" style="background-color: #21890a"></span> Session is full
+
+
+<div class="sessions-view-option-wrapper">
+  <h6>Client Sessions: </h6>
+  <div class="calendar-view-options">
+
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="calendarViewOptions1" id="todayNAfter1"
+             [value]="false" [(ngModel)]="showDateRangeOfClientSessions" (click)="getClientSessionsAfterToday()">
+      <label class="form-check-label" for="todayNAfter1">
+        Show today and after
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="calendarViewOptions1" id="range1"
+             [value]="true" [(ngModel)]="showDateRangeOfClientSessions">
+      <label class="form-check-label" for="range1">
+        Date range
+      </label>
+    </div>
+
   </div>
-  <div class="col-3">
-    <span class="dot" style="background-color: #895de7"></span> Subscribed
+
+
+  <div class="dx-fieldset" *ngIf="!showDateRangeOfClientSessions">
+    <div class="dx-field">
+      <div class="dx-field-label">Client sessions - showing <strong>{{clientSessionsLimit}}</strong> Results</div>
+      <div class="dx-field-value">
+        <dx-select-box (valueChange)="onLimitResultsChanged($event, 'client-sessions')"
+                       [value]="clientSessionsLimit"
+                       [items]="[100, 200, 400, 500]"></dx-select-box>
+      </div>
+    </div>
   </div>
-  <div class="col-3">
-    <span class="dot" style="background-color: #a33232"></span> Canceled
-  </div>
-  <div class="col-3">
-    <span class="dot" style="background-color: #2575a0"></span> Open
+
+  <div class="date-range-options" *ngIf="showDateRangeOfClientSessions">
+
+    <dx-date-box class="my-3"
+                 #dateStart
+                 type="date">
+    </dx-date-box>
+
+    <dx-date-box class="my-3"
+                 #dateEnd
+                 type="date">
+    </dx-date-box>
+
+    <dx-button
+      stylingMode="outlined"
+      text="Go"
+      type="normal"
+      [width]="120"
+      (onClick)="fetchClientSessionsByDateRange(dateStart.value, dateEnd.value)">
+    </dx-button>
+
   </div>
 </div>
 
-<div class="row" *ngIf="allSessions && clientSessions">
-  <div class="col-12">
-    <dx-scheduler
-      #scheduler
-      class="my-5"
-      timeZone="Europe/Athens"
-      [dataSource]="allSessions"
-      [views]="['month','week','day', 'timelineDay']"
-      currentView="month"
-      [currentDate]="currentDate"
-      [firstDayOfWeek]="1"
-      [startDayHour]="6"
-      [endDayHour]="22"
-      [showAllDayPanel]="false"
-      [height]="500"
-      (onAppointmentFormOpening)="onAppointmentFormOpening($event)"
-      (onAppointmentRendered)="onAppointmentRendered($event)"
-            (onAppointmentDeleting)="onAppointmentDeleting($event)">
-      <dxo-editing
-        [allowAdding]="true"
-        [allowDeleting]="true"
-        [allowUpdating]="false"
-        [allowResizing]="true"
-        [allowDragging]="false"
-      ></dxo-editing>
-    </dx-scheduler>
+
+<div class="sessions-view-option-wrapper">
+
+  <div class="dx-fieldset" *ngIf="!showDateRangeOfClientSessions">
+    <div class="dx-field">
+      <div class="dx-field-label">Showing <strong>{{sessionStatus}}</strong> sessions</div>
+      <div class="dx-field-value">
+        <dx-select-box (valueChange)="onSessionStatusChanged($event)"
+                       [value]="sessionStatus"
+                       [items]="['attended', 'cancelled', 'upcoming', 'all']"></dx-select-box>
+      </div>
+    </div>
   </div>
+
 </div>
 
 
-<!--Book session for client popup-->
-<dx-popup *ngIf="showSessionsForDatePopup"
-          width="700"
-          height="650"
-          [showTitle]="true"
-          title="Choose a package to book session for client"
-          [closeOnOutsideClick]="false"
-          [(visible)]="showSessionsForDatePopup">
-  <div class="list-container">
-    <div class="row">
-      <div class="col-12">
-        <button class="btn btn-outline-primary float-right" *ngIf="sessionsForDate?.length > 0"
-                (click)="initNewSessionObject(getDate(sessionsForDate[0].startDate), getDate(sessionsForDate[0].endDate), true)"
-        >new session</button>
-      </div>
-    </div>
-    <hr>
-    <p class="text-center">
-      <i>Double click to choose session</i>
-    </p>
-    <small class="text-center">Sessions marked with red are full</small>
-    <dx-list
-      #list
-      [dataSource]="sessionsForDate"
-      [height]="650"
-      [searchEnabled]="true"
-      searchExpr="title"
-      searchMode="contains">
-      <div *dxTemplate="let data of 'item'">
-        <div class="row">
-          <div class="col-8">
-            <h6 *ngIf="!data.isFull" style="cursor: pointer" (dblclick)="selectSessionToBook(data)"
-            >{{ data.sessionType.title }}</h6>
-            <h6 *ngIf="data.isFull"
-            >{{ data.sessionType.title }}</h6>
-          </div>
-          <div class="col-4">
-            <i *ngIf="!data.isFull" class="fas fa-check-circle text-success"></i>
-            <i *ngIf="data.isFull" class="fas fa-times text-danger"></i>
-          </div>
-        </div>
-      </div>
-    </dx-list>
+
+
+<div class="dot-group">
+  <div class="dot-info">
+    <div class="dot passed"></div>
+    <div>Passed session</div>
   </div>
-</dx-popup>
-
-<!--Active packages for session-->
-<dx-popup *ngIf="showActivePackagesPopup"
-          width="700"
-          height="650"
-          [showTitle]="true"
-          title="Choose a package to book session for client"
-          [closeOnOutsideClick]="false"
-          [(visible)]="showActivePackagesPopup">
-  <div class="list-container">
-    <p class="text-center">
-      <i>Click to view details, double click to choose package</i>
-    </p>
-    <dx-list
-      #list
-      [dataSource]="clientsActivePackagesForSession"
-      [height]="650"
-      [searchEnabled]="true"
-      searchExpr="title"
-      searchMode="contains">
-
-      <div *dxTemplate="let data of 'item'">
-        <div class="row">
-          <div [ngClass]="{'col-12': !data.canExpireByDate, 'col-6': data.canExpireByDate}">
-            <h6 (dblclick)="selectPackageForSession(data)" style="cursor: pointer"
-                (click)="data.collapsed = !data.collapsed">{{ data._package ? data._package.title : data.title }}</h6>
-          </div>
-          <div [ngClass]="{'col-6': data.canExpireByDate}" *ngIf="data.canExpireByDate">
-            <p><i>Expires at: {{ data.expiryDate.seconds * 1000 | date }}</i></p>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-12">
-            <div *ngIf="data.collapsed" style="padding: 20px">
-              <p *ngFor="let el of data.eligibleSessionTypes">
-                {{ el.sessionType.title }}, {{ el.maxUsages - el.timesUsed }} usages left
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </dx-list>
+  <div class="dot-info">
+    <div class="dot open"></div>
+    <div>Open session</div>
   </div>
-</dx-popup>
+  <div class="dot-info">
+    <div class="dot full"></div>
+    <div>Full session</div>
+  </div>
+  <div class="dot-info">
+    <div class="dot client-session-dot"></div>
+    <div>Client session</div>
+  </div>
+  <div class="dot-info">
+    <div class="dot client-session-cancelled-dot"></div>
+    <div>Cancelled session</div>
+  </div>
 
-<!-- new session popup -->
-<!-- Selected Package Popup -->
-<dx-popup *ngIf="showCreateNewSessionPopup"
-          width="700"
-          height="650"
-          [showTitle]="true"
-          title="Create new session"
-          [closeOnOutsideClick]="false"
-          [(visible)]="showCreateNewSessionPopup">
-  <dx-scroll-view width="100%" height="100%">
-    <div style="padding: 20px">
+  <div class="dot-info">
+    <div class="dot passed-subscribed"></div>
+    <div>Passed subscribed session</div>
+  </div>
+  <div class="dot-info">
+    <div class="dot full-subscribed"></div>
+    <div>Full subscribed session</div>
+  </div>
+</div>
 
-      <div class="form-group">
-        <label>Date: </label>
-        <input type="text" disabled value="{{ newSession.dateStr }}" class="form-control">
-      </div>
+<dx-scheduler
+  id="scheduler"
+  timeZone="Europe/Athens"
+  [dataSource]="calendarItems"
+  [views]='["month", "week", "day", "timelineDay"]'
+  currentView="day"
+  firstDayOfWeek="1"
+  [currentDate]="currentDate"
+  [startDayHour]="6"
+  [endDayHour]="23"
+  [height]="650"
+  appointmentTemplate="appointment-template"
+  (onAppointmentRendered)="onAppointmentRendered($event)"
+  (onAppointmentFormOpening)="onAppointmentFormOpening($event)">
+  <dxo-editing
+    [allowAdding]="false"
+    [allowDeleting]="false"
+    [allowUpdating]="false"
+    [allowResizing]="false"
+    [allowDragging]="false"
+  ></dxo-editing>
 
-      <div class="form-group">
-        <label>Start Time - End Time: </label>
-        <input type="text" disabled value="{{formatStartAndEndTime(newSession)}}" class="form-control">
-      </div>
-
-      <div class="form-group">
-        <label>Spots: </label>
-        <input type="number" [(ngModel)]="newSession.spots" class="form-control">
-      </div>
-
-      <div class="form-group">
-        <label>Session Type: </label>
-        <select [(ngModel)]="newSession.sessionTypeId" class="form-control">
-          <option *ngFor="let t of sessionTypes" value="{{ t.uid }}">{{ t.title }}</option>
-        </select>
-      </div>
-
-      <button (click)="createSession()" class="btn btn-outline-primary form-control">Create session</button>
-
+  <div *dxTemplate="let model of 'appointment-template'">
+    <div class="session-preview">
+      <p>{{model.appointmentData.text}}</p>
     </div>
-  </dx-scroll-view>
-</dx-popup>
+    <!--    <div class='session-type-preview'-->
+    <!--    >-->
 
+    <!--      <div>{{model.appointmentData.text}} Session</div>-->
+    <!--      <div>Subscribers-->
+    <!--        <strong>{{model.appointmentData.subscriptions.length}} / {{ model.appointmentData.spots }}</strong>-->
+    <!--      </div>-->
+    <!--    </div>-->
+  </div>
+
+</dx-scheduler>
 
 <!--Loader-->
 <dx-load-panel
-  #loadPanel
   shadingColor="rgba(0,0,0,0.4)"
   [position]="{ of: '#scheduler' }"
   [(visible)]="loadingVisible"

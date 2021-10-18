@@ -1,7 +1,89 @@
+.top-action-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 12px;
+}
+
+.calendar-view-options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px;
+}
+
+.date-range-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 12px;
+}
+
+.session-full {
+  background-color: forestgreen;
+}
+
+.dot-group {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 2px;
+}
+
+.dot-info {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
 .dot {
   height: 15px;
   width: 15px;
   background-color: #bbb;
   border-radius: 50%;
   display: inline-block;
+}
+
+.full {
+  background-color: #099c15;
+}
+
+.open {
+  background-color: #306CC7;
+}
+
+.passed {
+  background-color: #8f8c95;
+}
+
+.passed-subscribed {
+  background-color: #c2abec;
+}
+
+.full-subscribed {
+  background-color: #326433;
+}
+
+.client-session-dot {
+  background-color: blueviolet;
+}
+
+.client-session-cancelled-dot {
+  background-color: #e77070;
+}
+
+.sessions-view-option-wrapper {
+  border: 1px solid #8f8c95;
+  padding: 15px;
 }
