@@ -81,7 +81,20 @@ export const MSG_AC_START_N_END_DATE_REQUIRED = 'Both start and end date are req
  */
 export const MSG_CSC_PLEASE_SELECT_A_CLIENT_PACKAGE_TO_SUB_TO_SESSION = 'Please select a client package that can be used to subscribe client '
   + 'to session';
+
 export function MSG_CSC_CONFIRM_SESSION_BOOK(clientName: string, packageName: string, sessionDate: Date, sessionTypeTitle: string): string {
   return `You are about to book ${sessionTypeTitle} session @ ${sessionDate.toLocaleString('el-GR')} for "${clientName}", using
    ${packageName}. Proceed?`;
 }
+
+export function MSG_CSC_CONFIRM_CANCEL_SESSION(startDate: Date): string {
+  return `You are about cancel session @ ${startDate.toLocaleString('el-GR')}. Client package usage will be restored. Proceed?`;
+}
+
+export const MSG_CSC_CANCEL_SESSION_SUCCESSFUL_BUT_FAILED_TO_UPDATE = 'Cancelling session was a success, but failed to update the UI. ' +
+  'Please refresh the page';
+export const MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED = 'You have selected to fetch data based on date range but start or end date is empty.';
+export const MSG_CSC_REQUESTED_CLIENT_SESSION_DATES_MUST_BE_BETWEEN_SELECTED_ALL_SESSIONS_DATE = 'Requested date range of client sessions must be ' +
+  'between the date range of all sessions';
+export const MSG_CSC_CLIENT_SESSION_REQUESTED_LIMIT_MUST_BE_LESS_OR_EQUAL_TO_ALL_SESSIONS_LIMIT = 'Requested client session result limit, must be ' +
+  'less or equal to all sessions result limit';

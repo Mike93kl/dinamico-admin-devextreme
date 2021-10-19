@@ -6,17 +6,22 @@ import {ClientModel} from '../../../models/ClientModel';
 import {firstValueFrom, Subscription} from 'rxjs';
 import {ClientSessionModelV1, SessionStatus} from '../../../models/ClientSessionModelV1';
 import {SessionServiceV1} from '../../../services/session.service-v1';
-import {DxDataGridComponent, DxSchedulerComponent} from 'devextreme-angular';
+import {DxDataGridComponent, DxDateBoxComponent, DxSchedulerComponent} from 'devextreme-angular';
 import {SessionModelV1} from '../../../models/SessionModelV1';
 import {PackagesService} from '../../../services/packages.service';
 import {ClientPackageModelV1} from '../../../models/ClientPackageModelV1';
 import {ClientEligibleSessionTypeModel} from '../../../models/ClientEligibleSessionTypeModel';
 import {
+  MSG_CSC_CANCEL_SESSION_SUCCESSFUL_BUT_FAILED_TO_UPDATE,
+  MSG_CSC_CLIENT_SESSION_REQUESTED_LIMIT_MUST_BE_LESS_OR_EQUAL_TO_ALL_SESSIONS_LIMIT,
+  MSG_CSC_CONFIRM_CANCEL_SESSION,
   MSG_CSC_CONFIRM_SESSION_BOOK,
+  MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED,
   MSG_CSC_PLEASE_SELECT_A_CLIENT_PACKAGE_TO_SUB_TO_SESSION,
+  MSG_CSC_REQUESTED_CLIENT_SESSION_DATES_MUST_BE_BETWEEN_SELECTED_ALL_SESSIONS_DATE,
   MSG_UNEXPECTED_ERROR_REFRESH_PAGE
-} from "../../../utils/ui_messages";
-import {FnError} from "../../../models/fn/FnResponseHandler";
+} from '../../../utils/ui_messages';
+import {FnError} from '../../../models/fn/FnResponseHandler';
 
 declare var $: any;
 
@@ -43,6 +48,11 @@ interface CalendarItem {
 export class ClientSessionsComponent implements OnInit, OnDestroy {
   @ViewChild(DxSchedulerComponent) dxScheduler: DxSchedulerComponent | undefined;
   @ViewChild('filteredClientPackagesGrid') dxFilteredPackagesGrid: DxDataGridComponent | undefined;
+  @ViewChild('clientSessionDateStart') dxClientSessionDateStart: DxDateBoxComponent | undefined;
+  @ViewChild('clientSessionDateEnd') dxClientSessionDateEnd: DxDateBoxComponent | undefined;
+  @ViewChild('allSessionsDateStart') dxAllSessionsDateStart: DxDateBoxComponent | undefined;
+  @ViewChild('allSessionsDateEnd') dxAllSessionsDateEnd: DxDateBoxComponent | undefined;
+
   @Input() client: ClientModel;
 
   currentDate = new Date();
@@ -57,7 +67,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
 
   calendarItems: CalendarItem[] = [];
 
-  allSessions: SessionModelV1[] = [];
+  allSessions: SessionModelV1[] = undefined;
   clientSessions: ClientSessionModelV1[] = [];
 
   packages: ClientPackageModelV1[] = [];
@@ -65,6 +75,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   filteredPackages: ClientPackageModelV1[];
   showFilteredPackagesPopup = false;
   packagesSub: Subscription | undefined;
+
+  showSelectedCalendarItemPopup = false;
 
   sessionTypes: SessionTypeModel[];
 
@@ -78,10 +90,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getClientSessionsAfterToday()
-      .then(() => {
-        this.getAllSessionsAfterToday()
-          .then(() => this.mapClientSessionsToSessions());
-      });
+      .then();
 
     this.packagesSub = this.packagesService.getPackagesOfClient(this.client.uid, true, -1)
       .subscribe({
@@ -111,6 +120,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         this.service.getAllSessionsAfterToday(this.allSessionLimit)
       );
       this.loadingVisible = false;
+      this.mapClientSessionsToSessions();
     } catch (e) {
       console.log(e);
       this.loadingVisible = false;
@@ -125,6 +135,10 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       this.clientSessions = await firstValueFrom(
         this.service.getSessionsOfClient(this.client.uid, this.sessionStatus, this.clientSessionsLimit)
       );
+      if (!this.allSessions) {
+        await this.getAllSessions();
+      }
+      this.mapClientSessionsToSessions();
       this.loadingVisible = false;
     } catch (e) {
       console.log(e);
@@ -135,31 +149,121 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   }
 
   onLimitResultsChanged($event: any, sessions: 'all' | 'client-sessions'): void {
+    console.log($event)
+    if (sessions === 'client-sessions') {
+      if ($event > this.allSessionLimit) {
+        this.popup.error(MSG_CSC_CLIENT_SESSION_REQUESTED_LIMIT_MUST_BE_LESS_OR_EQUAL_TO_ALL_SESSIONS_LIMIT);
+        return;
+      }
+      this.clientSessionsLimit = $event;
+      this.getClientSessions().then();
+      return;
+    }
+    this.allSessionLimit = $event;
+    this.getAllSessions().then();
   }
 
-  fetchAllSessionsByDateRange(start: Date, end: Date): void {
+  async fetchAllSessionsByDateRange(start: Date, end: Date): Promise<void> {
+    let clientSessionStart: Date;
+    if (!this.showDateRangeOfClientSessions) {
+      clientSessionStart = new Date(this.currentDate);
+      clientSessionStart.setHours(0, 1, 0, 0);
+    } else {
+      clientSessionStart = this.dxClientSessionDateStart?.value as Date;
+      if (!clientSessionStart) {
+        this.popup.error(MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED + ` (client sessions)`);
+        return;
+      }
+    }
+
+    if (clientSessionStart.getTime() < start.getTime()) {
+      this.popup.error(MSG_CSC_REQUESTED_CLIENT_SESSION_DATES_MUST_BE_BETWEEN_SELECTED_ALL_SESSIONS_DATE);
+      return;
+    }
+
+    if (this.showDateRangeOfClientSessions) {
+      const clientSessionEndDate = this.dxClientSessionDateEnd?.value as Date;
+      if (!clientSessionEndDate) {
+        this.popup.error(MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED + ` (client sessions)`);
+        return;
+      }
+
+      if (clientSessionEndDate.getTime() > end.getTime()) {
+        this.popup.error(MSG_CSC_REQUESTED_CLIENT_SESSION_DATES_MUST_BE_BETWEEN_SELECTED_ALL_SESSIONS_DATE);
+        return;
+      }
+    }
+
+    this.loadingVisible = true;
+    try {
+      this.allSessions = await firstValueFrom(
+        this.service.getByDateRange(start, end)
+      );
+      this.loadingVisible = false;
+      this.mapClientSessionsToSessions();
+    } catch (e) {
+      console.log(e);
+      this.loadingVisible = false;
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+    } finally {
+      this.loadingVisible = false;
+    }
   }
 
   async fetchClientSessionsByDateRange(start: Date, end: Date): Promise<void> {
-  }
-
-  onAppointmentFormOpening($event: any): void {
-    $event.cancel = true;
-    const data = $event.appointmentData as CalendarItem;
-    this.filteredPackages = this.packages.filter(p => {
-      const ests = p.eligibleSessionTypes.filter(e => e.sessionTypeId === data.sessionTypeId);
-      for (const est of ests) {
-        if (est.timesUsed < est.maxUsages) {
-          return true;
-        }
+    start.setHours(0, 1, 0, 0);
+    end.setHours(23, 59, 59, 0);
+    let allSessionsStart: Date;
+    if (!this.showDateRangeOfAllSessions) {
+      allSessionsStart = new Date(this.currentDate);
+      allSessionsStart.setHours(0, 1, 0, 0);
+    } else {
+      allSessionsStart = this.dxAllSessionsDateStart?.value as Date;
+      if (!allSessionsStart) {
+        this.popup.error(MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED + ` (all sessions)`);
+        return;
       }
-      return false;
-    });
-    this.showFilteredPackagesPopup = true;
-    this.selectedCalendarItem = data;
+    }
+
+    if (allSessionsStart.getTime() > start.getTime()) {
+      this.popup.error(MSG_CSC_REQUESTED_CLIENT_SESSION_DATES_MUST_BE_BETWEEN_SELECTED_ALL_SESSIONS_DATE);
+      return;
+    }
+
+    if (this.showDateRangeOfAllSessions) {
+      const allSessionsDateEnd = this.dxAllSessionsDateEnd?.value as Date;
+      if (!allSessionsDateEnd) {
+        this.popup.error(MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED + ` (all sessions)`);
+        return;
+      }
+
+      if (allSessionsDateEnd.getTime() < end.getTime()) {
+        this.popup.error(MSG_CSC_REQUESTED_CLIENT_SESSION_DATES_MUST_BE_BETWEEN_SELECTED_ALL_SESSIONS_DATE);
+        return;
+      }
+    }
+
+    try {
+      this.loadingVisible = true;
+      this.clientSessions = await firstValueFrom(
+        this.service.getSessionsOfClient(this.client.uid, this.sessionStatus, -1, start, end)
+      );
+      if (!this.allSessions) {
+        await this.getAllSessions();
+      }
+      this.mapClientSessionsToSessions();
+    } catch (e) {
+      console.log(e);
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+    } finally {
+      this.loadingVisible = false;
+    }
   }
 
-  onSessionStatusChanged($event: any): void {
+
+  onSessionStatusChanged($event: SessionStatus | 'all'): void {
+    this.sessionStatus = $event;
+    this.getClientSessions().then().catch();
   }
 
   private mapClientSessionsToSessions(): void {
@@ -201,7 +305,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     }
 
     const subscription = session.subscriptions.find(s => s.sessionId === clientSession.sessionId);
-    if (!subscription) {
+    if (clientSession && !subscription && clientSession.status !== 'cancelled') {
       return '#000000';
     }
 
@@ -278,9 +382,112 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
         }).finally(() => {
           this.loadingVisible = false;
           this.showFilteredPackagesPopup = false;
-          this.filteredPackages = [];
+          this.filteredPackages = undefined;
         });
       });
   }
 
+  populateUsedPackageTitle(usedPackageId: string): string {
+    if (!this.packages || this.packages.length === 0) {
+      return 'N/A';
+    }
+
+    const pkg = this.packages.find(p => p.uid === usedPackageId);
+    if (!pkg) {
+      return 'N/A';
+    }
+    return pkg._package.title;
+  }
+
+  onSubscribeClientToSession(): void {
+    if (!this.selectedCalendarItem.clientSession) {
+      this.filteredPackages = this.packages.filter(p => {
+        const ests = p.eligibleSessionTypes.filter(e => e.sessionTypeId === this.selectedCalendarItem.sessionTypeId);
+        for (const est of ests) {
+          if (est.timesUsed < est.maxUsages) {
+            return true;
+          }
+        }
+        return false;
+      });
+      this.showFilteredPackagesPopup = true;
+    }
+  }
+
+  onAppointmentFormOpening($event: any): void {
+    $event.cancel = true;
+    this.selectedCalendarItem = $event.appointmentData as CalendarItem;
+    this.showSelectedCalendarItemPopup = true;
+
+  }
+
+  populatesSessionInfoOfClient(clientSession: ClientSessionModelV1): string {
+    if (clientSession.status === 'upcoming') {
+      return 'is subscribed to this session';
+    }
+    const cls = clientSession.status === 'cancelled' ? 'danger' : 'primary';
+
+    return `has <i class="text-${cls}">${clientSession.status} this session</i>`;
+  }
+
+  onCancelSession(): void {
+    this.popup.confirm(MSG_CSC_CONFIRM_CANCEL_SESSION(this.selectedCalendarItem.startDate), confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.loadingVisible = true;
+      this.service.cancelCessionForClient(this.client.uid,
+        this.selectedCalendarItem.clientSession.uid,
+        this.selectedCalendarItem.sessionId)
+        .then((session: ClientSessionModelV1) => {
+          const index = this.clientSessions.findIndex(c => c.uid === session.uid);
+          if (index === -1) {
+            this.popup.error(MSG_CSC_CANCEL_SESSION_SUCCESSFUL_BUT_FAILED_TO_UPDATE);
+            return;
+          }
+          this.clientSessions[index] = session;
+          this.selectedCalendarItem = undefined;
+          this.showSelectedCalendarItemPopup = false;
+          this.mapClientSessionsToSessions();
+        }).catch((e: FnError) => {
+        this.popup.error(e.message);
+      }).finally(() => {
+        this.loadingVisible = false;
+      });
+
+
+    });
+  }
+
+  private async getClientSessions(): Promise<void> {
+    if (!this.showDateRangeOfClientSessions) {
+      await this.getClientSessionsAfterToday();
+      return;
+    }
+
+    const start = this.dxClientSessionDateStart?.value as Date;
+    const end = this.dxClientSessionDateEnd?.value as Date;
+    if (!start || !end) {
+      this.popup.error(MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED + ` (client sessions) `);
+      return;
+    }
+    await this.fetchClientSessionsByDateRange(start, end);
+  }
+
+  private async getAllSessions(): Promise<void> {
+    if (!this.showDateRangeOfAllSessions) {
+      await this.getAllSessionsAfterToday();
+      return;
+    }
+
+    const start = this.dxAllSessionsDateStart?.value as Date;
+    const end = this.dxAllSessionsDateStart?.value as Date;
+    if (!start || !end) {
+      this.popup.error(MSG_CSC_DATE_RANGE_SELECTED_BUT_NOT_FILLED + ` (All sessions)`);
+      return;
+    }
+    await this.fetchAllSessionsByDateRange(start, end);
+
+  }
 }

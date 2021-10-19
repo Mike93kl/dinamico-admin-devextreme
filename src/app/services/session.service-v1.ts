@@ -44,6 +44,8 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
   }
 
   getByDateRange(start: Date, end: Date): Observable<SessionModelV1[]> {
+    start.setHours(0, 1, 0 , 0);
+    end.setHours(23, 59, 59, 0);
     return this.fs.collection<SessionModelV1>(this.collection, ref => {
       return ref.where('startDate_ts', '>', start.getTime())
         .where('startDate_ts', '<', end.getTime())
@@ -82,5 +84,9 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
     sessionSubscription: SessionSubscriptionModel
   }> {
     return this.fn.bookSessionForClient(clientId, clientPackageId, sessionId);
+  }
+
+  cancelCessionForClient(clientId: string, clientSessionId: string, sessionId: string): Promise<ClientSessionModelV1> {
+    return this.fn.cancelSessionForClient(clientId, clientSessionId, sessionId);
   }
 }

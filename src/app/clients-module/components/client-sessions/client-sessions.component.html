@@ -50,12 +50,12 @@
   <div class="date-range-options" *ngIf="showDateRangeOfAllSessions">
 
     <dx-date-box class="my-3"
-                 #dateStart
+                 #allSessionsDateStart
                  type="date">
     </dx-date-box>
 
     <dx-date-box class="my-3"
-                 #dateEnd
+                 #allSessionsDateEnd
                  type="date">
     </dx-date-box>
 
@@ -64,7 +64,7 @@
       text="Go"
       type="normal"
       [width]="120"
-      (onClick)="fetchAllSessionsByDateRange(dateStart.value, dateEnd.value)">
+      (onClick)="fetchAllSessionsByDateRange(allSessionsDateStart.value, allSessionsDateEnd.value)">
     </dx-button>
 
   </div>
@@ -93,7 +93,7 @@
   </div>
 
 
-  <div class="dx-fieldset" *ngIf="!showDateRangeOfClientSessions">
+  <div class="dx-fieldset" [ngClass]="{'hide': showDateRangeOfClientSessions}">
     <div class="dx-field">
       <div class="dx-field-label">Client sessions - showing <strong>{{clientSessionsLimit}}</strong> Results</div>
       <div class="dx-field-value">
@@ -104,15 +104,15 @@
     </div>
   </div>
 
-  <div class="date-range-options" *ngIf="showDateRangeOfClientSessions">
+  <div class="date-range-options" [ngClass]="{'hide': !showDateRangeOfClientSessions}">
 
     <dx-date-box class="my-3"
-                 #dateStart
+                 #clientSessionDateStart
                  type="date">
     </dx-date-box>
 
     <dx-date-box class="my-3"
-                 #dateEnd
+                 #clientSessionDateEnd
                  type="date">
     </dx-date-box>
 
@@ -121,7 +121,7 @@
       text="Go"
       type="normal"
       [width]="120"
-      (onClick)="fetchClientSessionsByDateRange(dateStart.value, dateEnd.value)">
+      (onClick)="fetchClientSessionsByDateRange(clientSessionDateStart.value, clientSessionDateEnd.value)">
     </dx-button>
 
   </div>
@@ -130,7 +130,7 @@
 
 <div class="sessions-view-option-wrapper">
 
-  <div class="dx-fieldset" *ngIf="!showDateRangeOfClientSessions">
+  <div class="dx-fieldset">
     <div class="dx-field">
       <div class="dx-field-label">Showing <strong>{{sessionStatus}}</strong> sessions</div>
       <div class="dx-field-value">
@@ -201,6 +201,7 @@
   <div *dxTemplate="let model of 'appointment-template'">
     <div class="session-preview">
       <p>{{model.appointmentData.text}}</p>
+      <p *ngIf="model.appointmentData.clientSession">Status: {{model.appointmentData.clientSession.status}} </p>
       <p><strong>{{model.appointmentData.subscriptions}}</strong> / <small>{{model.appointmentData.spots}}</small>
         Subscribers</p>
     </div>
@@ -217,7 +218,7 @@
 </dx-scheduler>
 
 
-<!-- Client packages popup -->
+<!-- select Client package popup to subscribe to session -->
 
 <dx-popup
   title="{{ packages && filteredPackages && filteredPackages.length > 0  ? 'Select which package to use' : 'No packages found'}}"
@@ -285,10 +286,83 @@
 
 </dx-popup>
 
+
+<dx-popup *ngIf="selectedCalendarItem"
+  title="{{selectedCalendarItem.originalSession.sessionType.title}}
+  @ {{selectedCalendarItem.startDate | date:'short'}} - {{selectedCalendarItem.endDate | date:'shortTime'}}"
+  [height]="650"
+  [width]="1000"
+  [closeOnOutsideClick]="false"
+  [(visible)]="showSelectedCalendarItemPopup">
+
+  <dx-scroll-view width="100%" height="80%" style="padding: 25px">
+    <div>
+      <label> Starts @</label>
+      <dx-date-box class="my-3"
+                   [disabled]="true"
+                   [value]="selectedCalendarItem.startDate"
+                   type="time">
+      </dx-date-box>
+    </div>
+
+    <div>
+      <label> Ends @</label>
+      <dx-date-box class="my-3"
+                   [disabled]="true"
+                   [value]="selectedCalendarItem.endDate"
+                   type="time">
+      </dx-date-box>
+    </div>
+
+    <div class="my-3">
+      <p><strong>{{selectedCalendarItem.originalSession.subscriptions.length}}</strong>
+        / <small>{{selectedCalendarItem.originalSession.spots}} Subscriptions
+          <i class="text-success" *ngIf="selectedCalendarItem.originalSession.isFull">
+            ( Full session )
+          </i>
+        </small>
+      </p>
+    </div>
+
+    <div *ngIf="selectedCalendarItem.clientSession" class="my-2">
+      <p class="my-2"> <strong>{{client.fullName}}</strong> <strong [innerHTML]="populatesSessionInfoOfClient(selectedCalendarItem.clientSession)"></strong></p>
+      <div class="my-2">
+        <label class="my-2" for="pkgTitle">Used package</label>
+        <dx-text-box id="pkgTitle" [disabled]="true" value="{{populateUsedPackageTitle(selectedCalendarItem.clientSession.usedPackageId)}}"></dx-text-box>
+      </div>
+
+      <div class="my-2">
+        <label class="my-2" for="pkgId">Used package ID</label>
+        <dx-text-box id="pkgId" [disabled]="true" value="{{selectedCalendarItem.clientSession.usedPackageId}}"></dx-text-box>
+      </div>
+    </div>
+
+
+  </dx-scroll-view>
+
+  <div *ngIf="!(currentDate.getTime() > selectedCalendarItem.startDate.getTime())">
+    <dx-button *ngIf="selectedCalendarItem.clientSession"
+               stylingMode="outlined"
+               text="CANCEL SESSION"
+               type="danger"
+               width="100%"
+               (onClick)="onCancelSession()">
+    </dx-button>
+
+    <dx-button *ngIf="!selectedCalendarItem.clientSession"
+               stylingMode="outlined"
+               text="SUBSCRIBE CLIENT TO SESSION"
+               type="success"
+               width="100%"
+               (onClick)="onSubscribeClientToSession()">
+    </dx-button>
+  </div>
+
+</dx-popup>
+
 <!--Loader-->
 <dx-load-panel
   shadingColor="rgba(0,0,0,0.4)"
-  [position]="{ of: '#scheduler' }"
   [(visible)]="loadingVisible"
   [showIndicator]="true"
   [showPane]="true"

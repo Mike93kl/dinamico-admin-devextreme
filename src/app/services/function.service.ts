@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AngularFireFunctions} from '@angular/fire/compat/functions';
 import {
   ADD_CLIENT_PACKAGE_PAYMENT,
-  ALTER_MAX_USAGES, BOOK_SESSION, BOOK_SESSION_FOR_CLIENT, CANCEL_CLIENT_SESSION,
+  ALTER_MAX_USAGES, BOOK_SESSION, BOOK_SESSION_FOR_CLIENT, CANCEL_CLIENT_SESSION, CANCEL_SESSION_FOR_CLIENT,
   CLIENTS_ACTIVE_PACKAGES,
   CREATE_CLIENT, GET_ALL_PACKAGES_V1, GET_CLIENTS_OF_SESSION,
   GET_USER_CLAIMS,
@@ -136,6 +136,14 @@ export class FunctionService {
     return this.handle_fn_response(
       this.fn.httpsCallable(BOOK_SESSION_FOR_CLIENT)({
         clientId, clientPackageId, sessionId
+      })
+    );
+  }
+
+  cancelSessionForClient(clientId: string, clientSessionId: string, sessionId: string): Promise<ClientSessionModelV1> {
+    return this.handle_fn_response(
+      this.fn.httpsCallable(CANCEL_SESSION_FOR_CLIENT)({
+        clientId, clientSessionId, sessionId
       })
     );
   }

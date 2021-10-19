@@ -14,4 +14,5 @@ export interface ClientSessionModelV1 extends Model {
   startDateISO: string;
   endDateISO: string;
   sessionType: SessionTypeModel;
+  usedEstUniqueKey: string;
 }

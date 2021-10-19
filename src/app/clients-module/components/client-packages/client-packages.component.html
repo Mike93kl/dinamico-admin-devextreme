@@ -56,15 +56,16 @@
               cellTemplate="paymentsTemplate"></dxi-column>
   <dxi-column dataField="paid" caption="Paid" [width]="50" [minWidth]="50" [allowResizing]="false"></dxi-column>
   <dxi-column dataField="_package.price" caption="Pkg.Price" [width]="70" [minWidth]="70" [allowResizing]="false"
-              cellTemplate="pkgPriceTemplate" [hidingPriority]="5"></dxi-column>
-  <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="4" caption="Status" cellTemplate="expiredCell"></dxi-column>
-  <dxi-column dataField="expiryDate" [allowResizing]="false" [hidingPriority]="3" caption="Expires at" cellTemplate="expiryCell"></dxi-column>
+              cellTemplate="pkgPriceTemplate" [hidingPriority]="6"></dxi-column>
+  <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="5" caption="Status" cellTemplate="expiredCell"></dxi-column>
+  <dxi-column dataField="expiryDate" [allowResizing]="false" [hidingPriority]="4" caption="Expires at" cellTemplate="expiryCell"></dxi-column>
   <dxi-column dataField="purchasedDate_ts" [allowResizing]="false" caption="Purchased At"
-              cellTemplate="purchasedCell"  [hidingPriority]="2"></dxi-column>
+              cellTemplate="purchasedCell"  [hidingPriority]="3"></dxi-column>
   <dxi-column dataField="dateLastUsed_ts" [allowResizing]="false" caption="Last Used"
-              cellTemplate="lastUsedCell" [hidingPriority]="1"></dxi-column>
+              cellTemplate="lastUsedCell" [hidingPriority]="2"></dxi-column>
   <dxi-column dataField="isCustom" [allowResizing]="false" caption="Custom Pkg." cellTemplate="isCustomTemplate"
-              dataType="boolean" [hidingPriority]="0"></dxi-column>
+              dataType="boolean" [hidingPriority]="1"></dxi-column>
+  <dxi-column dataField="uid" caption="UID" [hidingPriority]="0"></dxi-column>
 
 
   <div *dxTemplate="let row of 'sessionTypesTemplate'" style="padding-top: 44px;">
