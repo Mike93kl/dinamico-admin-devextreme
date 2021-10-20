@@ -3,7 +3,8 @@ import {SessionTypeService} from '../../../services/session-type.service';
 import {PopupService} from '../../../services/popup.service';
 import {SessionService} from '../../../services/session.service';
 import {
-  MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER,
+  MSG_AC_CONFIRM_CANCEL_SESSION,
+  MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER, MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO,
   MSG_AC_START_N_END_DATE_REQUIRED,
   MSG_UNEXPECTED_ERROR,
   MSG_UNEXPECTED_ERROR_REFRESH_PAGE
@@ -17,6 +18,7 @@ import {SessionModelV1} from '../../../models/SessionModelV1';
 import {DxSchedulerComponent} from 'devextreme-angular';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {SessionSubscriptionModel} from '../../../models/SessionSubscriptionModel';
+import {FnError} from "../../../models/fn/FnResponseHandler";
 
 declare var $: any;
 
@@ -41,6 +43,7 @@ interface CalendarItem {
   isFull: boolean;
   index: number;
   spots: number;
+  isPastDate: boolean;
 }
 
 @Component({
@@ -56,10 +59,10 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   calendarItems: CalendarItem[] = [];
   showDateRange = false;
   sessionsV1: SessionModelV1[] = [];
-  selectedSessionV1: SessionModelV1 | undefined;
   showSelectedSessionPopup = false;
 
   selectedSession: {
+    originalSession: SessionModelV1;
     session: SelectedSession,
     calendarItem: CalendarItem;
   } | undefined;
@@ -112,6 +115,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       return;
     }
     this.selectedSession = {
+      originalSession: session,
       session: {
         uid: session.uid,
         allowUpdate: session.subscriptions.length === 0,
@@ -179,6 +183,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
 
   onSessionsFetched(sessions: SessionModelV1[]): void {
     this.sessionsV1 = sessions;
+    this.mapSessionsToCalendarItems();
+    this.loadingVisible = false;
+  }
+
+  private mapSessionsToCalendarItems(): void {
     this.calendarItems = this.sessionsV1.map((s, index) => {
       return {
         text: s.sessionType.title,
@@ -192,11 +201,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         subscriptions: s.subscriptions.length,
         isFull: s.isFull,
         index,
-        spots: s.spots
+        spots: s.spots,
+        isPastDate: this.currentDate.getTime() > new Date(s.startDate_ts).getTime()
       };
     });
     this.dxScheduler?.instance.repaint();
-    this.loadingVisible = false;
   }
 
   onSessionsFetchedError(e: any): void {
@@ -209,9 +218,49 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
     this.sessionTypes = $event;
   }
 
-  onRemoveClientFromSession(c: SessionSubscriptionModel): void {
+  onRemoveClientFromSession(c: SessionSubscriptionModel, i: number): void {
+    this.popup.confirm(MSG_AC_CONFIRM_CANCEL_SESSION(c.clientFullName), confirmed => {
+      if (!confirmed) {
+        return;
+      }
+      this.loadingVisible = true;
+      this.service.cancelCessionForClient(c.clientId, c.clientSessionId, c.sessionId)
+        .then((ignored) => {
+          this.selectedSession.originalSession.subscriptions.splice(i, 1);
+          const subLength = this.selectedSession.originalSession.subscriptions.length;
+          this.selectedSession.calendarItem.subscriptions = subLength;
+          this.selectedSession.session.subscriptions = this.selectedSession.originalSession.subscriptions;
+          this.selectedSession.originalSession.isFull = subLength >= this.selectedSession.originalSession.spots;
+          this.mapSessionsToCalendarItems();
+        }).catch((e: FnError) => {
+        this.popup.error(e.message);
+      }).finally(() => {
+        this.loadingVisible = false;
+      });
+    });
   }
 
   onSessionUpdate(): void {
+    const {spots, sessionType} = this.selectedSession.session;
+    this.loadingVisible = true;
+    this.service.updateSession(this.selectedSession.originalSession, sessionType, spots, () => {
+      this.popup.error(MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO);
+    }).then((updated) => {
+      if (updated) {
+        this.selectedSession.calendarItem.spots = spots;
+        this.selectedSession.calendarItem.text = sessionType.title;
+        this.selectedSession.calendarItem.isFull = this.selectedSession.originalSession.isFull;
+        this.selectedSession = undefined;
+        this.mapSessionsToCalendarItems();
+        this.showSelectedSessionPopup = false;
+        return;
+      }
+    }).catch(e => {
+      console.log(e);
+      this.popup.error(MSG_UNEXPECTED_ERROR);
+    }).finally(() => {
+      this.loadingVisible = false;
+    });
+
   }
 }

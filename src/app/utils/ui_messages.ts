@@ -75,6 +75,10 @@ export const MSG_NAC_REPEAT_NO_LIMIT = (limit: number) => {
  */
 export const MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER = 'End date must be equal or greater than start date';
 export const MSG_AC_START_N_END_DATE_REQUIRED = 'Both start and end date are required fields';
+export const MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO = 'Spots cannot be less than the number of subscriptions or zero.';
+export function MSG_AC_CONFIRM_CANCEL_SESSION(clientName: string): string {
+  return `Remove ${clientName} from this session. Proceed?`;
+}
 
 /**
  * CLIENT SESSIONS COMPONENT

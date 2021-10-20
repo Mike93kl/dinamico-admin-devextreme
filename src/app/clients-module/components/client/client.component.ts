@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ClientService} from '../../../services/client.service';
 import {Subscription} from 'rxjs';
@@ -14,6 +14,7 @@ import {take} from 'rxjs/operators';
 import {SessionService} from '../../../services/session.service';
 import {SessionModel} from '../../../models/SessionModel';
 import {ClientPackageModel} from '../../../models/ClientPackageModel';
+import {ClientPackagesComponent} from "../client-packages/client-packages.component";
 
 declare var $: any;
 
@@ -23,6 +24,8 @@ declare var $: any;
   styleUrls: ['./client.component.css']
 })
 export class ClientComponent implements OnInit, OnDestroy {
+
+  @ViewChild(ClientPackagesComponent) clientPackagesComponent: ClientPackagesComponent | undefined;
 
   constructor(private route: ActivatedRoute, private clientService: ClientService,
               private popup: PopupService, private router: Router,
@@ -125,5 +128,9 @@ export class ClientComponent implements OnInit, OnDestroy {
       this.client = client;
       console.log('client fetched', this.client);
     }, error => this.showErrorAndExit(error));
+  }
+
+  onRefreshClientPackages(): void {
+    this.clientPackagesComponent?.refreshPackages();
   }
 }

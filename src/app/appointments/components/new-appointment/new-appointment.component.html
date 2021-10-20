@@ -50,12 +50,14 @@
     (onInitNewRow)="onNewRowInit($event)"
     (onRowInserting)="onRowInserting($event)"
     (onRowInserted)="onRowInserted($event)"
+    (onRowUpdating)="onRowUpdating($event)"
     [showRowLines]="true"
     [showBorders]="true">
     <dxo-editing
       mode="row"
       [allowAdding]="true"
-      [allowDeleting]="true">
+      [allowDeleting]="true"
+      [allowUpdating]="true">
     </dxo-editing>
     <dxo-paging [pageSize]="10"></dxo-paging>
     <dxo-pager

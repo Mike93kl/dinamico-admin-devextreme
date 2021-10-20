@@ -333,6 +333,9 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
   }
 
   ////// End of EST - MAX USAGE UPDATE //////////
+  public refreshPackages(): void {
+    this.getClientsPackages(this.validPackagesOnly, this.limit);
+  }
 
 }
 

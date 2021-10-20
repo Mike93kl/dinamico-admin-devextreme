@@ -7,6 +7,8 @@ import {SessionModelV1} from '../models/SessionModelV1';
 import {ClientSessionModelV1, SessionStatus} from "../models/ClientSessionModelV1";
 import {CLIENT_SESSIONS} from "../utils/Collections";
 import {SessionSubscriptionModel} from "../models/SessionSubscriptionModel";
+import {SessionTypeModel} from "../models/SessionTypeModel";
+import {MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO} from "../utils/ui_messages";
 
 @Injectable({
   providedIn: 'root'
@@ -44,7 +46,7 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
   }
 
   getByDateRange(start: Date, end: Date): Observable<SessionModelV1[]> {
-    start.setHours(0, 1, 0 , 0);
+    start.setHours(0, 1, 0, 0);
     end.setHours(23, 59, 59, 0);
     return this.fs.collection<SessionModelV1>(this.collection, ref => {
       return ref.where('startDate_ts', '>', start.getTime())
@@ -88,5 +90,19 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
 
   cancelCessionForClient(clientId: string, clientSessionId: string, sessionId: string): Promise<ClientSessionModelV1> {
     return this.fn.cancelSessionForClient(clientId, clientSessionId, sessionId);
+  }
+
+  async updateSession(session: SessionModelV1, newSessionType: SessionTypeModel, newSpots: number, spotsErr: () => void): Promise<boolean> {
+    const subLength = session.subscriptions.length;
+    if (newSpots < subLength || newSpots <= 0) {
+      spotsErr();
+      return false;
+    }
+    session.spots = newSpots;
+    session.isFull = session.spots <= subLength;
+    if (newSessionType.uid !== session.sessionType.uid) {
+      session.sessionType = newSessionType;
+    }
+    return this.update([session]);
   }
 }

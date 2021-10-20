@@ -3,7 +3,7 @@ import {CommonModule, DatePipe} from '@angular/common';
 import {AppointmentsComponent} from './components/appointments/appointments.component';
 import {MainComponent} from './components/main/main.component';
 import {SideNavComponent} from '../shared/side-nav/side-nav.component';
-import {DxDataGridModule} from "devextreme-angular";
+import {DxDataGridModule, DxNumberBoxModule} from "devextreme-angular";
 
 import {
     DxButtonModule, DxDateBoxModule,
@@ -46,7 +46,8 @@ import { ScheduleReportComponent } from './components/schedule-report/schedule-r
         DxScrollViewModule,
         DxLoadPanelModule,
         DxDateBoxModule,
-        DxDataGridModule
+        DxDataGridModule,
+        DxNumberBoxModule
     ],
   exports: [],
   providers: [

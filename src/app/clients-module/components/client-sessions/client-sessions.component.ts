@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {ClientService} from '../../../services/client.service';
 import {PopupService} from '../../../services/popup.service';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
@@ -52,6 +52,8 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   @ViewChild('clientSessionDateEnd') dxClientSessionDateEnd: DxDateBoxComponent | undefined;
   @ViewChild('allSessionsDateStart') dxAllSessionsDateStart: DxDateBoxComponent | undefined;
   @ViewChild('allSessionsDateEnd') dxAllSessionsDateEnd: DxDateBoxComponent | undefined;
+
+  @Output() onUsedPackageEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   @Input() client: ClientModel;
 
@@ -149,7 +151,6 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   }
 
   onLimitResultsChanged($event: any, sessions: 'all' | 'client-sessions'): void {
-    console.log($event)
     if (sessions === 'client-sessions') {
       if ($event > this.allSessionLimit) {
         this.popup.error(MSG_CSC_CLIENT_SESSION_REQUESTED_LIMIT_MUST_BE_LESS_OR_EQUAL_TO_ALL_SESSIONS_LIMIT);
@@ -377,6 +378,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
             this.selectedCalendarItem.originalSession.isFull = length >= this.selectedCalendarItem.originalSession.spots;
             this.selectedCalendarItem = undefined;
             this.mapClientSessionsToSessions();
+            this.onUsedPackageEvent.emit(true);
           }).catch((e: FnError) => {
           this.popup.error(e.message);
         }).finally(() => {
@@ -400,7 +402,9 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
   }
 
   onSubscribeClientToSession(): void {
-    if (!this.selectedCalendarItem.clientSession) {
+    if (!this.selectedCalendarItem.clientSession
+      || (this.selectedCalendarItem.clientSession.status === 'cancelled'
+        && this.currentDate.getTime() < new Date(this.selectedCalendarItem.clientSession.startDate_ts).getTime())) {
       this.filteredPackages = this.packages.filter(p => {
         const ests = p.eligibleSessionTypes.filter(e => e.sessionTypeId === this.selectedCalendarItem.sessionTypeId);
         for (const est of ests) {
@@ -418,7 +422,6 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     $event.cancel = true;
     this.selectedCalendarItem = $event.appointmentData as CalendarItem;
     this.showSelectedCalendarItemPopup = true;
-
   }
 
   populatesSessionInfoOfClient(clientSession: ClientSessionModelV1): string {
@@ -450,6 +453,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
           this.selectedCalendarItem = undefined;
           this.showSelectedCalendarItemPopup = false;
           this.mapClientSessionsToSessions();
+          this.onUsedPackageEvent.emit(true);
         }).catch((e: FnError) => {
         this.popup.error(e.message);
       }).finally(() => {

@@ -212,8 +212,8 @@
 <!--&lt;!&ndash;Subscribed clients popup&ndash;&gt;-->
 
 <dx-popup *ngIf="selectedSession && selectedSession.session && selectedSession.calendarItem"
-          [width]="800"
-          [height]="600"
+          width="800"
+          height="600"
           [showTitle]="true"
           title="{{selectedSession.session.sessionType.title}} @ {{selectedSession.session.startDate | date:'short'}} - {{selectedSession.session.endDate | date:'shortTime'}}"
           [dragEnabled]="false"
@@ -226,33 +226,6 @@
     <div class="selected-popup-form">
 
       <div>
-        <label>Session Type</label>
-        <dx-select-box [dataSource]="sessionTypes"
-                       displayExpr="title"
-                       valueExpr="this"
-                       [disabled]="!selectedSession.session.allowUpdate"
-                       [(value)]="selectedSession.session.sessionType"></dx-select-box>
-      </div>
-
-      <div>
-        <label> Starts @</label>
-        <dx-date-box class="my-3"
-                     [disabled]="!selectedSession.session.allowUpdate"
-                     [(value)]="selectedSession.session.startDate"
-                     type="time">
-        </dx-date-box>
-      </div>
-
-      <div>
-        <label> Ends @</label>
-        <dx-date-box class="my-3"
-                     [disabled]="!selectedSession.session.allowUpdate"
-                     [(value)]="selectedSession.session.endDate"
-                     type="time">
-        </dx-date-box>
-      </div>
-
-      <div>
         <p><strong>{{selectedSession.session.subscriptions.length}}</strong>
           / <small>{{selectedSession.session.spots}} Subscriptions
             <i class="text-success" *ngIf="selectedSession.session.isFull">
@@ -262,17 +235,59 @@
         </p>
       </div>
 
-      <div class="session-client" *ngFor="let c of selectedSession.session.subscriptions">
-        <div>{{c.clientFullName}} <small><i>({{c.clientEmail}})</i></small></div>
-        <div (click)="onRemoveClientFromSession(c)"><i class="fas fa-trash-alt delete"></i></div>
+      <div>
+        <label>Session Type</label>
+        <dx-select-box [dataSource]="sessionTypes"
+                       displayExpr="title"
+                       valueExpr="this"
+                       [disabled]="!selectedSession.session.allowUpdate || selectedSession.calendarItem.isPastDate"
+                       [(value)]="selectedSession.session.sessionType"></dx-select-box>
+      </div>
+
+      <div>
+        <label> Starts @</label>
+        <dx-date-box class="my-3"
+                     [disabled]="true"
+                     [(value)]="selectedSession.session.startDate"
+                     type="time">
+        </dx-date-box>
+      </div>
+
+      <div>
+        <label> Ends @</label>
+        <dx-date-box class="my-3"
+                     [disabled]="true"
+                     [(value)]="selectedSession.session.endDate"
+                     type="time">
+        </dx-date-box>
+      </div>
+
+      <div>
+        <label>Spots</label>
+        <dx-number-box class="my-3"
+          [(value)]="selectedSession.session.spots"
+          [showSpinButtons]="true"
+          [showClearButton]="true"
+          [disabled]="selectedSession.calendarItem.isPastDate"
+        ></dx-number-box>
+      </div>
+
+      <di>
+        <h5>Subscribers ( {{selectedSession.session.subscriptions.length}}
+          / <small>{{selectedSession.session.spots}}</small> ) </h5>
+      </di>
+
+      <div class="session-client" *ngFor="let c of selectedSession.session.subscriptions; let i = index">
+        <div>{{c.clientFullName}} <small><i>({{c.clientEmail}} - {{c.clientPhone}})</i></small></div>
+        <div (click)="onRemoveClientFromSession(c, i)"><i class="fas fa-trash-alt delete"></i></div>
       </div>
 
     </div>
   </dx-scroll-view>
-  <dx-button
+  <dx-button *ngIf="!selectedSession.calendarItem.isPastDate"
     stylingMode="outlined"
-    [text]="selectedSession.session.allowUpdate ? 'UPDATE' : 'UPDATING NOT ALLOWED'"
-    [disabled]="!selectedSession.session.allowUpdate"
+    text="UPDATE"
+    [disabled]="false"
     type="success"
     width="100%"
     (onClick)="onSessionUpdate()">

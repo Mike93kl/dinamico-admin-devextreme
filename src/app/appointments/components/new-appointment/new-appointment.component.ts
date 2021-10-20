@@ -149,28 +149,34 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   onRowInserting(e: any): void {
-    if (!this.sessionTypes.find(s => s.uid === e.data.sessionTypeId)) {
-      e.cancel = true;
+    e.cancel = this.validateRow(e.data as SessionGridItem);
+  }
+
+  onRowUpdating(e: any): void {
+    e.cancel = this.validateRow(e.newData as SessionGridItem);
+  }
+
+  private validateRow(data: SessionGridItem): boolean {
+    if (!this.sessionTypes.find(s => s.uid === data.sessionTypeId)) {
       this.popup.error(MSG_NAC_ENTER_VALID_SESSION_TYPE);
-      return;
+      return true;
     }
 
-    if (!e.data.startDate || !e.data.endDate) {
-      e.cancel = true;
+    if (!data.startDate || !data.endDate) {
       this.popup.error(MSG_NAC_START_END_TIME_REQUIRED);
-      return;
+      return true;
     }
 
-    if (e.data.endDate.getTime() < e.data.startDate.getTime()) {
-      e.cancel = true;
+    if (data.endDate.getTime() < data.startDate.getTime()) {
       this.popup.error(MSG_NAC_END_DATE_LESS_THAN_START_DATE);
-      return;
+      return true;
     }
 
-    if (!e.data.spots || e.data.spots <= 0) {
-      e.cancel = true;
+    if (!data.spots || data.spots <= 0) {
       this.popup.error(MSG_NAC_SPOTS_CANNOT_BE_0_OR_LESS);
+      return true;
     }
+    return false;
   }
 
   onRowInserted(e: any): void {

@@ -341,7 +341,7 @@
   </dx-scroll-view>
 
   <div *ngIf="!(currentDate.getTime() > selectedCalendarItem.startDate.getTime())">
-    <dx-button *ngIf="selectedCalendarItem.clientSession"
+    <dx-button *ngIf="selectedCalendarItem.clientSession && selectedCalendarItem.clientSession.status === 'upcoming'"
                stylingMode="outlined"
                text="CANCEL SESSION"
                type="danger"
@@ -349,7 +349,7 @@
                (onClick)="onCancelSession()">
     </dx-button>
 
-    <dx-button *ngIf="!selectedCalendarItem.clientSession"
+    <dx-button *ngIf="!selectedCalendarItem.clientSession || selectedCalendarItem.clientSession.status === 'cancelled'"
                stylingMode="outlined"
                text="SUBSCRIBE CLIENT TO SESSION"
                type="success"

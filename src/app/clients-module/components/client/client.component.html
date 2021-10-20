@@ -38,7 +38,7 @@
 <hr>
 <br>
 <app-client-sessions *ngIf="client && sessionTypes"
-[client]="client"
+[client]="client" (onUsedPackageEvent)="onRefreshClientPackages()"
 ></app-client-sessions>
 <br>
 <hr>
