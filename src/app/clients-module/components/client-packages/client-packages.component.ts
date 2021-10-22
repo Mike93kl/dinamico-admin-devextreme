@@ -24,6 +24,7 @@ import {EligibleSessionTypeModel} from '../../../models/EligibleSessionTypeModel
 import {CLIENT_PACKAGES} from '../../../utils/Collections';
 import {DxDataGridComponent} from 'devextreme-angular';
 import * as uuid from 'uuid';
+
 declare var $: any;
 
 @Component({
@@ -332,9 +333,18 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
 
   }
 
-  ////// End of EST - MAX USAGE UPDATE //////////
+  ////// End of EST - MAX USAGE UPDATE /////////
   public refreshPackages(): void {
     this.getClientsPackages(this.validPackagesOnly, this.limit);
+  }
+
+
+  calculateMoneyOwed(data: ClientPackageModelV1): number {
+    const totalPaid = data.payments.reduce((r, c) => {
+      r += c.payment;
+      return r;
+    }, 0);
+    return data._package.price - totalPaid;
   }
 
 }

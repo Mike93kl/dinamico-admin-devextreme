@@ -450,6 +450,14 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
             return;
           }
           this.clientSessions[index] = session;
+          const {sessionId, uid} = this.clientSessions[index];
+          const aSession = this.allSessions.find(s => s.uid === sessionId);
+          if (aSession) {
+            const cSessionIndex = aSession.subscriptions.findIndex(s => s.clientSessionId === uid);
+            if (cSessionIndex !== -1) {
+              aSession.subscriptions.splice(cSessionIndex, 1);
+            }
+          }
           this.selectedCalendarItem = undefined;
           this.showSelectedCalendarItemPopup = false;
           this.mapClientSessionsToSessions();

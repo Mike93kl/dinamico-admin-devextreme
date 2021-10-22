@@ -3,7 +3,7 @@ import {SessionTypeService} from '../../../services/session-type.service';
 import {PopupService} from '../../../services/popup.service';
 import {SessionService} from '../../../services/session.service';
 import {
-  MSG_AC_CONFIRM_CANCEL_SESSION,
+  MSG_AC_CONFIRM_CANCEL_SESSION, MSG_AC_CONFIRM_DELETE_SESSION,
   MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER, MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO,
   MSG_AC_START_N_END_DATE_REQUIRED,
   MSG_UNEXPECTED_ERROR,
@@ -262,5 +262,34 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       this.loadingVisible = false;
     });
 
+  }
+
+  onDeleteSession(): void {
+    if (!this.selectedSession || !this.selectedSession.originalSession) {
+      return;
+    }
+    this.popup.confirm(MSG_AC_CONFIRM_DELETE_SESSION(this.selectedSession.originalSession.startDate_str), confirmed => {
+      if (!confirmed) {
+        return;
+      }
+      this.loadingVisible = true;
+      this.service.remove([this.selectedSession.originalSession])
+        .then((removed) => {
+          if (removed) {
+            const index = this.sessionsV1.findIndex(s => s.uid === this.selectedSession.originalSession.uid);
+            if (index !== -1) {
+              this.sessionsV1.splice(index, 1);
+            }
+            this.mapSessionsToCalendarItems();
+            this.selectedSession = undefined;
+            this.showSelectedSessionPopup = false;
+          }
+        }).catch(e => {
+        console.log(e);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
+      }).finally(() => {
+        this.loadingVisible = false;
+      });
+    });
   }
 }

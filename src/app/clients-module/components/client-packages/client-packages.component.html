@@ -21,7 +21,8 @@
   </div>
 
   <div>
-    <input type="checkbox" checked id="validOnly" name="validOnly" class="checkbox" #validOnly (click)="onToggleOnlyValidPackages(validOnly.checked)">
+    <input type="checkbox" checked id="validOnly" name="validOnly" class="checkbox" #validOnly
+           (click)="onToggleOnlyValidPackages(validOnly.checked)">
     <label for="validOnly">Show valid packages</label>
   </div>
 
@@ -49,25 +50,33 @@
     placeholder="Search title...."></dxo-search-panel>
 
 
-  <dxi-column dataField="_package.title" [width]="100" [minWidth]="100" [allowResizing]="false" caption="Pkg. Title" dataType="text"></dxi-column>
+  <dxi-column dataField="_package.title" [width]="100" [minWidth]="100" [allowResizing]="false" caption="Pkg. Title"
+              dataType="text"></dxi-column>
   <dxi-column dataField="eligibleSessionTypes" [width]="500" [minWidth]="500" caption="E.S.T"
               cellTemplate="sessionTypesTemplate"></dxi-column>
   <dxi-column dataField="payments" [width]="500" [minWidth]="500" caption="Payments"
               cellTemplate="paymentsTemplate"></dxi-column>
-  <dxi-column dataField="paid" caption="Paid" [width]="50" [minWidth]="50" [allowResizing]="false"></dxi-column>
   <dxi-column dataField="_package.price" caption="Pkg.Price" [width]="70" [minWidth]="70" [allowResizing]="false"
-              cellTemplate="pkgPriceTemplate" [hidingPriority]="6"></dxi-column>
-  <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="5" caption="Status" cellTemplate="expiredCell"></dxi-column>
-  <dxi-column dataField="expiryDate" [allowResizing]="false" [hidingPriority]="4" caption="Expires at" cellTemplate="expiryCell"></dxi-column>
+              cellTemplate="pkgPriceTemplate"></dxi-column>
+  <dxi-column dataField="owes" caption="Owes" [width]="50" [minWidth]="50" cellTemplate="owsCellTemplate"
+              [hidingPriority]="7"></dxi-column>
+  <dxi-column dataField="paid" caption="Paid" [hidingPriority]="6" [width]="50" [minWidth]="50"
+              [allowResizing]="false"></dxi-column>
+  <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="5" caption="Status"
+              cellTemplate="expiredCell"></dxi-column>
+  <dxi-column dataField="expiryDate" [allowResizing]="false" [hidingPriority]="4" caption="Expires at"
+              cellTemplate="expiryCell"></dxi-column>
   <dxi-column dataField="purchasedDate_ts" [allowResizing]="false" caption="Purchased At"
-              cellTemplate="purchasedCell"  [hidingPriority]="3"></dxi-column>
+              cellTemplate="purchasedCell" [hidingPriority]="3"></dxi-column>
   <dxi-column dataField="dateLastUsed_ts" [allowResizing]="false" caption="Last Used"
               cellTemplate="lastUsedCell" [hidingPriority]="2"></dxi-column>
   <dxi-column dataField="isCustom" [allowResizing]="false" caption="Custom Pkg." cellTemplate="isCustomTemplate"
               dataType="boolean" [hidingPriority]="1"></dxi-column>
   <dxi-column dataField="uid" caption="UID" [hidingPriority]="0"></dxi-column>
 
-
+  <div *dxTemplate="let row of 'owsCellTemplate'">
+    <div>{{calculateMoneyOwed(row.data) | currency:"EUR" }}</div>
+  </div>
   <div *dxTemplate="let row of 'sessionTypesTemplate'" style="padding-top: 44px;">
     <dx-data-grid
       id="subContainer"
@@ -78,7 +87,8 @@
         mode="row"
         [allowUpdating]="true">
       </dxo-editing>
-      <dxi-column dataField="sessionType.title" caption="Session" [allowEditing]="false" cellTemplate="sessionTitleTemplate"></dxi-column>
+      <dxi-column dataField="sessionType.title" caption="Session" [allowEditing]="false"
+                  cellTemplate="sessionTitleTemplate"></dxi-column>
       <dxi-column dataField="timesUsed" [allowEditing]="false" caption="Used"></dxi-column>
       <dxi-column dataField="maxUsages" caption="Max" cellTemplate="maxUsagesTemplate"></dxi-column>
 
@@ -127,6 +137,7 @@
       [showBorders]="true">
       <dxo-summary>
         <dxi-total-item
+          [valueFormat]="{ type: 'currency', precision: 2 }"
           column="payment"
           summaryType="sum">
         </dxi-total-item>
@@ -141,7 +152,8 @@
         </dxo-texts>
       </dxo-editing>
       <dxi-column dataField="payment" caption="$$" cellTemplate="paymentTemplate"></dxi-column>
-      <dxi-column dataField="datePaid_ts" [allowEditing]="false" caption="Date" cellTemplate="paymentDateTemplate"></dxi-column>
+      <dxi-column dataField="datePaid_ts" [allowEditing]="false" caption="Date"
+                  cellTemplate="paymentDateTemplate"></dxi-column>
 
       <div *dxTemplate="let r of 'paymentTemplate'">
         <p> {{r.data.payment | currency:"EUR" }} </p>
@@ -205,7 +217,6 @@
 </dx-popup>
 
 
-
 <dx-popup *ngIf="customPackage" width="700" height="650" [showTitle]="true" title="Create Custom Package"
           [closeOnOutsideClick]="false" [(visible)]="showCustomPackagePopup">
 
@@ -246,12 +257,12 @@
       <div class="col-6">
         <div class="form-group">
           <label>Session Type</label>
-          <select [(ngModel)]="el.sessionTypeId" class="form-control my-1" >
+          <select [(ngModel)]="el.sessionTypeId" class="form-control my-1">
             <option *ngFor="let s of sessionTypes" value="{{ s.uid }}">{{ s.title }}</option>
           </select>
         </div>
       </div>
-      <div class="col-5" >
+      <div class="col-5">
         <label>Max Usages</label>
         <input type="number" [(ngModel)]="el.maxUsages" class="form-control my-1">
       </div>

@@ -292,6 +292,14 @@
     width="100%"
     (onClick)="onSessionUpdate()">
   </dx-button>
+  <dx-button *ngIf="selectedSession.session.subscriptions.length === 0"
+             stylingMode="outlined"
+             text="DELETE"
+             [disabled]="false"
+             type="danger"
+             width="100%"
+             (onClick)="onDeleteSession()">
+  </dx-button>
 
 
 </dx-popup>
