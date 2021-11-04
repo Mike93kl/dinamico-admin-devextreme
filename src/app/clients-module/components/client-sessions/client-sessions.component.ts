@@ -32,7 +32,7 @@ interface CalendarItem {
   sessionId: string;
   color: string;
   subscriptions: number;
-  isFull: boolean;
+  full: boolean;
   index: number;
   spots: number;
   sessionTypeId: string;
@@ -276,7 +276,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
     this.calendarItems = this.allSessions.map((s, index) => {
       return {
         text: s.sessionType.title,
-        isFull: s.isFull || s.subscriptions.length >= s.spots,
+        full: s.full || s.subscriptions.length >= s.spots,
         startDate: new Date(s.startDate_ts),
         endDate: new Date(s.endDate_ts),
         clientSession: mapped[s.uid],
@@ -297,7 +297,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       if (this.currentDate.getTime() > session.startDate_ts) {
         return '#8f8c95';
       }
-      if (session.isFull) {
+      if (session.full) {
         return '#099c15';
       }
 
@@ -318,7 +318,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
       return '#c2abec';
     }
 
-    if (session.isFull) {
+    if (session.full) {
       return '#326433';
     }
 
@@ -375,7 +375,7 @@ export class ClientSessionsComponent implements OnInit, OnDestroy {
             this.clientSessions.push(clientSession);
             this.selectedCalendarItem.originalSession.subscriptions.push(sessionSubscription);
             const length = this.selectedCalendarItem.originalSession.subscriptions.length;
-            this.selectedCalendarItem.originalSession.isFull = length >= this.selectedCalendarItem.originalSession.spots;
+            this.selectedCalendarItem.originalSession.full = length >= this.selectedCalendarItem.originalSession.spots;
             this.selectedCalendarItem = undefined;
             this.mapClientSessionsToSessions();
             this.onUsedPackageEvent.emit(true);

@@ -99,7 +99,7 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
       return false;
     }
     session.spots = newSpots;
-    session.isFull = session.spots <= subLength;
+    session.full = session.spots <= subLength;
     if (newSessionType.uid !== session.sessionType.uid) {
       session.sessionType = newSessionType;
     }

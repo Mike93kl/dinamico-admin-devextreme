@@ -4,7 +4,7 @@ import {SessionSubscriptionModel} from './SessionSubscriptionModel';
 
 export interface SessionModelV1 extends Model{
   subscriptions: SessionSubscriptionModel[];
-  isFull: boolean;
+  full: boolean;
   sessionType: SessionTypeModel;
   startDate_ts: number;
   endDate_ts: number;

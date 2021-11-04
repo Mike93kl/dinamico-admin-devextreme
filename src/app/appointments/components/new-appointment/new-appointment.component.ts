@@ -327,7 +327,7 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
         endDate_ts: gridItem.endDate.getTime(),
         subscriptions: [],
         sessionType: this.sessionTypes.find(s => s.uid === gridItem.sessionTypeId),
-        isFull: false,
+        full: false,
         startDateISO: gridItem.startDate.toISOString(),
         endDateISO: gridItem.endDate.toISOString()
       };

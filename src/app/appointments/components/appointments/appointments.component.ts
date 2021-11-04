@@ -24,7 +24,7 @@ declare var $: any;
 
 interface SelectedSession {
   subscriptions: SessionSubscriptionModel[];
-  isFull: boolean;
+  full: boolean;
   sessionType: SessionTypeModel;
   startDate: Date;
   endDate: Date;
@@ -40,7 +40,7 @@ interface CalendarItem {
   sessionId: string;
   color: string;
   subscriptions: number;
-  isFull: boolean;
+  full: boolean;
   index: number;
   spots: number;
   isPastDate: boolean;
@@ -120,7 +120,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         uid: session.uid,
         allowUpdate: session.subscriptions.length === 0,
         spots: session.spots,
-        isFull: session.isFull,
+        full: session.full,
         startDate: new Date(session.startDate_ts),
         endDate: new Date(session.endDate_ts),
         sessionType: {...session.sessionType},
@@ -194,12 +194,12 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         startDate: new Date(s.startDate_ts),
         endDate: new Date(s.endDate_ts),
         sessionId: s.uid,
-        color: s.isFull || s.subscriptions.length >= s.spots
+        color: s.full || s.subscriptions.length >= s.spots
           ? '#099c15' : (s.startDate_ts < this.currentDate.getTime()
             ? '#8f8c95'
             : '#306CC7'),
         subscriptions: s.subscriptions.length,
-        isFull: s.isFull,
+        full: s.full,
         index,
         spots: s.spots,
         isPastDate: this.currentDate.getTime() > new Date(s.startDate_ts).getTime()
@@ -230,7 +230,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
           const subLength = this.selectedSession.originalSession.subscriptions.length;
           this.selectedSession.calendarItem.subscriptions = subLength;
           this.selectedSession.session.subscriptions = this.selectedSession.originalSession.subscriptions;
-          this.selectedSession.originalSession.isFull = subLength >= this.selectedSession.originalSession.spots;
+          this.selectedSession.originalSession.full = subLength >= this.selectedSession.originalSession.spots;
           this.mapSessionsToCalendarItems();
         }).catch((e: FnError) => {
         this.popup.error(e.message);
@@ -249,7 +249,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       if (updated) {
         this.selectedSession.calendarItem.spots = spots;
         this.selectedSession.calendarItem.text = sessionType.title;
-        this.selectedSession.calendarItem.isFull = this.selectedSession.originalSession.isFull;
+        this.selectedSession.calendarItem.full = this.selectedSession.originalSession.full;
         this.selectedSession = undefined;
         this.mapSessionsToCalendarItems();
         this.showSelectedSessionPopup = false;

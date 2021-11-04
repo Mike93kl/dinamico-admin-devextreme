@@ -147,7 +147,8 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
       const canExpireByDate = c.canExpire;
       const eligibleSessionTypeIds = c.eligibleSessionTypes.map(e => e.sessionTypeId);
       const eligibleSessionTypes: ClientEligibleSessionTypeModel[] = c.eligibleSessionTypes.map((e) => {
-        return {...e, timesUsed: 0, uniqueKey: uuid.v4()};
+        const st = this.sessionTypes.find(s => s.uid === e.sessionTypeId)
+        return {...e, sessionType: st ,timesUsed: 0, uniqueKey: uuid.v4()};
       });
       let expiryDate: number = null;
       if (canExpireByDate && c.daysToExpire > 0) {
