@@ -10,6 +10,7 @@ export class PostEventSubscribers {
 }
 
 export interface Post extends Model {
+    imagePath?: string;
     imageURL?: string;
     title?: string;
     text: string;

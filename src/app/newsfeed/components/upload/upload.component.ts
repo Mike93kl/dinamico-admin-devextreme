@@ -16,7 +16,7 @@ export class UploadComponent implements OnInit {
   post: Post = {
     title: '',
     text: '',
-    imageURL: null,
+    imagePath: null,
     visible: false,
     likes: [],
     notifyUsers: false,
@@ -24,7 +24,9 @@ export class UploadComponent implements OnInit {
     notifyAt_ts: null,
     numberOfViewers: [],
     postType: "post",
-    isEvent: false
+    isEvent: false,
+    eventSubscribers: [],
+    imageURL: null
   }
   loadingVisible = false;
   // main task
@@ -38,6 +40,8 @@ export class UploadComponent implements OnInit {
   downloadURL: Promise<string>;
 
   isHovering: boolean;
+
+  imagePath: string = undefined
 
   constructor(private storage: AngularFireStorage, private popup: PopupService, private service: PostsService,
     private route: ActivatedRoute, private router: Router, private location: Location) { }
@@ -76,7 +80,7 @@ export class UploadComponent implements OnInit {
       return;
     }
 
-    const path = `test/${new Date().getTime()}_${file.name.split(' ').join('')}`;
+    const path = `posts/${new Date().getTime()}_${file.name.split(' ').join('')}`;
 
     const meta = { tesT: 'case' }
 
@@ -88,6 +92,7 @@ export class UploadComponent implements OnInit {
       const uploaded = e.bytesTransferred >= e.totalBytes;
       if (uploaded) {
         this.downloadURL = e.ref.getDownloadURL()
+        this.imagePath = path
         this.loadingVisible = false;
       }
     })
@@ -105,10 +110,14 @@ export class UploadComponent implements OnInit {
     this.post.postType = this.post.isEvent ? "event" : "post"
     if (this.downloadURL) {
       this.downloadURL.then(url => {
-        if (isNew) {
-          this.createPost(url)
-        } else {
-          this.updatePost(url)
+        if(this.imagePath && url) {
+          this.post.imagePath = this.imagePath
+          if (isNew) {
+            this.createPost(url)
+          } else {
+            this.updatePost(url)
+          }
+          return
         }
       })
         .catch(e => {
