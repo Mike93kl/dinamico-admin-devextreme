@@ -15,6 +15,6 @@ export class PostsService extends FirebaseService<Post> {
   }
 
   getAll(): Observable<Post[]> {
-    return this.fs.collection<Post>(this.collection, ref => ref.orderBy("createdAt", "desc")).valueChanges()
+    return this.fs.collection<Post>(this.collection, ref => ref.orderBy("createdAt_ts", "desc")).valueChanges()
   }
 }

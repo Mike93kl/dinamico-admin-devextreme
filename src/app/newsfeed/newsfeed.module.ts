@@ -9,7 +9,7 @@ import {UploadComponent} from './components/upload/upload.component'
 import {AllpostsComponent} from './components/allposts/allposts.component'
 import {PostComponent} from './components/post/post.component'
 import {DxLoadPanelModule} from 'devextreme-angular'
-import { DxButtonModule } from "devextreme-angular";
+import { DxButtonModule, DxDateBoxModule } from "devextreme-angular";
 
 @NgModule({
   declarations: [MainComponent, UploadComponent, AllpostsComponent, PostComponent],
@@ -20,7 +20,8 @@ import { DxButtonModule } from "devextreme-angular";
     FormsModule,
     DxTreeViewModule,
     DxLoadPanelModule,
-    DxButtonModule
+    DxButtonModule,
+    DxDateBoxModule
   ]
 })
 export class NewsFeedModule { }

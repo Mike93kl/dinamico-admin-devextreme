@@ -18,10 +18,13 @@ export class UploadComponent implements OnInit {
     text: '',
     imageURL: null,
     visible: false,
-    createdAt: null,
-    lastUpdatedAt: null,
     likes: [],
     notifyUsers: false,
+    postImmediately: true,
+    notifyAt_ts: null,
+    numberOfViewers: [],
+    postType: "post",
+    isEvent: false
   }
   loadingVisible = false;
   // main task
@@ -45,6 +48,7 @@ export class UploadComponent implements OnInit {
       this.loadingVisible = true;
       this.service.getOne(uid).subscribe(post => {
         this.post = post
+        this.post.isEvent = this.post.postType === "event"
         this.loadingVisible = false;
       }, error => {
         console.log(error)
@@ -96,7 +100,9 @@ export class UploadComponent implements OnInit {
 
   savePost() {
     const isNew = !this.post.uid
-    console.log(isNew, this.post.uid)
+    this.post.createdAt_ts = new Date().getTime();
+    this.post.lastUpdated_ts = null
+    this.post.postType = this.post.isEvent ? "event" : "post"
     if (this.downloadURL) {
       this.downloadURL.then(url => {
         if (isNew) {
@@ -133,13 +139,22 @@ export class UploadComponent implements OnInit {
     })
   }
 
+  onDateSelected($event) {
+    const ts = $event.getTime() as number
+    if(ts <= new Date().getTime()) {
+      this.popup.error('Please select a future date to publish the post')
+      return;
+    }
+
+    this.post.notifyAt_ts = ts
+
+    console.log(new Date(ts))
+  }
+
   private createPost(url: string) {
     if (url) {
       this.post.imageURL = url
     }
-    console.log(this.post)
-    this.post.createdAt = Date.now()
-    this.post.lastUpdatedAt = Date.now()
     this.service.create([this.post]).then(() => {
       this.popup.success('Post created', () => {
         this.location.back()
@@ -148,6 +163,16 @@ export class UploadComponent implements OnInit {
       console.log(error)
       this.popup.error('Could not create post, if problem persists please contact support')
     })
+  }
+
+  onPostImmediatelyClicked() {
+    const postImmediately = !this.post.postImmediately
+    this.post.notifyUsers = !postImmediately
+    this.post.visible = !postImmediately
+  }
+
+  isEventClicked(isEvent: boolean) {
+    console.log(`is event` + isEvent)
   }
 
 }
