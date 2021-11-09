@@ -4,7 +4,7 @@ import {
   ADD_CLIENT_PACKAGE_PAYMENT,
   ALTER_MAX_USAGES, BOOK_SESSION, BOOK_SESSION_FOR_CLIENT, CANCEL_CLIENT_SESSION, CANCEL_SESSION_FOR_CLIENT,
   CLIENTS_ACTIVE_PACKAGES,
-  CREATE_CLIENT, GET_ALL_PACKAGES_V1, GET_CLIENTS_OF_SESSION,
+  CREATE_CLIENT, GET_ACTIVE_CLIENT_PACKAGES_FOR_SESSION, GET_ALL_PACKAGES_V1, GET_CLIENTS_OF_SESSION,
   GET_USER_CLAIMS,
   GRANT_ADMIN,
   GRANT_MANAGER,
@@ -25,6 +25,7 @@ import {PaymentModel} from "../models/PaymentModel";
 import {ClientEligibleSessionTypeModel} from "../models/ClientEligibleSessionTypeModel";
 import {ClientSessionModelV1} from "../models/ClientSessionModelV1";
 import {SessionSubscriptionModel} from "../models/SessionSubscriptionModel";
+import { ClientPackageModelV1 } from '../models/ClientPackageModelV1';
 
 @Injectable({
   providedIn: 'root'
@@ -146,6 +147,14 @@ export class FunctionService {
         clientId, clientSessionId, sessionId
       })
     );
+  }
+
+  getActiveClientPackagesForSession(clientId: string, sessionTypeId: string): Promise<ClientPackageModelV1[]> {
+    return this.handle_fn_response(
+      this.fn.httpsCallable(GET_ACTIVE_CLIENT_PACKAGES_FOR_SESSION)({
+        clientId, sessionTypeId
+      })
+    )
   }
 
   private handle_fn_response<R, T extends FnResponse<R>>(fn: Observable<T>): Promise<R> {

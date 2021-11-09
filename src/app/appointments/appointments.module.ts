@@ -47,7 +47,8 @@ import { ScheduleReportComponent } from './components/schedule-report/schedule-r
         DxLoadPanelModule,
         DxDateBoxModule,
         DxDataGridModule,
-        DxNumberBoxModule
+        DxNumberBoxModule,
+        DxListModule
     ],
   exports: [],
   providers: [

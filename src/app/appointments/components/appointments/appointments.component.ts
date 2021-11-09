@@ -1,25 +1,29 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {SessionTypeService} from '../../../services/session-type.service';
-import {PopupService} from '../../../services/popup.service';
-import {SessionService} from '../../../services/session.service';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { SessionTypeService } from '../../../services/session-type.service';
+import { PopupService } from '../../../services/popup.service';
+import { SessionService } from '../../../services/session.service';
 import {
+  MSG_AC_CONFIRM_BOOK_SESSION_FOR_CLIENT,
   MSG_AC_CONFIRM_CANCEL_SESSION, MSG_AC_CONFIRM_DELETE_SESSION,
-  MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER, MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO,
+  MSG_AC_END_DATE_MUST_BE_EQUAL_OR_GREATER, MSG_AC_PLEASE_SELECTED_A_CLIENT_PACKAGE, MSG_AC_SESSION_BOOKED_SUCCESS, MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO,
   MSG_AC_START_N_END_DATE_REQUIRED,
   MSG_UNEXPECTED_ERROR,
   MSG_UNEXPECTED_ERROR_REFRESH_PAGE
 } from '../../../utils/ui_messages';
-import {ClientService} from '../../../services/client.service';
-import {take} from 'rxjs/operators';
-import {Router} from '@angular/router';
-import {SessionTypesV1Component} from '../../../shared/session-types/session-types-v1.component';
-import {SessionServiceV1} from '../../../services/session.service-v1';
-import {SessionModelV1} from '../../../models/SessionModelV1';
-import {DxSchedulerComponent} from 'devextreme-angular';
-import {SessionTypeModel} from '../../../models/SessionTypeModel';
-import {SessionSubscriptionModel} from '../../../models/SessionSubscriptionModel';
-import {FnError} from "../../../models/fn/FnResponseHandler";
+import { ClientService } from '../../../services/client.service';
+import { take } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { SessionTypesV1Component } from '../../../shared/session-types/session-types-v1.component';
+import { SessionServiceV1 } from '../../../services/session.service-v1';
+import { SessionModelV1 } from '../../../models/SessionModelV1';
+import { DxDataGridComponent, DxSchedulerComponent } from 'devextreme-angular';
+import { SessionTypeModel } from '../../../models/SessionTypeModel';
+import { SessionSubscriptionModel } from '../../../models/SessionSubscriptionModel';
+import { FnError } from "../../../models/fn/FnResponseHandler";
 import { ClientModel } from 'src/app/models/ClientModel';
+import {DxListComponent} from 'devextreme-angular';
+import { PackagesService } from 'src/app/services/packages.service';
+import { ClientPackageModelV1 } from 'src/app/models/ClientPackageModelV1';
 
 declare var $: any;
 
@@ -55,6 +59,8 @@ interface CalendarItem {
 export class AppointmentsComponent implements OnInit, OnDestroy {
   @ViewChild(DxSchedulerComponent) dxScheduler: DxSchedulerComponent | undefined;
   @ViewChild(SessionTypesV1Component) sessionTypeComponent: SessionTypesV1Component | undefined;
+  @ViewChild(DxListComponent) clientListComponent: DxListComponent | undefined;
+  @ViewChild('matchingSessionClientPackages') matchingSessionClientPackagesGrid: DxDataGridComponent | undefined;
 
   currentDate = new Date();
   calendarItems: CalendarItem[] = [];
@@ -83,16 +89,32 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
   // clients to subscribe to session
   clients: ClientModel[] = []
   showClientsPopup = false
+  clientsForSessionPopup: ClientModel[] = [];
+  selectedClient: ClientModel | undefined;
+  selectedClientPackages: ClientPackageModelV1[] = []
+  showFilteredPackagesPopup = false
 
-  constructor(private sessionTypeService: SessionTypeService,
-              private popup: PopupService,
-              private sessionService: SessionService,
-              private clientService: ClientService,
-              private router: Router,
-              private service: SessionServiceV1) {
+
+  constructor(
+    private popup: PopupService,
+    private clientService: ClientService,
+    private router: Router,
+    private service: SessionServiceV1,
+    private packageService: PackagesService) {
   }
 
   ngOnInit(): void {
+
+    this.clientService.getAll().pipe(take(1)).subscribe({
+      next: clients => {
+        this.clients = clients;
+      },
+      error: error => {
+        console.log(error);
+        this.clients = null
+      }
+    })
+
     this.getSessionsAfterToday();
   }
 
@@ -129,7 +151,7 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
         full: session.full,
         startDate: new Date(session.startDate_ts),
         endDate: new Date(session.endDate_ts),
-        sessionType: {...session.sessionType},
+        sessionType: { ...session.sessionType },
         subscriptions: session.subscriptions.map(s => {
           return {
             ...s
@@ -237,17 +259,19 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
           this.selectedSession.calendarItem.subscriptions = subLength;
           this.selectedSession.session.subscriptions = this.selectedSession.originalSession.subscriptions;
           this.selectedSession.originalSession.full = subLength >= this.selectedSession.originalSession.spots;
+          this.selectedSession.session.full = this.selectedSession.originalSession.full
+          this.selectedSession.session.allowUpdate = this.selectedSession.originalSession.subscriptions.length == 0
           this.mapSessionsToCalendarItems();
         }).catch((e: FnError) => {
-        this.popup.error(e.message);
-      }).finally(() => {
-        this.loadingVisible = false;
-      });
+          this.popup.error(e.message);
+        }).finally(() => {
+          this.loadingVisible = false;
+        });
     });
   }
 
   onSessionUpdate(): void {
-    const {spots, sessionType} = this.selectedSession.session;
+    const { spots, sessionType } = this.selectedSession.session;
     this.loadingVisible = true;
     this.service.updateSession(this.selectedSession.originalSession, sessionType, spots, () => {
       this.popup.error(MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO);
@@ -291,13 +315,117 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
             this.showSelectedSessionPopup = false;
           }
         }).catch(e => {
-        console.log(e);
-        this.popup.error(MSG_UNEXPECTED_ERROR);
-      }).finally(() => {
-        this.loadingVisible = false;
-      });
+          console.log(e);
+          this.popup.error(MSG_UNEXPECTED_ERROR);
+        }).finally(() => {
+          this.loadingVisible = false;
+        });
     });
   }
 
- 
+
+  /**
+   * 
+   *  Select client for session flow
+   */
+
+  showAddSubscribersPopup(): void {
+    if(!this.selectedSession || !this.selectedSession.originalSession){
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+      return;
+    }
+    if(this.clients != null) {
+      const subscribedClients = this.selectedSession.originalSession.subscriptions.map(s => s.clientId);
+      this.clientsForSessionPopup = this.clients.filter(c => !subscribedClients.includes(c.uid))
+    } else {
+      this.clientsForSessionPopup = null
+    }
+    this.showClientsPopup = true
+  }
+
+  selectClientForSession() {
+    if(!this.clientListComponent) {
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+      return;
+    }
+
+    const selectedItems = this.clientListComponent.selectedItems;
+    if(selectedItems.length == 0) {
+      this.popup.error('Please select a client');
+      return;
+    }
+
+    this.selectedClient = selectedItems[0];
+
+    this.loadingVisible = true;
+    this.packageService.getActiveClientPackagesForSession(this.selectedClient.uid!, this.selectedSession.originalSession.sessionType.uid)
+      .then((packages) => {
+        this.selectedClientPackages = packages
+        console.log(packages)
+      }).catch((e: FnError) => {
+        this.selectedClientPackages = null
+        this.popup.error(e.message)
+      }).finally(() => {
+        this.loadingVisible = false;
+        this.showFilteredPackagesPopup = true
+      })
+  }
+
+  onFilteredPackagesToolbarPreparing(e: any): void {
+    e.toolbarOptions.items.unshift({
+      location: 'before',
+      widget: 'dxButton',
+      options: {
+        type: 'outlined',
+        text: 'SELECT',
+        onClick: () => {
+          this.subscribeClientToSession()
+        }
+      }
+    });
+  }
+
+  subscribeClientToSession(): void {
+    if(!this.matchingSessionClientPackagesGrid || !this.selectedClient 
+      || !this.selectedSession || !this.selectedSession.originalSession) {
+      this.popup.error(MSG_UNEXPECTED_ERROR_REFRESH_PAGE);
+      return;
+    }
+
+    let selectedRow: any = this.matchingSessionClientPackagesGrid?.instance.getSelectedRowsData();
+    if(selectedRow.length == 0) {
+      this.popup.error(MSG_AC_PLEASE_SELECTED_A_CLIENT_PACKAGE);
+      return;
+    }
+    selectedRow = selectedRow[0] as ClientPackageModelV1
+    this.popup.confirm(MSG_AC_CONFIRM_BOOK_SESSION_FOR_CLIENT(selectedRow._package.title, this.selectedClient.fullName, 
+      this.selectedSession.session.sessionType.title, this.selectedSession.originalSession.startDate_str), confirmed => {
+
+        if(!confirmed) {
+          return
+        }
+        this.loadingVisible = true;
+        this.service.bookSessionForClient(this.selectedClient.uid, selectedRow.uid, this.selectedSession.originalSession.uid)
+        .then((result) => {
+              this.selectedSession.originalSession.subscriptions.push(result.sessionSubscription)
+              const subLength = this.selectedSession.originalSession.subscriptions.length;
+              this.selectedSession.calendarItem.subscriptions = subLength;
+              this.selectedSession.session.subscriptions = this.selectedSession.originalSession.subscriptions;
+              this.selectedSession.originalSession.full = subLength >= this.selectedSession.originalSession.spots;
+              this.selectedSession.session.full = this.selectedSession.originalSession.full
+              this.selectedSession.session.allowUpdate = this.selectedSession.originalSession.subscriptions.length == 0
+              this.mapSessionsToCalendarItems();
+              this.showFilteredPackagesPopup = false
+              this.popup.success(MSG_AC_SESSION_BOOKED_SUCCESS)
+        }).catch((e: FnError) => {
+          this.popup.error(e.message)
+        }).finally(() => {
+          this.loadingVisible = false
+        })
+
+
+      })
+  }
+
 }
+
