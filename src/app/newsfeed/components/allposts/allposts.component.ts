@@ -39,7 +39,12 @@ export class AllpostsComponent implements OnInit, OnDestroy {
     })
   }
 
-
+  getPostText(text: string) {
+    if(text.length < 100) {
+      return text
+    }
+    return text.substr(0, 99) + '...'
+  }
 
 
 }

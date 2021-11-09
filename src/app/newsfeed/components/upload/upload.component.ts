@@ -43,12 +43,17 @@ export class UploadComponent implements OnInit {
 
   imagePath: string = undefined
 
+  isNew: boolean = true
+
+  showSubscribersPopup = false
+
   constructor(private storage: AngularFireStorage, private popup: PopupService, private service: PostsService,
     private route: ActivatedRoute, private router: Router, private location: Location) { }
 
   ngOnInit(): void {
     const uid = this.route.snapshot.paramMap.get('uid');
     if (uid) {
+      this.isNew = false
       this.loadingVisible = true;
       this.service.getOne(uid).subscribe(post => {
         this.post = post
@@ -104,7 +109,7 @@ export class UploadComponent implements OnInit {
 
 
   savePost() {
-    const isNew = !this.post.uid
+    const isNew = this.isNew
     this.post.createdAt_ts = new Date().getTime();
     this.post.lastUpdated_ts = null
     this.post.postType = this.post.isEvent ? "event" : "post"
@@ -139,9 +144,7 @@ export class UploadComponent implements OnInit {
     if (url)
       this.post.imageURL = url
     this.service.update([this.post]).then(() => {
-      this.popup.success('Post updated!', () => {
-        this.location.back()
-      })
+      this.popup.success('Post updated!')
     }).catch(e => {
       console.log(e)
       this.popup.error('Could not update post')
@@ -182,6 +185,16 @@ export class UploadComponent implements OnInit {
 
   isEventClicked(isEvent: boolean) {
     console.log(`is event` + isEvent)
+  }
+
+  viewInterested() {
+    if(!this.post || this.post.eventSubscribers.length == 0) {
+      this.popup.info('Nothing to show');
+      return;
+    }
+
+    this.showSubscribersPopup = true;
+
   }
 
 }

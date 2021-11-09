@@ -305,6 +305,40 @@
 </dx-popup>
 
 
+
+
+
+
+
+
+<dx-popup *ngIf="clients"
+          width="800"
+          height="600"
+          [showTitle]="true"
+          title="Choose clients"
+          [dragEnabled]="false"
+          [closeOnOutsideClick]="true"
+          [(visible)]="showClientsPopup">
+
+          <dx-scroll-view width="100%" height="80%" style="padding: 25px">
+
+          </dx-scroll-view>
+</dx-popup>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- Print options popup -->
 <dx-popup *ngIf="printOptions"
           [width]="500"

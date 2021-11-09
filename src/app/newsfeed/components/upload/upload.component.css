@@ -29,3 +29,10 @@ progress::-webkit-progress-value {
 img {
     width: 250px;
 }
+
+.subs {
+    display: flex;
+    flex-direction: row;
+    margin: 12px;
+    gap: 10px;
+}

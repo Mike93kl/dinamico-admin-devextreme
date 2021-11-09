@@ -278,6 +278,7 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
         deferred.reject();
         return;
       }
+      this.loadingVisible = true
       this.packageService.removePaymentFromClientPackage(this.client.uid, clientPackage.uid, $e.data.uniqueKey)
         .then(() => {
           this.loadingVisible = false;

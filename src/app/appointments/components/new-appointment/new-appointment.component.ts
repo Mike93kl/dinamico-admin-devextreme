@@ -27,7 +27,7 @@ interface SessionGridItem {
   spots: number;
 }
 
-const MAX_DAYS_FROM_TODAY = 31;
+const MAX_DAYS_FROM_TODAY = 90;
 const SUNDAY_DAY_INDEX = 0;
 const SATURDAY_DAY_INDEX = 6;
 
@@ -83,15 +83,15 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
 
 
   static getSessionDayCreated(d: Date): string {
-    return `<p><small class="text-success">+</small> Session Day ${d.toLocaleString()} created.</p>`;
+    return `<p><small class="text-success">+</small> Session @ ${d.toLocaleString()} created.</p>`;
   }
 
   static getSessionDaySkipped(d: Date): string {
-    return `<p><small class="text-warning">-</small> Session Day ${d.toLocaleString()} exists, thus it is skipped.</p>`;
+    return `<p><small class="text-warning">-</small> Session @ ${d.toLocaleString()} with that session type exists, thus it is skipped.</p>`;
   }
 
   static getSessionDayFailed(d: Date): string {
-    return `<p><small class="text-danger">-</small> Sessions for ${d.toLocaleDateString()} failed to be created.</p>`;
+    return `<p><small class="text-danger">-</small> Sessions @ ${d.toLocaleDateString()} failed to be created.</p>`;
   }
 
   constructor(
@@ -157,6 +157,7 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   private validateRow(data: SessionGridItem): boolean {
+    console.log(data)
     if (!this.sessionTypes.find(s => s.uid === data.sessionTypeId)) {
       this.popup.error(MSG_NAC_ENTER_VALID_SESSION_TYPE);
       return true;
@@ -267,7 +268,14 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
       stripHoursFromDate(date);
 
       const existingDaySessions = await firstValueFrom(this.sessionService.getExistingSessionsOf(date));
-      const existingTimestamps = existingDaySessions.map(e => e.startDate_ts);
+      // const existingTimestamps = existingDaySessions.map(e => e.startDate_ts);
+      const existingTimestamps = existingDaySessions.reduce((r, c) => {
+          if(!r.hasOwnProperty(c.startDate_ts)) {
+            r[c.startDate_ts] = []
+          }
+          r[c.startDate_ts].push(c.sessionType.uid)
+          return r
+      }, {})
 
       const gridItems = this.gridSessions.map(g => {
         g.startDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
@@ -286,9 +294,11 @@ export class NewAppointmentComponent implements OnInit, OnDestroy, AfterViewInit
 
       for (let g = gridItems.length - 1; g >= 0; g--) {
         const start = gridItems[g].startDate.getTime();
-        if (existingTimestamps.includes(start)) {
-          finalMsg += NewAppointmentComponent.getSessionDaySkipped(gridItems[g].startDate);
-          gridItems.splice(g, 1);
+        if(existingTimestamps.hasOwnProperty(start)) {
+          if(existingTimestamps[start].includes(gridItems[g].sessionTypeId)) {
+            finalMsg += NewAppointmentComponent.getSessionDaySkipped(gridItems[g].startDate);
+            gridItems.splice(g, 1);
+          }
         }
       }
 

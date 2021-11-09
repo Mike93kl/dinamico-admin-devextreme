@@ -5,7 +5,7 @@ import {Observable} from 'rxjs';
 import {FunctionService} from './function.service';
 import {SessionModelV1} from '../models/SessionModelV1';
 import {ClientSessionModelV1, SessionStatus} from "../models/ClientSessionModelV1";
-import {CLIENT_SESSIONS} from "../utils/Collections";
+import {CLIENTS, CLIENT_SESSIONS} from "../utils/Collections";
 import {SessionSubscriptionModel} from "../models/SessionSubscriptionModel";
 import {SessionTypeModel} from "../models/SessionTypeModel";
 import {MSG_AC_SPOTS_CANNOT_BE_LESS_THAN_SUB_OR_ZERO} from "../utils/ui_messages";
@@ -105,4 +105,9 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
     }
     return this.update([session]);
   }
+
+  // getClientsNotInSession(sessionId: String): Observable<ClientModel[]> {
+  //   return this.fs.collection(CLIENTS, ref => ref.where('uid', ))
+  // }
+
 }

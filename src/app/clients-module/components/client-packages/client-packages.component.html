@@ -60,7 +60,7 @@
               cellTemplate="pkgPriceTemplate"></dxi-column>
   <dxi-column dataField="owes" caption="Owes" [width]="50" [minWidth]="50" cellTemplate="owsCellTemplate"
               [hidingPriority]="7"></dxi-column>
-  <dxi-column dataField="paid" caption="Paid" [hidingPriority]="6" [width]="50" [minWidth]="50"
+  <dxi-column dataField="paid" caption="Paid" cellTemplate="paidCellTemplate" [hidingPriority]="6" [width]="50" [minWidth]="50"
               [allowResizing]="false"></dxi-column>
   <dxi-column dataField="expired" [allowResizing]="false" [hidingPriority]="5" caption="Status"
               cellTemplate="expiredCell"></dxi-column>
@@ -73,7 +73,10 @@
   <dxi-column dataField="isCustom" [allowResizing]="false" caption="Custom Pkg." cellTemplate="isCustomTemplate"
               dataType="boolean" [hidingPriority]="1"></dxi-column>
   <dxi-column dataField="uid" caption="UID" [hidingPriority]="0"></dxi-column>
-
+  
+  <div *dxTemplate="let row of 'paidCellTemplate'">
+    <div [ngClass]="{'paid': row.data.paid}" >{{row.data.paid?'yes':'no'}}</div>
+  </div>
   <div *dxTemplate="let row of 'owsCellTemplate'">
     <div>{{calculateMoneyOwed(row.data) | currency:"EUR" }}</div>
   </div>
@@ -151,7 +154,7 @@
           confirmDeleteMessage="">
         </dxo-texts>
       </dxo-editing>
-      <dxi-column dataField="payment" caption="$$" cellTemplate="paymentTemplate"></dxi-column>
+      <dxi-column dataField="payment" caption="Amount" cellTemplate="paymentTemplate"></dxi-column>
       <dxi-column dataField="datePaid_ts" [allowEditing]="false" caption="Date"
                   cellTemplate="paymentDateTemplate"></dxi-column>
 

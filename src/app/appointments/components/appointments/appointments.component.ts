@@ -19,6 +19,7 @@ import {DxSchedulerComponent} from 'devextreme-angular';
 import {SessionTypeModel} from '../../../models/SessionTypeModel';
 import {SessionSubscriptionModel} from '../../../models/SessionSubscriptionModel';
 import {FnError} from "../../../models/fn/FnResponseHandler";
+import { ClientModel } from 'src/app/models/ClientModel';
 
 declare var $: any;
 
@@ -77,6 +78,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
     printEndDate: any;
   } = null;
   sessionTypes: SessionTypeModel[];
+
+
+  // clients to subscribe to session
+  clients: ClientModel[] = []
+  showClientsPopup = false
 
   constructor(private sessionTypeService: SessionTypeService,
               private popup: PopupService,
@@ -292,4 +298,6 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
       });
     });
   }
+
+ 
 }

@@ -68,3 +68,7 @@
 .checkbox {
   margin: .4rem;
 }
+
+.paid {
+  color: green;
+}

@@ -1,12 +1,12 @@
 export const environment = {
     production: false,
     firebaseConfig: {
-        apiKey: "AIzaSyCljKRECkXseRJo6HPdK-FdeGnbwuUgQAg",
-        authDomain: "dinamico-stg.firebaseapp.com",
-        projectId: "dinamico-stg",
-        storageBucket: "dinamico-stg.appspot.com",
-        messagingSenderId: "578423588083",
-        appId: "1:578423588083:web:f54f86430f89e15af8e386",
-        measurementId: "G-FSRB2KPCCF"
+        apiKey: "AIzaSyAPh9fTOgNvzjDsSNEOu1qNTutmApTlCLw",
+        authDomain: "dinamico-stg-5eed4.firebaseapp.com",
+        projectId: "dinamico-stg-5eed4",
+        storageBucket: "dinamico-stg-5eed4.appspot.com",
+        messagingSenderId: "687198115623",
+        appId: "1:687198115623:web:b77cb86eff50b3ff253b02",
+        measurementId: "G-G1EQ9QXGS2"
     }
 };
