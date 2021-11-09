@@ -45,4 +45,8 @@ export class PackagesService extends FirebaseService<PackageModel> {
   updateEstMaxUsages(clientId: string, clientPackageId: string, eligibleSessionTypeId: string, maxUsages: number): Promise<ClientEligibleSessionTypeModel> {
     return this.fn.updateEstMaxUsages(clientId, clientPackageId, eligibleSessionTypeId, maxUsages);
   }
+
+  getActiveClientPackagesForSession(clientId: string, sessionTypeId: string): Promise<ClientPackageModelV1[]> {
+    return this.fn.getActiveClientPackagesForSession(clientId, sessionTypeId)
+  }
 }

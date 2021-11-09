@@ -22,3 +22,4 @@ export const REMOVE_CLIENT_PACKAGE_PAYMENT = 'remove_client_package_payment';
 export const UPDATE_EST_MAX_USAGES = 'update_est_max_usages';
 export const BOOK_SESSION_FOR_CLIENT = 'book_session_for_client';
 export const CANCEL_SESSION_FOR_CLIENT = 'cancel_session_for_client';
+export const GET_ACTIVE_CLIENT_PACKAGES_FOR_SESSION = 'get_active_client_packages_for_session';

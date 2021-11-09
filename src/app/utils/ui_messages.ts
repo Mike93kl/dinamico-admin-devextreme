@@ -85,6 +85,11 @@ export function MSG_AC_CONFIRM_DELETE_SESSION(date: string): string {
   return `You are about to delete session @ ${date}. Proceed?`;
 }
 
+export const MSG_AC_PLEASE_SELECTED_A_CLIENT_PACKAGE = 'Please select one client package to subscribe client to session';
+export function MSG_AC_CONFIRM_BOOK_SESSION_FOR_CLIENT(clientPackageName, clientName, sessionType, sessionTime): string {
+  return `You are about to book a ${sessionType} session @ ${sessionTime} for "${clientName}" by using ${clientPackageName} package. Proceed? `
+}
+export const MSG_AC_SESSION_BOOKED_SUCCESS = 'Session booked successfuly';
 /**
  * CLIENT SESSIONS COMPONENT
  */

@@ -118,4 +118,18 @@
   cursor: pointer;
   justify-self: flex-end !important;
 }
+.add-subs {
+  display: flex;
+  flex-direction: row;
+  gap: 15px
+
+}
+
+.client-info {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+  justify-self: flex-start;
+}
 

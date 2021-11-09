@@ -17,6 +17,7 @@ function unexpected_fn_error(): FnError {
 }
 
 export function error(e: any): FnError {
+  console.log(e)
   if (instanceOfFnError(e)) { return e; }
   return unexpected_fn_error();
 }
