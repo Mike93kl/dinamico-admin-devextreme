@@ -26,7 +26,8 @@ export class UploadComponent implements OnInit {
     postType: 'post',
     isEvent: false,
     eventSubscribers: [],
-    imageURL: ''
+    imageURL: '',
+    postedAt_ts: null
   };
   loadingVisible = false;
   // main task
