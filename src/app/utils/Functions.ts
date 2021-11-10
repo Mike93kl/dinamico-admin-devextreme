@@ -5,7 +5,7 @@ export const REVOKE_ADMIN = 'revoke_admin';
 export const REVOKE_MANAGER = 'revoke_manager';
 export const GET_USER_CLAIMS = 'get_user_claims';
 export const NULLIFY_CLAIMS = 'nullify_claims';
-export const CREATE_CLIENT = 'create_client';
+//export const CREATE_CLIENT = 'create_client';
 export const CREATE_USER = 'create_user';
 export const GET_CLIENT_SESSIONS = 'fetch_client_sessions';
 export const CANCEL_CLIENT_SESSION = 'cancel_clients_session';
@@ -16,6 +16,7 @@ export const CUSTOM_PACKAGE_FOR_CLIENT = 'custom_package_for_client';
 export const GET_CLIENTS_OF_SESSION = 'get_clients_of_session';
 
 // V1
+export const CREATE_CLIENT = 'create_client_v0';
 export const GET_ALL_PACKAGES_V1 = 'get_all_packages_v1';
 export const ADD_CLIENT_PACKAGE_PAYMENT = 'add_client_package_payment';
 export const REMOVE_CLIENT_PACKAGE_PAYMENT = 'remove_client_package_payment';

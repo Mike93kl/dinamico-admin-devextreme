@@ -64,7 +64,7 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
       to.setHours(23, 59, 59, 0);
     }
     return this.fs.collection<ClientSessionModelV1>(CLIENT_SESSIONS, ref => {
-      let q = ref.orderBy('startDate_ts', 'asc');
+      let q = ref.where('clientId', '==', uid);
       if (from && to) {
         q = q.where('startDate_ts', '>', from.getTime())
           .where('startDate_ts', '<', to.getTime());
@@ -77,7 +77,7 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
       if (limit !== -1) {
         q = q.limit(limit);
       }
-      return q;
+      return q.orderBy('startDate_ts', 'asc');
     }).valueChanges();
   }
 
