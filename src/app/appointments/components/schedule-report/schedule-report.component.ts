@@ -46,7 +46,11 @@ export class ScheduleReportComponent implements OnInit {
     this.allData = history.state.data as SessionModelV1[];
     const length = this.allData.length
     this.startDate = new Date(this.allData[0].startDate_ts)
+<<<<<<< HEAD
     this.startDate = new Date(this.allData[length -1].startDate_ts)
+=======
+    this.endDate = new Date(this.allData[length -1].startDate_ts)
+>>>>>>> develop
     this.formatSchedule()
     
   }
