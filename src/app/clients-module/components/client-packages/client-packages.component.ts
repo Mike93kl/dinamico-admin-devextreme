@@ -349,5 +349,9 @@ export class ClientPackagesComponent implements OnInit, OnDestroy {
     return data._package.price - totalPaid;
   }
 
+  formatCurrency(e: string): string {
+    return e.replace('$', '€')
+  }
+
 }
 
