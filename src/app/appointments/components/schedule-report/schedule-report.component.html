@@ -24,22 +24,22 @@
         <hr>
         <br>
 
-        <div *ngFor="let s of schedule | keyvalue">
+        <div *ngFor="let m of mapArray">
 
           <div>
-            <h4 class="" ><strong> {{ s.key }} </strong></h4>
+            <h4 class="" ><strong> {{ m[0] }}</strong></h4>
           </div>
           <hr>
           <br>
-          <div *ngFor="let d of s.value.data">
+          <div *ngFor="let s of m[1]">
 
-            <h6 class="time"> <strong> {{ d.session.startDate.seconds * 1000 | date:"shortTime" }} - {{ d.session.endDate.seconds * 1000 | date:"shortTime" }} -
-            {{ d.session.sessionType.title }} </strong></h6>
+            <h6 class="time"> <strong> {{ s.startDate_ts | date:"shortTime" }} - {{ s.endDate_ts | date:"shortTime" }} -
+            {{ s.sessionType.title }} </strong></h6>
 
             <div *ngIf="showClients">
-              <h6 class="client-title"> <u> Subscribed Clients: ( {{ d.clients.length }} ) </u> </h6>
-              <div *ngFor="let c of d.clients">
-                <p class="client">{{ c.fullName }}</p>
+              <h6 class="client-title"> <u> Subscribed Clients: ( {{ s.subscriptions.length }} ) </u> </h6>
+              <div *ngFor="let c of s.subscriptions">
+                <p class="client">{{ c.clientFullName }}</p>
               </div>
             </div>
 

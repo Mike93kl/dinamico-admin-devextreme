@@ -82,7 +82,11 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
     today: boolean;
     printBeginDate: any;
     printEndDate: any;
-  } = null;
+  } = {
+    today: true,
+    printBeginDate: null,
+    printEndDate: null
+  };;
   sessionTypes: SessionTypeModel[];
 
 
@@ -170,15 +174,43 @@ export class AppointmentsComponent implements OnInit, OnDestroy {
 
 
   showPrintOptions(): void {
-    this.printOptions = {
-      today: true,
-      printBeginDate: null,
-      printEndDate: null
-    };
     this.showPrintOptionsPopup = true;
   }
 
   generateScheduleReport(): void {
+    let start;
+    let end;
+
+    if(this.printOptions.today) {
+      start = new Date();
+      end = new Date()
+    } else {
+      if(!this.printOptions.printBeginDate || !this.printOptions.printEndDate) {
+        this.popup.error('Please select valid dates');
+        return;
+      }
+
+      start = new Date(this.printOptions.printBeginDate)
+      end = new Date(this.printOptions.printEndDate)
+    }
+
+    this.loadingVisible = true
+    this.service.getByDateRange(start, end).pipe(take(1))
+    .subscribe({
+      next: sessions => {
+        this.loadingVisible = false
+        if(sessions.length == 0) {
+          this.popup.info('Nothing to show for the selected dates');
+          return;
+        }
+        this.router.navigateByUrl('/schedule-report', {state: {data: sessions}})
+      },
+      error: e => {
+        this.loadingVisible = false
+        console.log(e);
+        this.popup.error(MSG_UNEXPECTED_ERROR);
+      }
+    })
   }
 
   fetchByDateRange(start: Date, end: Date): void {
