@@ -34,6 +34,13 @@ export class PackagesService extends FirebaseService<PackageModel> {
     }).valueChanges();
   }
 
+  getUnPaidClientPackages(): Observable<ClientPackageModelV1[]> {
+    return this.fs.collection<ClientPackageModelV1>(CLIENT_PACKAGES, ref => {
+      return ref.where('paid', '==', false)
+        .orderBy('createdAt_ts', 'asc');
+    }).valueChanges();
+  }
+
   addPaymentToClientPackage(clientId: string, clientPackageId: string, payment: number): Promise<PaymentModel> {
     return this.fn.addClientPackagePayment(clientId, clientPackageId, payment, new Date().getTime());
   }

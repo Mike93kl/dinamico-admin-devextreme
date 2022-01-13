@@ -8,12 +8,7 @@ import {ClientsComponent} from './clients-module/components/clients/clients.comp
 
 const routes: Routes = [
   {path: 'login', component: LoginComponent},
-  {
-    path: '', component: SideNavComponent, canActivate: [AuthGuard],
-    children: [
-      {path: '', component: DashboardComponent, pathMatch: 'full'}
-    ]
-  }
+  {path: '', component: DashboardComponent, canActivate: [AuthGuard]}
 ];
 
 @NgModule({

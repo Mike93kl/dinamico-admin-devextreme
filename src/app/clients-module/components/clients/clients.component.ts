@@ -33,11 +33,11 @@ export class ClientsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.clientsSub?.unsubscribe()
+    //this.clientsSub?.unsubscribe()
   }
 
   ngOnInit(): void {
-    this.clientsSub = this.clientService.getAll()
+    this.clientService.getAll().pipe(take(1))
       .subscribe({
         next: clients => {
           this.clients = clients;

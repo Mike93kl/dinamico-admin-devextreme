@@ -1,1 +1,33 @@
-<p>This is the <u>Dashboard</u>. In the future, useful information will be presented here</p>
+<app-side-nav>
+
+    
+    <section id="dashboard">
+
+        <p> {{currDate | date:"longTime"}} </p>
+
+
+        <div class="sessions">
+
+            <h4>Current Sessions</h4>
+
+            <div *ngIf="currSessions?.length > 0">
+
+                <p *ngFor="let c of currSessions" style="font-size: 1.2em;"> <strong>{{c.sessionType.title}} - Session</strong> @ <strong>{{c.startDate_ts | date:"shortTime"}}</strong> </p>   
+
+            </div>
+
+            <div *ngIf="currSessions?.length == 0">
+                <p>No sessions at current time</p>
+            </div>
+
+        </div>
+
+
+        <section id="payments">
+
+        </section>
+
+    </section>
+
+
+</app-side-nav>
