@@ -1,16 +1,18 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit, ViewChild, OnDestroy} from '@angular/core';
 import {ClientService} from '../../../services/client.service';
 import {ClientModel} from '../../../models/ClientModel';
 import {PopupService} from '../../../services/popup.service';
 import {DatePipe} from '@angular/common';
 import {DxDataGridComponent} from 'devextreme-angular';
 import {take} from 'rxjs/operators';
+import {Subscription} from 'rxjs'
 import {FnError} from '../../../models/fn/FnResponseHandler';
 import {
   MSG_CLIENT_NAME_REQUIRED,
   MSG_EMAIL_INVALID_FORMAT,
   MSG_EMAIL_REQUIRED,
-  MSG_PHONE_NUMBER_REQUIRED
+  MSG_PHONE_NUMBER_REQUIRED,
+  MSG_UNEXPECTED_ERROR
 } from '../../../utils/ui_messages';
 
 declare var $: any;
@@ -20,20 +22,31 @@ declare var $: any;
   templateUrl: './clients.component.html',
   styleUrls: ['./clients.component.css']
 })
-export class ClientsComponent implements OnInit {
+export class ClientsComponent implements OnInit, OnDestroy {
 
   @ViewChild(DxDataGridComponent) dxDataGrid: DxDataGridComponent | undefined;
 
   clients: ClientModel[];
+  clientsSub: Subscription | undefined;
 
   constructor(private clientService: ClientService, private popup: PopupService, private datePipe: DatePipe) {
   }
 
+  ngOnDestroy(): void {
+    //this.clientsSub?.unsubscribe()
+  }
+
   ngOnInit(): void {
     this.clientService.getAll().pipe(take(1))
-      .subscribe(clients => {
-        this.clients = clients;
-      }, error => this.popup.error(error));
+      .subscribe({
+        next: clients => {
+          this.clients = clients;
+        },
+        error: err => {
+          console.log(err)
+          this.popup.error(MSG_UNEXPECTED_ERROR)
+        }
+      });
   }
 
   private validClientObject(data: ClientModel): boolean {

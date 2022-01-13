@@ -55,6 +55,10 @@ export class SessionServiceV1 extends FirebaseService<SessionModelV1> {
     }).valueChanges();
   }
 
+  getTodaysSessions(): Observable<SessionModelV1[]> {
+    return this.getByDateRange(new Date(), new Date());
+  }
+
   getSessionsOfClient(uid: string, status: SessionStatus | 'all',
                       limit = -1, from?: Date, to?: Date): Observable<ClientSessionModelV1[]> {
     if (from) {
