@@ -106,6 +106,7 @@ export class ClientComponent implements OnInit, OnDestroy {
 
   updateClient(): void {
     this.updating = true;
+    this.client.dateOfBirth = this.populateDate(this.client.dateOfBirth);
     this.clientService.update([this.client], true)
       .then(success => {
         this.clientCopy = null;
@@ -133,4 +134,15 @@ export class ClientComponent implements OnInit, OnDestroy {
   onRefreshClientPackages(): void {
     this.clientPackagesComponent?.refreshPackages();
   }
+  populateDate(object: any): number {
+    if (typeof object === 'number') {
+      return object;
+    }
+
+    if (object instanceof Date) {
+      return object.getTime();
+    }
+    return 0;
+  }
+
 }
